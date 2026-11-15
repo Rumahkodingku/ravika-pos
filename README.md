@@ -4,7 +4,7 @@
 
 POS self-hosted untuk kafe dan UMKM. Satu instalasi melayani satu bisnis, berjalan di komputer server lokal, dan diakses lewat LAN/Wi-Fi tanpa mewajibkan internet untuk transaksi.
 
-**Status:** Fase 0 selesai — fondasi repo. Fase 1 (design system) berikutnya. Backend belum diimplementasikan.
+**Status:** Fase 1 selesai — frontend foundation dan design system. Fase 2 (management UI) berikutnya. Backend belum diimplementasikan.
 
 ## Stack
 
@@ -17,6 +17,7 @@ Sudah terpasang:
 - Biome 2.4
 - pnpm 10.34.5
 - Node.js 26.9.0
+- Lucide React
 
 Direncanakan, belum dipasang:
 
@@ -63,10 +64,12 @@ src/
 ├── components/
 │   ├── ui/              # komponen dasar
 │   ├── shells/          # layout per experience
-│   └── feedback/        # loading, empty, error, offline
+│   ├── feedback/        # loading, empty, error, offline
+│   └── theme/           # theme provider, script, toggle
 ├── features/            # UI per domain
 ├── lib/                 # utilitas dan service contracts
 ├── mocks/               # fixtures dan mock service
+├── styles/              # token CSS
 └── types/               # tipe domain bersama
 ```
 
@@ -82,6 +85,9 @@ Route group masih placeholder. Halaman fitur diisi pada Fase 2 dan Fase 3. `src/
 | `/kds` | Kitchen Display System |
 | `/menu/[token]` | Menu pelanggan via QR |
 | `/order/[publicToken]` | Status pesanan pelanggan |
+| `/app/design-system` | Pratinjau komponen Fase 1 |
+
+Token desain ada di `src/styles/tokens.css`. Theme, shell, dan komponen dasar sudah tersedia; pratinjau ada di `/app/design-system`.
 
 API, database, autentikasi nyata, dan SSE belum dibuat.
 

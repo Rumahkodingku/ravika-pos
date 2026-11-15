@@ -1,0 +1,82 @@
+:root {
+  color-scheme: light;
+
+  --ravika-brand-deep-navy: #101828;
+  --ravika-brand-blue: #315b91;
+  --ravika-brand-accent: #3978d5;
+  --ravika-neutral-white: #ffffff;
+  --ravika-neutral-light-gray: #f3f5f8;
+  --ravika-neutral-gray: #667085;
+
+  --ravika-green-600: #16a36a;
+  --ravika-amber-600: #d99019;
+  --ravika-red-600: #dc4c4c;
+  --ravika-blue-600: #3978d5;
+
+  --ravika-background: #ffffff;
+  --ravika-foreground: #101828;
+  --ravika-surface: #ffffff;
+  --ravika-surface-subtle: #f3f5f8;
+  --ravika-surface-elevated: #ffffff;
+  --ravika-muted: #f3f5f8;
+  --ravika-muted-foreground: #667085;
+  --ravika-border: #e4e7ec;
+  --ravika-input: #d0d5dd;
+  --ravika-primary: #3978d5;
+  --ravika-primary-foreground: #ffffff;
+  --ravika-secondary: #eef2f7;
+  --ravika-secondary-foreground: #101828;
+  --ravika-success: #16a36a;
+  --ravika-success-subtle: #e8f7ef;
+  --ravika-warning: #b7791f;
+  --ravika-warning-subtle: #fff5df;
+  --ravika-danger: #dc4c4c;
+  --ravika-danger-subtle: #fdecec;
+  --ravika-info: #3978d5;
+  --ravika-info-subtle: #eaf2ff;
+  --ravika-focus-ring: #3978d5;
+
+  --ravika-radius-sm: 6px;
+  --ravika-radius-md: 8px;
+  --ravika-radius-lg: 12px;
+  --ravika-radius-xl: 16px;
+
+  --z-base: 0;
+  --z-dropdown: 40;
+  --z-sticky: 50;
+  --z-overlay: 60;
+  --z-dialog: 70;
+  --z-toast: 80;
+
+  --motion-micro: 120ms;
+  --motion-standard: 180ms;
+  --motion-overlay: 220ms;
+  --motion-ease: cubic-bezier(0.2, 0, 0, 1);
+}
+
+.dark {
+  color-scheme: dark;
+
+  --ravika-background: #101828;
+  --ravika-foreground: #f8fafc;
+  --ravika-surface: #172235;
+  --ravika-surface-subtle: #1d2a3d;
+  --ravika-surface-elevated: #243247;
+  --ravika-muted: #29384d;
+  --ravika-muted-foreground: #a7b2c2;
+  --ravika-border: #344256;
+  --ravika-input: #46566d;
+  --ravika-primary: #6ea5f5;
+  --ravika-primary-foreground: #081b34;
+  --ravika-secondary: #29384d;
+  --ravika-secondary-foreground: #e8eef6;
+  --ravika-success: #35c78a;
+  --ravika-success-subtle: #123b2c;
+  --ravika-warning: #f0b64d;
+  --ravika-warning-subtle: #453414;
+  --ravika-danger: #f07878;
+  --ravika-danger-subtle: #481f27;
+  --ravika-info: #6ea5f5;
+  --ravika-info-subtle: #172f50;
+  --ravika-focus-ring: #8ab8ff;
+}

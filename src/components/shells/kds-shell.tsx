@@ -1,0 +1,50 @@
+import { ChefHat, LogOut } from "lucide-react";
+import Link from "next/link";
+import { ConnectionIndicator } from "@/components/feedback/connection-indicator";
+import { ShellTheme } from "@/components/shells/shell-theme";
+import { ThemeToggle } from "@/components/theme/theme-toggle";
+import { buttonVariants } from "@/components/ui/button";
+import { mockOutlets } from "@/mocks/outlets";
+
+export function KdsShell({ children }: { children: React.ReactNode }) {
+  const outlet = mockOutlets[0];
+
+  return (
+    <ShellTheme defaultTheme="dark">
+      <div className="flex min-h-dvh flex-col bg-background">
+        <header className="sticky top-0 z-[var(--z-sticky)] border-b border-border bg-background/95 backdrop-blur">
+          <div className="flex min-h-16 flex-wrap items-center gap-3 px-4 py-2 sm:px-6">
+            <Link
+              className="flex shrink-0 items-center gap-2 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
+              href="/kds"
+            >
+              <span className="flex h-9 w-9 items-center justify-center rounded-md bg-primary text-primary-foreground">
+                <ChefHat aria-hidden="true" className="h-5 w-5" />
+              </span>
+              <span className="flex flex-col leading-tight">
+                <span className="text-label font-semibold text-foreground">
+                  RAVIKA KDS
+                </span>
+                <span className="text-caption text-muted-foreground">
+                  {outlet.name}
+                </span>
+              </span>
+            </Link>
+            <ConnectionIndicator className="ml-auto" status="connected" />
+            <ThemeToggle />
+            <Link
+              className={buttonVariants({ variant: "outline", size: "sm" })}
+              href="/app"
+            >
+              <LogOut aria-hidden="true" className="h-4 w-4" />
+              <span className="hidden sm:inline">Keluar KDS</span>
+            </Link>
+          </div>
+        </header>
+        <main className="min-h-0 flex-1 overflow-x-auto p-4 sm:p-6">
+          {children}
+        </main>
+      </div>
+    </ShellTheme>
+  );
+}

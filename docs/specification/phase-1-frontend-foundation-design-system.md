@@ -1,6 +1,6 @@
 # RAVIKA POS — Spesifikasi Fase 1: Frontend Foundation and Design System
 
-**Status:** Draft final untuk implementasi  
+**Status:** Implemented — Fase 1 selesai
 **Fase:** 1  
 **Referensi:** PRD, ROADMAP, design-brief, design-direction, design-system, ui-ux-guidelines  
 **Keputusan user:** komponen lengkap + chart; semua 4 shell; `tokens.css` terpisah; theme global + default per shell; mock 3 role; global + shell-level boundaries
@@ -520,3 +520,12 @@ Manual:
 ## 24. Handoff ke Phase 2
 
 Phase 2 memakai fondasi ini untuk membangun management UI dengan dummy data. Placeholder route diganti bertahap. Mock data tetap terpusat. Permission gating tetap mock sampai backend.
+
+## 25. Implementation notes
+
+- Semua komponen dan shell pada spesifikasi ini sudah diimplementasikan.
+- Preview komponen tersedia di `/app/design-system`.
+- Chart memakai SVG custom; tidak ada chart library.
+- Tidak ada test runner pada Fase 1; verifikasi memakai lint, typecheck, build, dan QA visual manual.
+- Dynamic customer routes memakai `export const instant = false` untuk menghindari peringatan URL data pada `cacheComponents`.
+- Theme global disimpan di `localStorage` dengan key `ravika-theme`; default per shell diterapkan saat belum ada preferensi.
