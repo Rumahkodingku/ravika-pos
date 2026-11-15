@@ -1,36 +1,108 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# RAVIKA POS
 
-## Getting Started
+> Run your business with clarity.
 
-First, run the development server:
+POS self-hosted untuk kafe dan UMKM. Satu instalasi melayani satu bisnis, berjalan di komputer server lokal, dan diakses lewat LAN/Wi-Fi tanpa mewajibkan internet untuk transaksi.
+
+**Status:** Fase 0 selesai — fondasi repo. Fase 1 (design system) berikutnya. Backend belum diimplementasikan.
+
+## Stack
+
+Sudah terpasang:
+
+- Next.js 16.4.6 (App Router, Turbopack)
+- React 19.3
+- TypeScript strict
+- Tailwind CSS 4.3
+- Biome 2.4
+- pnpm 10.34.5
+- Node.js 26.9.0
+
+Direncanakan, belum dipasang:
+
+- SQLite + Drizzle ORM + `better-sqlite3`
+- Zod, Zustand, TanStack Query, React Hook Form
+- SSE untuk KDS
+- Vitest dan Playwright
+
+## Menjalankan
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+pnpm install
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Buka `http://localhost:3000`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Tidak ada environment variable wajib pada fase frontend. Variabel backend dan database ditambahkan pada Fase 5.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Command
 
-## Learn More
+```bash
+pnpm dev        # development server
+pnpm build      # production build + typecheck
+pnpm start      # jalankan hasil build
+pnpm lint       # Biome check
+pnpm typecheck  # tsc --noEmit
+pnpm check      # lint + typecheck
+pnpm format     # Biome format --write
+```
 
-To learn more about Next.js, take a look at the following resources:
+Verifikasi perubahan: `pnpm lint` → `pnpm typecheck` → `pnpm build`.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Struktur
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```text
+src/
+├── app/
+│   ├── (auth)/          # /login
+│   ├── (dashboard)/     # /app
+│   ├── (cashier)/       # /app/pos
+│   ├── (kds)/           # /kds
+│   └── (customer)/      # /menu/[token], /order/[publicToken]
+├── components/
+│   ├── ui/              # komponen dasar
+│   ├── shells/          # layout per experience
+│   └── feedback/        # loading, empty, error, offline
+├── features/            # UI per domain
+├── lib/                 # utilitas dan service contracts
+├── mocks/               # fixtures dan mock service
+└── types/               # tipe domain bersama
+```
 
-## Deploy on Vercel
+Route group masih placeholder. Halaman fitur diisi pada Fase 2 dan Fase 3. `src/modules` dan `src/infrastructure` ditambahkan pada Fase 5 saat backend dimulai.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Route yang direncanakan
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+| Route | Area |
+|---|---|
+| `/login` | Autentikasi internal |
+| `/app` | Dashboard owner |
+| `/app/pos` | POS kasir |
+| `/kds` | Kitchen Display System |
+| `/menu/[token]` | Menu pelanggan via QR |
+| `/order/[publicToken]` | Status pesanan pelanggan |
+
+API, database, autentikasi nyata, dan SSE belum dibuat.
+
+## Dokumen
+
+- `docs/PRD.md` — sumber kebenaran produk, aturan bisnis, permission, API konseptual
+- `docs/ROADMAP.md` — urutan fase dan approval gate
+- `docs/design/design-brief.md` — konteks pengguna dan tujuan desain
+- `docs/design/design-direction.md` — arah visual
+- `docs/design/design-system.md` — token dan spesifikasi komponen
+- `docs/design/ui-ux-guidelines.md` — interaksi, responsive, aksesibilitas, QA
+
+Baca PRD dan seluruh dokumen desain sebelum membuat halaman atau komponen baru.
+
+## Aturan pengembangan
+
+- Frontend UI dulu. Backend operasional baru dimulai setelah UI Approval Gate (M4).
+- Fase 0–4 memakai mock data terpusat; jangan membuat API atau persistence.
+- Jangan menambah UI library tanpa persetujuan. Komponen dasar dibuat custom dengan HTML native.
+- Gunakan token desain; jangan sebar nilai warna, spacing, atau radius mentah.
+- Copy UI berbahasa Indonesia. Kode dan komentar berbahasa Inggris.
+- Status pembayaran dan status persiapan pesanan harus tetap terpisah.
+- Jangan mengarang aturan bisnis, field, permission, atau transisi status.
+- Keputusan yang belum final ada di `docs/PRD.md` bagian 17.

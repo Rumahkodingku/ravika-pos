@@ -1,3 +1,69 @@
+# RAVIKA POS
+
+Self-hosted, LAN-first POS for cafes. Current repo is a Next.js 16 App Router frontend scaffold; backend is intentionally not implemented yet.
+
+## Commands
+
+- Use pnpm only. `package-lock.json` is gone; do not create one.
+- Node baseline: 26.9.0 (`.nvmrc`, `engines`). This is not LTS; re-check native modules in Phase 5.
+- Dev: `pnpm dev`
+- Build: `pnpm build` (also typechecks)
+- Start: `pnpm start`
+- Lint/format check: `pnpm lint` (`biome check`)
+- Typecheck: `pnpm typecheck` (`tsc --noEmit`)
+- Full check: `pnpm check` (lint + typecheck)
+- Format: `pnpm format` (`biome format --write`)
+- No test script yet. Roadmap plans Vitest + Playwright, but they are not installed.
+- Recommended verification: `pnpm lint`, then `pnpm typecheck`, then `pnpm build` for touched routes.
+
+## Stack and config
+
+- Next.js 16.4.6, React 19.3, TypeScript strict, Tailwind CSS 4.3.
+- Path alias: `@/*` -> `./src/*`.
+- Biome 2.4: 2-space indent, organize imports on, Tailwind directives enabled in CSS.
+- No UI library. Build primitives with native HTML and local components; ask before adding Radix, shadcn, or similar.
+- `next.config.ts`: `experimental.agentFeedback`, `cacheComponents`, `partialPrefetching`, Turbopack `*.css` loader via `@tailwindcss/turbopack`.
+- Do not edit `next-env.d.ts`; it is generated and references `.next` route types.
+- `.next/` is build output and ignored.
+
+## Architecture and scope
+
+- Frontend-first strategy: build UI with mock data, review, then backend. Do not implement operational backend until UI is approved.
+- Keep data types and service contracts consistent so mock implementations can be swapped for APIs.
+- Modular monolith. No microservices, Redis, PostgreSQL, NestJS, or cloud dependencies without a product/architecture decision.
+- Four separate experiences/shells: Owner management, Dedicated POS, KDS, Customer QR menu. Do not build one universal layout.
+- Route groups are already reserved: `(auth)`, `(dashboard)`, `(cashier)`, `(kds)`, `(customer)`.
+- UI structure: `src/components/ui`, `src/components/shells`, `src/components/feedback`, `src/features`, `src/lib`, `src/mocks`, `src/types`.
+- Product behavior and business rules live in `docs/PRD.md`. Read PRD plus `docs/design/*` before new pages or shared components.
+- Do not invent business rules, fields, states, or permissions.
+
+## Design
+
+- Tokens and component specs: `docs/design/design-system.md`.
+- Visual direction: `docs/design/design-direction.md`.
+- Interaction, responsive, accessibility, and QA rules: `docs/design/ui-ux-guidelines.md`.
+- Use semantic design tokens, not raw hex values.
+- Theme defaults: management follows system with light fallback; POS light; KDS dark; QR menu light.
+- UI copy is Indonesian; code and comments are English. Use documented state labels.
+- Payment status and preparation status must remain separate.
+
+## Documentation authority
+
+1. `docs/PRD.md` — product scope, business rules, workflows, permissions.
+2. `docs/design/design-system.md` — tokens and component foundations.
+3. `docs/design/design-direction.md` and `docs/design/ui-ux-guidelines.md` — visual and interaction rules.
+4. `docs/ROADMAP.md` — phase order only; it does not change product requirements.
+
+If docs conflict with config or scripts, trust the executable source. If a requirement is ambiguous and affects workflow, data, payment, permission, or state, stop and ask.
+
+## Gotchas
+
+- Next.js 16 has breaking changes. Read `node_modules/next/dist/docs/` before framework code.
+- Current UI is still default create-next-app (`Geist` fonts, starter page); design system is not implemented yet.
+- No automated tests are configured; manual and visual checks are required.
+- Do not add SQLite, Drizzle, Zustand, TanStack Query, or other planned dependencies until the relevant phase.
+- No API, database, auth, or SSE exists. Do not add them before the UI approval gate.
+
 <!-- BEGIN:nextjs-agent-rules -->
 
 ## This is NOT the Next.js you know
