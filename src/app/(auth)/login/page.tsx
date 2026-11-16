@@ -1,6 +1,7 @@
 "use client";
 
 import { HardDrive, Monitor, Wifi } from "lucide-react";
+import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { Badge } from "@/components/ui/badge";
 import { LoginForm } from "@/features/auth/login-form";
 
@@ -21,18 +22,18 @@ const productFacts = [
 
 export default function LoginPage() {
   return (
-    <div className="grid w-full max-w-5xl overflow-hidden rounded-xl border border-border bg-surface shadow-overlay lg:grid-cols-[1fr_1fr]">
-      <aside className="hidden flex-col justify-between gap-10 bg-surface-inverse p-8 text-inverse-foreground lg:flex">
-        <div className="flex flex-col gap-8">
+    <div className="grid min-h-dvh lg:grid-cols-2">
+      <aside className="hidden flex-col justify-between gap-10 border-r border-border bg-surface-inverse p-10 text-inverse-foreground lg:flex xl:p-14">
+        <div className="flex flex-col gap-10">
           <div className="flex items-baseline gap-2">
             <span className="text-2xl font-bold tracking-tight">RAVIKA</span>
             <span className="text-caption font-semibold text-inverse-foreground/70">
               POS
             </span>
           </div>
-          <div className="flex flex-col gap-2">
+          <div className="flex max-w-xl flex-col gap-3">
             <p className="text-display">Run your business with clarity.</p>
-            <p className="max-w-sm text-body text-inverse-foreground/70">
+            <p className="max-w-md text-body text-inverse-foreground/75">
               Satu alur untuk pesanan, pembayaran, persiapan, dan laporan
               operasional kafe.
             </p>
@@ -59,21 +60,40 @@ export default function LoginPage() {
         </p>
       </aside>
 
-      <div className="flex min-w-0 flex-col justify-center gap-6 p-6 sm:p-8">
-        <div className="flex flex-col gap-1">
-          <div className="flex items-center justify-between gap-3">
-            <h1 className="text-section-title text-foreground">
-              Masuk ke RAVIKA POS
-            </h1>
-            <Badge tone="neutral">Mode UI</Badge>
-          </div>
-          <p className="text-body text-muted-foreground">
-            Masuk untuk mengelola operasional bisnis.
-          </p>
+      <section className="relative flex min-h-dvh flex-col bg-surface">
+        <div className="absolute right-4 top-4 z-10 sm:right-6 sm:top-6">
+          <ThemeToggle />
         </div>
 
-        <LoginForm />
-      </div>
+        <div className="mx-auto flex w-full max-w-md flex-1 flex-col justify-start gap-8 px-6 py-16 sm:px-8 lg:justify-center">
+          <div className="flex items-center gap-2 lg:hidden">
+            <span className="text-xl font-bold tracking-tight text-foreground">
+              RAVIKA
+            </span>
+            <span className="text-caption font-semibold text-primary-strong">
+              POS
+            </span>
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h1 className="text-section-title text-foreground">
+                Masuk ke RAVIKA POS
+              </h1>
+              <Badge tone="neutral">Mode UI</Badge>
+            </div>
+            <p className="text-body text-muted-foreground">
+              Masuk untuk mengelola operasional bisnis.
+            </p>
+          </div>
+
+          <LoginForm />
+
+          <p className="text-caption text-muted-foreground lg:hidden">
+            Mode UI dengan data simulasi.
+          </p>
+        </div>
+      </section>
     </div>
   );
 }

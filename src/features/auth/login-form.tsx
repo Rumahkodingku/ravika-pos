@@ -123,15 +123,15 @@ export function LoginForm() {
         </Button>
       </form>
 
-      <div className="flex flex-col gap-2 rounded-lg border border-border bg-surface-subtle p-3">
+      <div className="flex flex-col gap-3 border-t border-border pt-5">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <p className="text-label font-medium text-foreground">Akun demo</p>
           <Badge tone="warning">Mode UI, bukan autentikasi nyata</Badge>
         </div>
-        <ul className="flex flex-col gap-2">
+        <ul className="flex flex-col divide-y divide-border">
           {demoAccounts.map((account) => (
             <li
-              className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-border bg-surface px-3 py-2"
+              className="flex flex-wrap items-center justify-between gap-2 py-3 first:pt-0 last:pb-0"
               key={account.email}
             >
               <div className="flex min-w-0 flex-1 flex-col">

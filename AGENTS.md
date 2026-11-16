@@ -26,7 +26,7 @@ Self-hosted, LAN-first POS for cafes. Phase 1 foundation, Phase 1.5 operational 
 - No UI library. Build primitives with native HTML and local components; ask before adding Radix, shadcn, or similar.
 - Design tokens live in `src/styles/tokens.css`; Tailwind mapping and base styles live in `src/app/globals.css`.
 - Use `primary-action` for filled primary buttons, `primary-strong` for links and active icons, and `*-strong` for semantic text. Do not use raw `primary` as normal text on white.
-- Cards are flat by default. Shadow is reserved for overlays. Do not reintroduce glassmorphism or header blur.
+- Cards are flat. Do not use drop shadows anywhere. Use borders, surface contrast, and backdrop for hierarchy. Focus rings remain. Do not reintroduce glassmorphism or header blur.
 - `next.config.ts`: `experimental.agentFeedback`, `experimental.instantInsights.validationLevel = "manual-warning"`, `cacheComponents`, `partialPrefetching`, Turbopack `*.css` loader via `@tailwindcss/turbopack`.
 - Do not edit `next-env.d.ts`; it is generated and references `.next` route types.
 - `.next/` is build output and ignored.

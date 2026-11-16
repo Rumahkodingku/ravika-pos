@@ -8,6 +8,7 @@ import { Badge, StatusBadge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { ServiceFlow } from "@/components/ui/service-flow";
 import { formatCurrency, formatDateTime } from "@/lib/format";
+import { preparationStatusConfig } from "@/lib/status";
 import { useManagementStore } from "@/mocks/management/hooks";
 import type { PreparationStatus, ServiceFlowStep } from "@/types/ui";
 
@@ -18,15 +19,6 @@ const statusOrder: PreparationStatus[] = [
   "READY",
   "COMPLETED",
 ];
-
-const statusLabels: Record<PreparationStatus, string> = {
-  NEW: "Baru",
-  ACCEPTED: "Diterima",
-  PREPARING: "Disiapkan",
-  READY: "Siap",
-  COMPLETED: "Selesai",
-  CANCELLED: "Dibatalkan",
-};
 
 export function CustomerOrderStatus({ publicToken }: { publicToken: string }) {
   const orders = useManagementStore((state) => state.orders);
@@ -62,13 +54,15 @@ export function CustomerOrderStatus({ publicToken }: { publicToken: string }) {
       ? [
           {
             id: "cancelled",
-            label: statusLabels.CANCELLED,
+            label: preparationStatusConfig.CANCELLED.label,
+            tone: preparationStatusConfig.CANCELLED.tone,
             state: "cancelled",
           },
         ]
       : statusOrder.map((status, index) => ({
           id: status,
-          label: statusLabels[status],
+          label: preparationStatusConfig[status].label,
+          tone: preparationStatusConfig[status].tone,
           state:
             index < currentIndex
               ? "complete"

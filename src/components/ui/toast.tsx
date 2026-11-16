@@ -82,7 +82,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       {children}
       <div
         aria-live="polite"
-        className="pointer-events-none fixed inset-x-4 bottom-4 z-[var(--z-toast)] flex flex-col items-end gap-2 sm:left-auto sm:right-6 sm:bottom-6"
+        className="pointer-events-none fixed bottom-24 left-4 right-auto z-[var(--z-toast)] flex w-[calc(100%-2rem)] max-w-sm flex-col items-stretch gap-2 sm:bottom-6 sm:left-6"
       >
         {toasts.map((item) => {
           const tone = item.tone ?? "info";
@@ -91,7 +91,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
           return (
             <div
               className={cn(
-                "pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-lg border p-3 shadow-overlay",
+                "pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-lg border p-3",
                 toneClasses[tone],
               )}
               key={item.id}

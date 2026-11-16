@@ -155,7 +155,7 @@ export function MegaMenu({
       {open ? (
         <nav
           aria-label="Menu utama"
-          className="mega-menu-panel fixed left-1/2 top-[calc(var(--ravika-header-height)+0.5rem)] z-[var(--z-dropdown)] w-[min(1180px,calc(100vw-2rem))] -translate-x-1/2 overflow-hidden rounded-xl border border-border bg-surface text-foreground shadow-overlay"
+          className="mega-menu-panel fixed left-1/2 top-[calc(var(--ravika-header-height)+0.5rem)] z-[var(--z-dropdown)] w-[min(1180px,calc(100vw-2rem))] -translate-x-1/2 overflow-hidden rounded-xl border border-border bg-surface text-foreground"
           id={panelId}
           ref={panelRef}
         >

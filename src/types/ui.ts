@@ -11,7 +11,8 @@ export type Tone =
   | "success"
   | "warning"
   | "danger"
-  | "info";
+  | "info"
+  | "teal";
 
 export type PaymentStatus = "UNPAID" | "PARTIALLY_PAID" | "PAID" | "REFUNDED";
 
@@ -49,7 +50,8 @@ export type ServiceFlowStep = {
   id: string;
   label: string;
   count?: number;
-  state: "complete" | "current" | "upcoming" | "cancelled";
+  tone?: Tone;
+  state: "complete" | "current" | "active" | "upcoming" | "cancelled";
 };
 
 export type SelectOption = {

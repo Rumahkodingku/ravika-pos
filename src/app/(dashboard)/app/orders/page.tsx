@@ -8,6 +8,7 @@ import { Badge, StatusBadge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { DatePicker } from "@/components/ui/date-picker";
+import { Field } from "@/components/ui/field";
 import { PageHeader } from "@/components/ui/layout";
 import { Select } from "@/components/ui/select";
 import {
@@ -31,6 +32,22 @@ import { useAsyncData, useManagementStore } from "@/mocks/management/hooks";
 import { managementService } from "@/mocks/management/service";
 import type { Order } from "@/types/domain";
 
+type OrderFilters = {
+  outletId: string;
+  orderStatus: string;
+  paymentStatus: string;
+  dateFrom: string;
+  dateTo: string;
+};
+
+const defaultOrderFilters: OrderFilters = {
+  outletId: "all",
+  orderStatus: "all",
+  paymentStatus: "all",
+  dateFrom: "",
+  dateTo: "",
+};
+
 export default function OrdersPage() {
   const { user } = useMockSession();
   const allOutlets = useManagementStore((state) => state.outlets);
@@ -38,11 +55,9 @@ export default function OrdersPage() {
     user?.outletIds.includes(outlet.id),
   );
   const [search, setSearch] = useState("");
-  const [outletId, setOutletId] = useState("all");
-  const [orderStatus, setOrderStatus] = useState("all");
-  const [paymentStatus, setPaymentStatus] = useState("all");
-  const [dateFrom, setDateFrom] = useState("");
-  const [dateTo, setDateTo] = useState("");
+  const [filters, setFilters] = useState<OrderFilters>(defaultOrderFilters);
+  const [draftFilters, setDraftFilters] =
+    useState<OrderFilters>(defaultOrderFilters);
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
   const [page, setPage] = useState(1);
   const [selected, setSelected] = useState<Order | null>(null);
@@ -51,38 +66,34 @@ export default function OrdersPage() {
     () =>
       managementService.listOrders({
         search,
-        outletId,
-        orderStatus,
-        paymentStatus,
-        dateFrom,
-        dateTo,
+        outletId: filters.outletId,
+        orderStatus: filters.orderStatus,
+        paymentStatus: filters.paymentStatus,
+        dateFrom: filters.dateFrom,
+        dateTo: filters.dateTo,
         sortBy: "createdAt",
         sortDir,
         page,
         pageSize: 10,
       }),
-    JSON.stringify([
-      search,
-      outletId,
-      orderStatus,
-      paymentStatus,
-      dateFrom,
-      dateTo,
-      sortDir,
-      page,
-    ]),
+    JSON.stringify([search, filters, sortDir, page]),
   );
 
   const outletName = (id: string) =>
     outlets.find((outlet) => outlet.id === id)?.name ?? "Tidak ada";
 
+  const activeFilterCount = [
+    filters.outletId !== defaultOrderFilters.outletId,
+    filters.orderStatus !== defaultOrderFilters.orderStatus,
+    filters.paymentStatus !== defaultOrderFilters.paymentStatus,
+    filters.dateFrom !== defaultOrderFilters.dateFrom,
+    filters.dateTo !== defaultOrderFilters.dateTo,
+  ].filter(Boolean).length;
+
   const resetFilters = () => {
     setSearch("");
-    setOutletId("all");
-    setOrderStatus("all");
-    setPaymentStatus("all");
-    setDateFrom("");
-    setDateTo("");
+    setFilters(defaultOrderFilters);
+    setDraftFilters(defaultOrderFilters);
     setPage(1);
   };
 
@@ -97,84 +108,106 @@ export default function OrdersPage() {
         <Card>
           <CardContent className="flex flex-col gap-3 p-3 sm:p-4">
             <DataTableToolbar
+              activeFilterCount={activeFilterCount}
+              filterMode="modal"
               filters={
-                <>
-                  <Select
-                    aria-label="Filter outlet"
-                    className="w-48"
-                    onChange={(event) => {
-                      setOutletId(event.target.value);
-                      setPage(1);
-                    }}
-                    value={outletId}
+                <div className="flex flex-col gap-4">
+                  <Field htmlFor="orders-filter-outlet" label="Outlet">
+                    <Select
+                      id="orders-filter-outlet"
+                      onChange={(event) =>
+                        setDraftFilters((current) => ({
+                          ...current,
+                          outletId: event.target.value,
+                        }))
+                      }
+                      value={draftFilters.outletId}
+                    >
+                      <option value="all">Semua outlet</option>
+                      {outlets.map((outlet) => (
+                        <option key={outlet.id} value={outlet.id}>
+                          {outlet.name}
+                        </option>
+                      ))}
+                    </Select>
+                  </Field>
+                  <Field
+                    htmlFor="orders-filter-preparation"
+                    label="Status persiapan"
                   >
-                    <option value="all">Semua outlet</option>
-                    {outlets.map((outlet) => (
-                      <option key={outlet.id} value={outlet.id}>
-                        {outlet.name}
-                      </option>
-                    ))}
-                  </Select>
-                  <Select
-                    aria-label="Filter status pesanan"
-                    className="w-40"
-                    onChange={(event) => {
-                      setOrderStatus(event.target.value);
-                      setPage(1);
-                    }}
-                    value={orderStatus}
+                    <Select
+                      id="orders-filter-preparation"
+                      onChange={(event) =>
+                        setDraftFilters((current) => ({
+                          ...current,
+                          orderStatus: event.target.value,
+                        }))
+                      }
+                      value={draftFilters.orderStatus}
+                    >
+                      <option value="all">Semua persiapan</option>
+                      <option value="NEW">Baru</option>
+                      <option value="ACCEPTED">Diterima</option>
+                      <option value="PREPARING">Disiapkan</option>
+                      <option value="READY">Siap</option>
+                      <option value="COMPLETED">Selesai</option>
+                      <option value="CANCELLED">Dibatalkan</option>
+                    </Select>
+                  </Field>
+                  <Field
+                    htmlFor="orders-filter-payment"
+                    label="Status pembayaran"
                   >
-                    <option value="all">Semua persiapan</option>
-                    <option value="NEW">Baru</option>
-                    <option value="ACCEPTED">Diterima</option>
-                    <option value="PREPARING">Disiapkan</option>
-                    <option value="READY">Siap</option>
-                    <option value="COMPLETED">Selesai</option>
-                    <option value="CANCELLED">Dibatalkan</option>
-                  </Select>
-                  <Select
-                    aria-label="Filter status pembayaran"
-                    className="w-44"
-                    onChange={(event) => {
-                      setPaymentStatus(event.target.value);
-                      setPage(1);
-                    }}
-                    value={paymentStatus}
-                  >
-                    <option value="all">Semua pembayaran</option>
-                    <option value="UNPAID">Belum dibayar</option>
-                    <option value="PARTIALLY_PAID">Dibayar sebagian</option>
-                    <option value="PAID">Lunas</option>
-                    <option value="REFUNDED">Dikembalikan</option>
-                  </Select>
-                  <DatePicker
-                    aria-label="Tanggal mulai"
-                    className="w-40"
-                    onChange={(event) => {
-                      setDateFrom(event.target.value);
-                      setPage(1);
-                    }}
-                    value={dateFrom}
-                  />
-                  <DatePicker
-                    aria-label="Tanggal akhir"
-                    className="w-40"
-                    onChange={(event) => {
-                      setDateTo(event.target.value);
-                      setPage(1);
-                    }}
-                    value={dateTo}
-                  />
-                </>
+                    <Select
+                      id="orders-filter-payment"
+                      onChange={(event) =>
+                        setDraftFilters((current) => ({
+                          ...current,
+                          paymentStatus: event.target.value,
+                        }))
+                      }
+                      value={draftFilters.paymentStatus}
+                    >
+                      <option value="all">Semua pembayaran</option>
+                      <option value="UNPAID">Belum dibayar</option>
+                      <option value="PARTIALLY_PAID">Dibayar sebagian</option>
+                      <option value="PAID">Lunas</option>
+                      <option value="REFUNDED">Dikembalikan</option>
+                    </Select>
+                  </Field>
+                  <Field htmlFor="orders-filter-from" label="Tanggal mulai">
+                    <DatePicker
+                      id="orders-filter-from"
+                      onChange={(event) =>
+                        setDraftFilters((current) => ({
+                          ...current,
+                          dateFrom: event.target.value,
+                        }))
+                      }
+                      value={draftFilters.dateFrom}
+                    />
+                  </Field>
+                  <Field htmlFor="orders-filter-to" label="Tanggal akhir">
+                    <DatePicker
+                      id="orders-filter-to"
+                      onChange={(event) =>
+                        setDraftFilters((current) => ({
+                          ...current,
+                          dateTo: event.target.value,
+                        }))
+                      }
+                      value={draftFilters.dateTo}
+                    />
+                  </Field>
+                </div>
               }
-              hasActiveFilters={
-                search !== "" ||
-                outletId !== "all" ||
-                orderStatus !== "all" ||
-                paymentStatus !== "all" ||
-                dateFrom !== "" ||
-                dateTo !== ""
-              }
+              hasActiveFilters={activeFilterCount > 0}
+              onFilterApply={() => {
+                setFilters(draftFilters);
+                setPage(1);
+              }}
+              onFilterOpen={() => setDraftFilters(filters)}
+              onFilterReset={() => setDraftFilters(defaultOrderFilters)}
               onReset={resetFilters}
               onSearchChange={(value) => {
                 setSearch(value);
@@ -183,6 +216,7 @@ export default function OrdersPage() {
               resultCount={data?.total ?? 0}
               search={search}
               searchPlaceholder="Cari nomor pesanan"
+              showResultCount={false}
             />
 
             {isLoading ? (

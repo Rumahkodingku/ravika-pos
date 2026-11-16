@@ -128,7 +128,7 @@ export function TabsTrigger({
       aria-selected={active}
       className={cn(
         "rounded-md px-3 py-1.5 text-label font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring disabled:pointer-events-none disabled:opacity-50 motion-reduce:transition-none",
-        active && "bg-surface text-foreground shadow-sm",
+        active && "bg-surface text-foreground",
         className,
       )}
       disabled={disabled}

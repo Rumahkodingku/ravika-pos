@@ -1,4 +1,5 @@
 import { cn } from "@/lib/cn";
+import { paymentStatusConfig, preparationStatusConfig } from "@/lib/status";
 import type { PaymentStatus, PreparationStatus, Tone } from "@/types/ui";
 
 const toneClasses: Record<Tone, string> = {
@@ -8,6 +9,7 @@ const toneClasses: Record<Tone, string> = {
   warning: "border-warning/20 bg-warning-subtle text-warning-strong",
   danger: "border-danger/20 bg-danger-subtle text-danger-strong",
   info: "border-info/20 bg-info-subtle text-info-strong",
+  teal: "border-teal/20 bg-teal-subtle text-teal-strong",
 };
 
 export function Badge({
@@ -32,25 +34,6 @@ export function Badge({
   );
 }
 
-const paymentLabels: Record<PaymentStatus, { label: string; tone: Tone }> = {
-  UNPAID: { label: "Belum dibayar", tone: "danger" },
-  PARTIALLY_PAID: { label: "Dibayar sebagian", tone: "warning" },
-  PAID: { label: "Lunas", tone: "success" },
-  REFUNDED: { label: "Dikembalikan", tone: "info" },
-};
-
-const preparationLabels: Record<
-  PreparationStatus,
-  { label: string; tone: Tone }
-> = {
-  NEW: { label: "Baru", tone: "info" },
-  ACCEPTED: { label: "Diterima", tone: "primary" },
-  PREPARING: { label: "Disiapkan", tone: "warning" },
-  READY: { label: "Siap", tone: "success" },
-  COMPLETED: { label: "Selesai", tone: "neutral" },
-  CANCELLED: { label: "Dibatalkan", tone: "danger" },
-};
-
 export function StatusBadge({
   kind,
   status,
@@ -64,15 +47,9 @@ export function StatusBadge({
       status: PreparationStatus;
     }) {
   const config =
-    kind === "payment" ? paymentLabels[status] : preparationLabels[status];
+    kind === "payment"
+      ? paymentStatusConfig[status]
+      : preparationStatusConfig[status];
 
-  return (
-    <Badge tone={config.tone}>
-      <span
-        aria-hidden="true"
-        className="h-1.5 w-1.5 rounded-full bg-current"
-      />
-      {config.label}
-    </Badge>
-  );
+  return <Badge tone={config.tone}>{config.label}</Badge>;
 }

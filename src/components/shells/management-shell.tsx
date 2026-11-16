@@ -121,7 +121,7 @@ export function ManagementShell({ children }: { children: React.ReactNode }) {
     <ShellTheme defaultTheme="system">
       <div className="flex min-h-dvh flex-col bg-background">
         <a
-          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[var(--z-toast)] focus:rounded-md focus:border focus:border-border focus:bg-surface focus:px-4 focus:py-2 focus:text-body focus:text-foreground focus:shadow-overlay"
+          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[var(--z-toast)] focus:rounded-md focus:border focus:border-border focus:bg-surface focus:px-4 focus:py-2 focus:text-body focus:text-foreground"
           href="#main-content"
         >
           Lewati ke konten utama

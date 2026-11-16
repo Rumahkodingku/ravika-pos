@@ -7,7 +7,6 @@ export type CardVariant =
   | "product"
   | "order"
   | "surface-subtle"
-  | "elevated"
   | "inverse";
 
 const variantClasses: Record<CardVariant, string> = {
@@ -18,7 +17,6 @@ const variantClasses: Record<CardVariant, string> = {
   product: "overflow-hidden bg-surface",
   order: "bg-surface",
   "surface-subtle": "bg-surface-subtle",
-  elevated: "bg-surface-elevated shadow-overlay",
   inverse: "border-surface-inverse bg-surface-inverse text-inverse-foreground",
 };
 

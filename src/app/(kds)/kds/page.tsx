@@ -14,6 +14,7 @@ import { useMockSession } from "@/features/auth/mock-session";
 import { RequirePermission } from "@/features/management/permission-gate";
 import { useNow } from "@/features/operational/use-now";
 import { formatElapsed } from "@/lib/format";
+import { preparationStatusConfig } from "@/lib/status";
 import { useManagementStore } from "@/mocks/management/hooks";
 import { managementService } from "@/mocks/management/service";
 import type { Order } from "@/types/domain";
@@ -116,15 +117,13 @@ export default function KdsPage() {
         ? completedOrders.length
         : activeOrders.filter((order) => order.orderStatus === column.status)
             .length;
-    const firstOpen = columns.find((candidate) =>
-      activeOrders.some((order) => order.orderStatus === candidate.status),
-    )?.status;
 
     return {
       id: column.status,
       label: column.label,
       count,
-      state: column.status === firstOpen ? "current" : "upcoming",
+      tone: preparationStatusConfig[column.status].tone,
+      state: "active",
     };
   });
 

@@ -48,6 +48,9 @@
   --color-info: var(--ravika-info);
   --color-info-strong: var(--ravika-info-strong);
   --color-info-subtle: var(--ravika-info-subtle);
+  --color-teal: var(--ravika-teal);
+  --color-teal-strong: var(--ravika-teal-strong);
+  --color-teal-subtle: var(--ravika-teal-subtle);
   --color-focus-ring: var(--ravika-focus-ring);
   --color-surface-inverse: var(--ravika-surface-inverse);
   --color-inverse-foreground: var(--ravika-inverse-foreground);
@@ -57,7 +60,6 @@
   --radius-lg: var(--ravika-radius-lg);
   --radius-xl: var(--ravika-radius-xl);
 
-  --shadow-overlay: var(--shadow-overlay);
   --ease-smooth: var(--motion-ease-out);
   --ease-smooth-in-out: var(--motion-ease-in-out);
 
@@ -98,6 +100,41 @@
   --text-button: 0.875rem;
   --text-button--line-height: 1.25rem;
   --text-button--font-weight: 600;
+}
+
+[data-step-tone="neutral"] {
+  --step-color: var(--ravika-muted-foreground);
+  --step-strong: var(--ravika-foreground);
+}
+
+[data-step-tone="primary"] {
+  --step-color: var(--ravika-primary);
+  --step-strong: var(--ravika-primary-strong);
+}
+
+[data-step-tone="teal"] {
+  --step-color: var(--ravika-teal);
+  --step-strong: var(--ravika-teal-strong);
+}
+
+[data-step-tone="success"] {
+  --step-color: var(--ravika-success);
+  --step-strong: var(--ravika-success-strong);
+}
+
+[data-step-tone="warning"] {
+  --step-color: var(--ravika-warning);
+  --step-strong: var(--ravika-warning-strong);
+}
+
+[data-step-tone="danger"] {
+  --step-color: var(--ravika-danger);
+  --step-strong: var(--ravika-danger-strong);
+}
+
+[data-step-tone="info"] {
+  --step-color: var(--ravika-info);
+  --step-strong: var(--ravika-info-strong);
 }
 
 @layer base {
@@ -143,7 +180,6 @@
 
   dialog::backdrop {
     background-color: rgb(16 24 40 / 0.55);
-    backdrop-filter: blur(2px);
   }
 }
 

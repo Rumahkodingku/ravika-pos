@@ -158,7 +158,7 @@ Keempat pengalaman menggunakan identitas brand dan design tokens yang sama. Namu
 | Alternative font           | Inter                                                 |
 | Iconography                | Lucide Icons                                          |
 | Brand palette              | Deep Navy, Brand Blue, Accent Blue, White, Light Gray |
-| Card style                 | Flat, subtle border, minimal shadow                   |
+| Card style                 | Flat, subtle border, no shadow                        |
 | Radius                     | Umumnya 8–12 px                                       |
 | Motion                     | Subtle dan cepat                                      |
 | Default theme resolution   | System preference, fallback light                     |

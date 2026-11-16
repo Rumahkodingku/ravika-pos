@@ -78,12 +78,15 @@ Initial token proposal:
 | `warning-strong`       | `#8A5A12` | `#F0B64D` |
 | `danger-strong`        | `#B42318` | `#F07878` |
 | `info-strong`          | `#315B91` | `#6EA5F5` |
+| `teal`                 | `#0E9384` | `#2DD4BF` |
+| `teal-subtle`          | `#E6F7F4` | `#123B36` |
+| `teal-strong`          | `#0B7266` | `#5EEAD4` |
 | `surface-inverse`      | `#101828` | `#101828` |
 | `inverse-foreground`   | `#F8FAFC` | `#F8FAFC` |
 
 **Important:** Values are starting tokens and must be contrast-tested before release. Do not assume every foreground/background pairing is accessible merely because both values are in this table.
 
-**Contrast note:** The original light-theme `primary` and semantic text colors did not meet WCAG AA for normal text. Fase 1.5 adds `primary-action` for filled actions and `*-strong` tokens for text, links, icons, and badges. Use `primary` as an accent and chart color, not as normal text on white. `primary-action` with `primary-action-foreground` passes 5.65:1 in light theme. `success-strong`, `warning-strong`, `danger-strong`, and `info-strong` pass on their respective subtle backgrounds.
+**Contrast note:** The original light-theme `primary` and semantic text colors did not meet WCAG AA for normal text. Fase 1.5 adds `primary-action` for filled actions and `*-strong` tokens for text, links, icons, and badges. Use `primary` as an accent and chart color, not as normal text on white. `primary-action` with `primary-action-foreground` passes 5.65:1 in light theme. `success-strong`, `warning-strong`, `danger-strong`, `info-strong`, and `teal-strong` pass on their respective subtle backgrounds.
 
 ### 2.3 Typography
 
@@ -148,8 +151,8 @@ Do not make every container fully rounded.
 - Standard border: 1 px solid semantic `border`.
 - Strong border: 1 px solid `input` or a stronger semantic border.
 - Default cards: flat with subtle border.
-- Elevation is reserved for dialogs, popovers, dropdowns, and floating panels.
-- Avoid stacking multiple shadows.
+- Do not use drop shadows. Elevation comes from borders, surface contrast, and backdrop.
+- Focus rings remain because they are accessibility indicators, not decoration.
 
 ### 2.7 Iconography
 
@@ -296,6 +299,17 @@ Examples:
 - System: Connected, Disconnected, Reconnecting, Backup required.
 
 Payment state and preparation state must remain visually separate. Never collapse them into one status badge.
+
+Stepper status colors:
+
+- `NEW`: `primary`
+- `ACCEPTED`: `teal`
+- `PREPARING`: `warning`
+- `READY`: `success`
+- `COMPLETED`: `neutral`
+- `CANCELLED`: `danger`
+
+Labels always carry the status text. Color is a supporting cue, not the only cue.
 
 ### 4.6 Dialogs and drawers
 

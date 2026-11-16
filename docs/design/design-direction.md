@@ -59,8 +59,8 @@ Pedoman:
 
 - Background netral dan tenang.
 - Konten dikelompokkan dengan spacing dan alignment.
-- Border tipis lebih diutamakan daripada shadow tebal.
-- Shadow hanya untuk elevasi yang memiliki makna, misalnya popover, dialog, atau floating cart.
+- Gunakan border tipis. Jangan gunakan drop shadow.
+- Elevasi memakai border, kontras surface, dan backdrop, bukan shadow.
 - Warna brand digunakan untuk aksi utama dan penekanan, bukan untuk mewarnai semua elemen.
 - Gunakan radius konsisten, umumnya 8–12 px.
 
@@ -70,7 +70,7 @@ Pedoman:
 - Glassmorphism sebagai gaya utama.
 - Neumorphism.
 - Excessive rounded pills untuk seluruh komponen.
-- Shadow berat pada semua card.
+- Drop shadow pada semua elemen.
 - Terlalu banyak warna aksen.
 - Chart dekoratif tanpa nilai operasional.
 - Animasi yang menghambat transaksi.

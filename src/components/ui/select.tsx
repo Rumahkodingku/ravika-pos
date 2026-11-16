@@ -9,7 +9,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
     <div className="relative">
       <select
         className={cn(
-          "flex h-11 w-full appearance-none rounded-md border border-input bg-surface px-3 pr-9 text-body text-foreground shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-danger aria-invalid:focus-visible:ring-danger motion-reduce:transition-none",
+          "flex h-11 w-full appearance-none rounded-md border border-input bg-surface px-3 pr-9 text-body text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-danger aria-invalid:focus-visible:ring-danger motion-reduce:transition-none",
           className,
         )}
         ref={ref}

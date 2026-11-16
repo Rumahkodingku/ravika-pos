@@ -65,15 +65,34 @@ const tableRows = [
 ];
 
 const flowSteps = [
-  { id: "new", label: "Baru", count: 12, state: "complete" as const },
-  { id: "accepted", label: "Diterima", count: 8, state: "complete" as const },
+  {
+    id: "new",
+    label: "Baru",
+    count: 12,
+    state: "complete" as const,
+    tone: "primary" as const,
+  },
+  {
+    id: "accepted",
+    label: "Diterima",
+    count: 8,
+    state: "complete" as const,
+    tone: "teal" as const,
+  },
   {
     id: "preparing",
     label: "Disiapkan",
     count: 6,
     state: "current" as const,
+    tone: "warning" as const,
   },
-  { id: "ready", label: "Siap", count: 3, state: "upcoming" as const },
+  {
+    id: "ready",
+    label: "Siap",
+    count: 3,
+    state: "upcoming" as const,
+    tone: "success" as const,
+  },
 ];
 
 const tokenSwatches = [
@@ -83,6 +102,7 @@ const tokenSwatches = [
   { name: "Warning", token: "var(--ravika-warning)" },
   { name: "Danger", token: "var(--ravika-danger)" },
   { name: "Info", token: "var(--ravika-info)" },
+  { name: "Teal", token: "var(--ravika-teal)" },
   { name: "Surface", token: "var(--ravika-surface)" },
   { name: "Surface subtle", token: "var(--ravika-surface-subtle)" },
   { name: "Border", token: "var(--ravika-border)" },
@@ -296,8 +316,10 @@ export default function DesignSystemPage() {
             <Badge tone="warning">Warning</Badge>
             <Badge tone="danger">Danger</Badge>
             <Badge tone="info">Info</Badge>
+            <Badge tone="teal">Teal</Badge>
             <StatusBadge kind="payment" status="PAID" />
             <StatusBadge kind="payment" status="UNPAID" />
+            <StatusBadge kind="preparation" status="ACCEPTED" />
             <StatusBadge kind="preparation" status="READY" />
             <StatusBadge kind="preparation" status="CANCELLED" />
           </CardContent>

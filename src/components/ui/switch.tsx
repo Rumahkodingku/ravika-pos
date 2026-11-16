@@ -39,7 +39,7 @@ export function Switch({
         <span
           aria-hidden="true"
           className={cn(
-            "inline-block h-5 w-5 rounded-full bg-white shadow-sm transition-transform motion-reduce:transition-none",
+            "inline-block h-5 w-5 rounded-full bg-white transition-transform motion-reduce:transition-none",
             checked ? "translate-x-5" : "translate-x-0.5",
           )}
         />

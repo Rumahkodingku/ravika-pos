@@ -475,7 +475,7 @@ Exact labels can be localized, but underlying state meanings must remain consist
 - [ ] Light and dark themes are legible.
 - [ ] Typography hierarchy is consistent.
 - [ ] Spacing and alignment are consistent.
-- [ ] No excessive shadows, gradients, or decoration.
+- [ ] No drop shadows, gradients, or decoration. Focus rings remain.
 
 ### Functional
 

@@ -27,46 +27,33 @@ import { PosCheckoutDrawer } from "@/features/operational/pos-checkout-drawer";
 import { PosPayableOrderDrawer } from "@/features/operational/pos-payable-order-drawer";
 import { PosPaymentDrawer } from "@/features/operational/pos-payment-drawer";
 import { TableSelector } from "@/features/operational/table-selector";
+import { cn } from "@/lib/cn";
 import { formatCurrency } from "@/lib/format";
 import { useManagementStore } from "@/mocks/management/hooks";
 import type { Outlet, SessionUser } from "@/types/auth";
 import type { Order } from "@/types/domain";
 
-function CartPanel({
-  idPrefix,
-  onCheckout,
-  outletId,
-}: {
-  idPrefix: string;
-  onCheckout: () => void;
-  outletId: string;
-}) {
-  const {
-    itemCount,
-    lines,
-    orderNotes,
-    orderType,
-    removeLine,
-    setOrderNotes,
-    setOrderType,
-    setQuantity,
-    setTableId,
-    subtotal,
-    tableId,
-  } = usePosCart();
+function CartHeader() {
+  const { itemCount } = usePosCart();
 
   return (
-    <div className="flex h-full flex-col gap-4">
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex flex-col gap-0.5">
-          <h2 className="text-section-title text-foreground">Pesanan</h2>
-          <p className="text-caption text-muted-foreground">
-            {itemCount} item di keranjang
-          </p>
-        </div>
-        <Badge tone="neutral">Data contoh</Badge>
+    <div className="flex items-center justify-between gap-2">
+      <div className="flex flex-col gap-0.5">
+        <h2 className="text-section-title text-foreground">Pesanan</h2>
+        <p className="text-caption text-muted-foreground">
+          {itemCount} item di keranjang
+        </p>
       </div>
+      <Badge tone="neutral">Data contoh</Badge>
+    </div>
+  );
+}
 
+function CartControls({ outletId }: { outletId: string }) {
+  const { orderType, setOrderType, setTableId, tableId } = usePosCart();
+
+  return (
+    <>
       <div className="grid grid-cols-2 gap-1 rounded-lg border border-border bg-surface p-1">
         <button
           aria-pressed={orderType === "DINE_IN"}
@@ -104,7 +91,28 @@ function CartPanel({
           value={tableId}
         />
       ) : null}
+    </>
+  );
+}
 
+function CartLines({
+  idPrefix,
+  scroll,
+}: {
+  idPrefix: string;
+  scroll: boolean;
+}) {
+  const { lines, orderNotes, removeLine, setOrderNotes, setQuantity } =
+    usePosCart();
+
+  return (
+    <div
+      className={cn(
+        "flex flex-col gap-2",
+        scroll &&
+          "min-h-0 flex-1 overflow-y-auto overscroll-contain pr-1 [scrollbar-gutter:stable]",
+      )}
+    >
       {lines.length === 0 ? (
         <EmptyState
           className="min-h-40"
@@ -113,58 +121,56 @@ function CartPanel({
           title="Keranjang masih kosong"
         />
       ) : (
-        <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto">
-          {lines.map((line) => (
-            <div
-              className="flex flex-col gap-2 rounded-md border border-border bg-surface p-3"
-              key={line.key}
-            >
-              <div className="flex items-start justify-between gap-2">
-                <div className="flex min-w-0 flex-col gap-0.5">
-                  <p className="truncate text-body font-medium text-foreground">
-                    {line.product.name}
+        lines.map((line) => (
+          <div
+            className="flex flex-col gap-2 rounded-md border border-border bg-surface p-3"
+            key={line.key}
+          >
+            <div className="flex items-start justify-between gap-2">
+              <div className="flex min-w-0 flex-col gap-0.5">
+                <p className="truncate text-body font-medium text-foreground">
+                  {line.product.name}
+                </p>
+                {line.variant ? (
+                  <p className="text-caption text-muted-foreground">
+                    Varian {line.variant.name}
                   </p>
-                  {line.variant ? (
-                    <p className="text-caption text-muted-foreground">
-                      Varian {line.variant.name}
-                    </p>
-                  ) : null}
-                  {line.addOns.map((addOn) => (
-                    <p
-                      className="text-caption text-muted-foreground"
-                      key={addOn.id}
-                    >
-                      Add-on {addOn.name}
-                    </p>
-                  ))}
-                  {line.notes ? (
-                    <p className="text-caption text-muted-foreground">
-                      Catatan: {line.notes}
-                    </p>
-                  ) : null}
-                </div>
-                <Button
-                  aria-label={`Hapus ${line.product.name}`}
-                  className="-mr-1 -mt-1 shrink-0"
-                  onClick={() => removeLine(line.key)}
-                  size="icon"
-                  variant="ghost"
-                >
-                  <Trash2 aria-hidden="true" className="h-4 w-4" />
-                </Button>
+                ) : null}
+                {line.addOns.map((addOn) => (
+                  <p
+                    className="text-caption text-muted-foreground"
+                    key={addOn.id}
+                  >
+                    Add-on {addOn.name}
+                  </p>
+                ))}
+                {line.notes ? (
+                  <p className="text-caption text-muted-foreground">
+                    Catatan: {line.notes}
+                  </p>
+                ) : null}
               </div>
-              <div className="flex items-center justify-between gap-2">
-                <QuantityControl
-                  onChange={(quantity) => setQuantity(line.key, quantity)}
-                  value={line.quantity}
-                />
-                <span className="text-body font-medium tabular-nums text-foreground">
-                  {formatCurrency(line.lineTotal)}
-                </span>
-              </div>
+              <Button
+                aria-label={`Hapus ${line.product.name}`}
+                className="-mr-1 -mt-1 shrink-0"
+                onClick={() => removeLine(line.key)}
+                size="icon"
+                variant="ghost"
+              >
+                <Trash2 aria-hidden="true" className="h-4 w-4" />
+              </Button>
             </div>
-          ))}
-        </div>
+            <div className="flex items-center justify-between gap-2">
+              <QuantityControl
+                onChange={(quantity) => setQuantity(line.key, quantity)}
+                value={line.quantity}
+              />
+              <span className="text-body font-medium tabular-nums text-foreground">
+                {formatCurrency(line.lineTotal)}
+              </span>
+            </div>
+          </div>
+        ))
       )}
 
       <Field htmlFor={`${idPrefix}-order-notes`} label="Catatan pesanan">
@@ -175,31 +181,67 @@ function CartPanel({
           value={orderNotes}
         />
       </Field>
+    </div>
+  );
+}
 
-      <div className="mt-auto flex flex-col gap-2 border-t border-border pt-3">
-        <div className="flex items-center justify-between text-body text-muted-foreground">
-          <span>Subtotal</span>
-          <span className="tabular-nums">{formatCurrency(subtotal)}</span>
-        </div>
-        <div className="flex items-center justify-between text-card-title text-foreground">
-          <span>Total</span>
-          <span className="tabular-nums">{formatCurrency(subtotal)}</span>
-        </div>
-        <Button
-          className="w-full"
-          disabled={
-            lines.length === 0 || (orderType === "DINE_IN" && tableId === null)
-          }
-          onClick={onCheckout}
-        >
-          Lanjut ke konfirmasi
-        </Button>
-        {orderType === "DINE_IN" && tableId === null ? (
-          <p className="text-caption text-muted-foreground">
-            Pilih meja sebelum konfirmasi.
-          </p>
-        ) : null}
+function CartSummary({ onCheckout }: { onCheckout: () => void }) {
+  const { lines, orderType, subtotal, tableId } = usePosCart();
+
+  return (
+    <div className="flex w-full flex-col gap-2">
+      <div className="flex items-center justify-between text-body text-muted-foreground">
+        <span>Subtotal</span>
+        <span className="tabular-nums">{formatCurrency(subtotal)}</span>
       </div>
+      <div className="flex items-center justify-between text-card-title text-foreground">
+        <span>Total</span>
+        <span className="tabular-nums">{formatCurrency(subtotal)}</span>
+      </div>
+      <Button
+        className="w-full"
+        disabled={
+          lines.length === 0 || (orderType === "DINE_IN" && tableId === null)
+        }
+        onClick={onCheckout}
+      >
+        Lanjut ke konfirmasi
+      </Button>
+      {orderType === "DINE_IN" && tableId === null ? (
+        <p className="text-caption text-muted-foreground">
+          Pilih meja sebelum konfirmasi.
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
+function CartPanel({
+  idPrefix,
+  mode,
+  onCheckout,
+  outletId,
+}: {
+  idPrefix: string;
+  mode: "panel" | "drawer";
+  onCheckout: () => void;
+  outletId: string;
+}) {
+  return (
+    <div
+      className={cn(
+        "flex flex-col gap-3",
+        mode === "panel" && "h-full min-h-0",
+      )}
+    >
+      {mode === "panel" ? <CartHeader /> : null}
+      <CartControls outletId={outletId} />
+      <CartLines idPrefix={idPrefix} scroll={mode === "panel"} />
+      {mode === "panel" ? (
+        <div className="mt-auto border-t border-border pt-3">
+          <CartSummary onCheckout={onCheckout} />
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -327,6 +369,7 @@ function PosShellContent({
           <div className="sticky top-24 h-[calc(100dvh-7rem)]">
             <CartPanel
               idPrefix="pos-cart-desktop"
+              mode="panel"
               onCheckout={() => setCheckoutOpen(true)}
               outletId={outlet.id}
             />
@@ -352,6 +395,17 @@ function PosShellContent({
       </div>
 
       <Drawer
+        description={`${itemCount} item di keranjang`}
+        footer={
+          <div className="w-full">
+            <CartSummary
+              onCheckout={() => {
+                setCartOpen(false);
+                setCheckoutOpen(true);
+              }}
+            />
+          </div>
+        }
         onOpenChange={setCartOpen}
         open={cartOpen}
         side="right"
@@ -359,6 +413,7 @@ function PosShellContent({
       >
         <CartPanel
           idPrefix="pos-cart-mobile"
+          mode="drawer"
           onCheckout={() => {
             setCartOpen(false);
             setCheckoutOpen(true);

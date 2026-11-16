@@ -41,6 +41,9 @@
   --ravika-info: #3978d5;
   --ravika-info-strong: #315b91;
   --ravika-info-subtle: #eaf2ff;
+  --ravika-teal: #0e9384;
+  --ravika-teal-strong: #0b7266;
+  --ravika-teal-subtle: #e6f7f4;
   --ravika-focus-ring: #3978d5;
   --ravika-surface-inverse: #101828;
   --ravika-inverse-foreground: #f8fafc;
@@ -68,8 +71,6 @@
   --motion-ease: cubic-bezier(0.23, 1, 0.32, 1);
   --motion-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --motion-ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
-
-  --shadow-overlay: 0 24px 60px -28px rgb(16 24 40 / 0.35);
 }
 
 .dark {
@@ -103,6 +104,9 @@
   --ravika-info: #6ea5f5;
   --ravika-info-strong: #6ea5f5;
   --ravika-info-subtle: #172f50;
+  --ravika-teal: #2dd4bf;
+  --ravika-teal-strong: #5eead4;
+  --ravika-teal-subtle: #123b36;
   --ravika-focus-ring: #8ab8ff;
   --ravika-surface-inverse: #101828;
   --ravika-inverse-foreground: #f8fafc;
