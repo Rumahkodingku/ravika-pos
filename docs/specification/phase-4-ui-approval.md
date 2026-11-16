@@ -1,6 +1,6 @@
 # Phase 4 UI Fixes
 
-**Status:** Perbaikan UI berlangsung. Approval Phase 4 ditunda sampai semua issue di bawah selesai dan diverifikasi.
+**Status:** Perbaikan UI selesai. Approval Phase 4 ditunda sampai audit penuh selesai.
 
 **Baseline commit:** `642d832`
 
@@ -8,7 +8,7 @@
 
 ## Scope
 
-Perbaikan ini menutup enam temuan UI awal. Setelah selesai, audit penuh Phase 4 dilanjutkan pada baseline baru.
+Perbaikan ini menutup tujuh temuan UI. Setelah selesai, audit penuh Phase 4 dilanjutkan pada baseline baru.
 
 Di luar scope: fitur baru, backend, database, API, auth nyata, dan SSE.
 
@@ -19,7 +19,8 @@ Di luar scope: fitur baru, backend, database, API, auth nyata, dan SSE.
 | Filter Pesanan | Draft di modal, aktif setelah Terapkan, reset di dalam modal |
 | Login mobile | Panel kiri hidden, brand compact di atas form, tanpa footer global |
 | Stepper | Token teal baru, warna berbeda per status |
-| Urutan | Fix enam temuan, lalu audit penuh |
+| Antrean dashboard | Empat tiket tertua, warna status, empty state |
+| Urutan | Fix temuan, lalu audit penuh |
 
 ## Issue register
 
@@ -31,6 +32,7 @@ Di luar scope: fitur baru, backend, database, API, auth nyata, dan SSE.
 | P4-004 | P2 | Login | Split layout dibungkus card, header, dan footer | Split penuh tanpa card, header, dan footer | FIXED | `1f414c7` |
 | P4-005 | P2 | Status | Status badge memakai dot dekoratif | Hapus dot, pertahankan label dan warna | FIXED | `1f414c7` |
 | P4-006 | P2 | Stepper | Hanya status pertama yang berwarna | Warna per status, state tetap terbaca | FIXED | `1f414c7` |
+| P4-007 | P1 | Dashboard | Card Antrean persiapan hanya count, state terbalik, tanpa tiket | Card Antrean pesanan dengan warna status, empat tiket tertua, empty state | FIXED | `bedb681` |
 
 ## Verifikasi yang harus lulus
 
@@ -58,6 +60,10 @@ Di luar scope: fitur baru, backend, database, API, auth nyata, dan SSE.
 | Login | 320, 390, 768, 1024, 1440, light dan dark, tanpa header, card, dan shadow |
 | Stepper | Lima status berwarna di KDS, label tetap ada |
 | Status badge | Tidak ada dot dekoratif |
+| Antrean dashboard | Count dan empat tiket tertua konsisten, filter outlet bekerja |
+| Antrean dashboard mobile | Stepper grid 2x2 pada 320 dan 390, tanpa clipping |
+| Antrean dashboard empty | Diuji dengan menyelesaikan semua tiket Senopati, empty state tampil |
+| Antrean dashboard viewport | 320, 390, 768, 1024, 1440, light dan dark, tanpa overflow |
 | Impeccable detector | Tidak ada temuan pada file UI yang berubah |
 
 ## Catatan
