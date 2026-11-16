@@ -1,4 +1,5 @@
-export const EMPTY_VALUE = "—";
+export const EMPTY_VALUE = "Tidak ada";
+export const EMPTY_DATE = "Belum ada";
 
 // shortcut: OPEN-003 is not final. Replace with the configured business time zone in Phase 5.
 export const DEFAULT_TIME_ZONE = "Asia/Jakarta";
@@ -10,6 +11,11 @@ const currencyFormatter = new Intl.NumberFormat("id-ID", {
 });
 
 const numberFormatter = new Intl.NumberFormat("id-ID");
+
+const compactNumberFormatter = new Intl.NumberFormat("id-ID", {
+  notation: "compact",
+  maximumFractionDigits: 1,
+});
 
 export function formatCurrency(value: number | null | undefined) {
   if (value === null || value === undefined || Number.isNaN(value)) {
@@ -27,18 +33,34 @@ export function formatNumber(value: number | null | undefined) {
   return numberFormatter.format(value);
 }
 
+export function formatCompactNumber(value: number | null | undefined) {
+  if (value === null || value === undefined || Number.isNaN(value)) {
+    return EMPTY_VALUE;
+  }
+
+  return compactNumberFormatter.format(value);
+}
+
+export function formatCompactCurrency(value: number | null | undefined) {
+  if (value === null || value === undefined || Number.isNaN(value)) {
+    return EMPTY_VALUE;
+  }
+
+  return `Rp${compactNumberFormatter.format(value)}`;
+}
+
 export function formatDateTime(
   value: string | Date | null | undefined,
   options: Intl.DateTimeFormatOptions = {},
 ) {
   if (!value) {
-    return EMPTY_VALUE;
+    return EMPTY_DATE;
   }
 
   const date = value instanceof Date ? value : new Date(value);
 
   if (Number.isNaN(date.getTime())) {
-    return EMPTY_VALUE;
+    return EMPTY_DATE;
   }
 
   return new Intl.DateTimeFormat("id-ID", {
@@ -54,13 +76,13 @@ export function formatDate(
   options: Intl.DateTimeFormatOptions = {},
 ) {
   if (!value) {
-    return EMPTY_VALUE;
+    return EMPTY_DATE;
   }
 
   const date = value instanceof Date ? value : new Date(value);
 
   if (Number.isNaN(date.getTime())) {
-    return EMPTY_VALUE;
+    return EMPTY_DATE;
   }
 
   return new Intl.DateTimeFormat("id-ID", {

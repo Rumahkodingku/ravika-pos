@@ -1,6 +1,6 @@
 # RAVIKA POS
 
-Self-hosted, LAN-first POS for cafes. Phase 1 frontend foundation and design system are implemented. Backend is intentionally not implemented yet.
+Self-hosted, LAN-first POS for cafes. Phase 1 frontend foundation, design system, and Phase 1.5 operational UI refactor are implemented. Backend is intentionally not implemented yet.
 
 ## Commands
 
@@ -23,6 +23,8 @@ Self-hosted, LAN-first POS for cafes. Phase 1 frontend foundation and design sys
 - Biome 2.4: 2-space indent, organize imports on, Tailwind directives enabled in CSS.
 - No UI library. Build primitives with native HTML and local components; ask before adding Radix, shadcn, or similar.
 - Design tokens live in `src/styles/tokens.css`; Tailwind mapping and base styles live in `src/app/globals.css`.
+- Use `primary-action` for filled primary buttons, `primary-strong` for links and active icons, and `*-strong` for semantic text. Do not use raw `primary` as normal text on white.
+- Cards are flat by default. Shadow is reserved for overlays. Do not reintroduce glassmorphism or header blur.
 - `next.config.ts`: `experimental.agentFeedback`, `cacheComponents`, `partialPrefetching`, Turbopack `*.css` loader via `@tailwindcss/turbopack`.
 - Do not edit `next-env.d.ts`; it is generated and references `.next` route types.
 - `.next/` is build output and ignored.
@@ -35,7 +37,8 @@ Self-hosted, LAN-first POS for cafes. Phase 1 frontend foundation and design sys
 - Four separate experiences/shells: Owner management, Dedicated POS, KDS, Customer QR menu. Do not build one universal layout.
 - Route groups are already reserved: `(auth)`, `(dashboard)`, `(cashier)`, `(kds)`, `(customer)`.
 - UI structure: `src/components/ui`, `src/components/shells`, `src/components/feedback`, `src/components/theme`, `src/features`, `src/lib`, `src/mocks`, `src/styles`, `src/types`.
-- `/app/design-system` is the Phase 1 component preview. Keep it for visual QA until Phase 2 replaces placeholders.
+- Management navigation uses quick links plus `MegaMenu` on desktop and `MobileMenuSheet` below `1024px`. Keep permission filtering.
+- `/app/design-system` is the component preview. Keep it for visual QA until Phase 2 replaces placeholders.
 - Product behavior and business rules live in `docs/PRD.md`. Read PRD plus `docs/design/*` before new pages or shared components.
 - Do not invent business rules, fields, states, or permissions.
 
@@ -47,9 +50,12 @@ Self-hosted, LAN-first POS for cafes. Phase 1 frontend foundation and design sys
 - Use semantic design tokens, not raw hex values.
 - Theme defaults: management follows system with light fallback; POS light; KDS dark; QR menu light.
 - Theme state is global (`ravika-theme`); each shell passes its default to `ThemeProvider`.
+- The theme bootstrap script lives in the root layout head. Do not move it back into `ShellTheme`; that causes a client script warning.
 - UI copy is Indonesian; code and comments are English. Use documented state labels.
+- UI copy must not use em dashes or middle dots for metadata. Empty values use "Tidak ada" or "Belum ada".
 - Payment status and preparation status must remain separate.
-- Native `<dialog>` is used for Dialog/Drawer; preserve focus, Escape, and backdrop behavior.
+- Native `<dialog>` is used for Dialog/Drawer/MobileMenuSheet; preserve focus, Escape, and backdrop behavior.
+- Badge labels use `rounded-md` and semantic text. Do not turn every label into a pill.
 
 ## Documentation authority
 
@@ -63,7 +69,8 @@ If docs conflict with config or scripts, trust the executable source. If a requi
 ## Gotchas
 
 - Next.js 16 has breaking changes. Read `node_modules/next/dist/docs/` before framework code.
-- Dynamic customer routes use `export const instant = false` to avoid the `cacheComponents` URL-data prerender warning; review before removing.
+- The order status route uses `export const instant = false` to avoid the `cacheComponents` URL-data prerender warning; review before removing.
+- Customer menu uses `useParams` in a client page and does not need `instant = false`.
 - No automated tests are configured; manual and visual checks are required. Use `/app/design-system` for component QA.
 - Do not add SQLite, Drizzle, Zustand, TanStack Query, or other planned dependencies until the relevant phase.
 - No API, database, auth, or SSE exists. Do not add them before the UI approval gate.

@@ -57,7 +57,7 @@ export function Drawer({
       aria-describedby={description ? descriptionId : undefined}
       aria-labelledby={titleId}
       className={cn(
-        "fixed border border-border bg-surface p-0 text-foreground shadow-2xl open:flex open:flex-col",
+        "fixed border border-border bg-surface p-0 text-foreground shadow-overlay open:flex open:flex-col",
         sideClasses[side],
         className,
       )}

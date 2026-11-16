@@ -2,9 +2,18 @@ import { ReceiptText } from "lucide-react";
 import { EmptyState } from "@/components/feedback/empty-state";
 import { Badge, StatusBadge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { ServiceFlow } from "@/components/ui/service-flow";
 import { formatCurrency, formatDateTime } from "@/lib/format";
+import type { ServiceFlowStep } from "@/types/ui";
 
 export const instant = false;
+
+const orderSteps: ServiceFlowStep[] = [
+  { id: "accepted", label: "Diterima", state: "complete" },
+  { id: "preparing", label: "Disiapkan", state: "current" },
+  { id: "ready", label: "Siap", state: "upcoming" },
+  { id: "completed", label: "Selesai", state: "upcoming" },
+];
 
 export default async function OrderStatusPage({
   params,
@@ -26,19 +35,20 @@ export default async function OrderStatusPage({
   return (
     <div className="flex flex-col gap-5">
       <div className="flex items-start justify-between gap-3">
-        <div>
+        <div className="flex flex-col gap-0.5">
           <h1 className="text-page-title text-foreground">Status pesanan</h1>
-          <p className="text-body text-muted-foreground">
-            Nomor KMG-0248 · {formatDateTime("2026-11-15T10:42:00+07:00")}
+          <p className="text-body text-muted-foreground">Nomor KMG-0248</p>
+          <p className="text-caption text-muted-foreground">
+            {formatDateTime("2026-11-15T10:42:00+07:00")}
           </p>
         </div>
-        <Badge tone="info">Fase 3</Badge>
+        <Badge tone="neutral">Data contoh</Badge>
       </div>
 
       <Card>
         <CardHeader
           action={<Badge tone="neutral">Dine-in</Badge>}
-          description="Contoh tampilan status yang aman untuk pelanggan."
+          description="Status pembayaran dan persiapan ditampilkan terpisah."
           title="Ringkasan pesanan"
         />
         <CardContent className="flex flex-col gap-4">
@@ -52,18 +62,23 @@ export default async function OrderStatusPage({
               {formatCurrency(128000)}
             </span>
           </div>
-          <p className="text-caption text-muted-foreground">
-            Pembayaran dilakukan di kasir. Status persiapan dan pembayaran
-            ditampilkan terpisah.
-          </p>
         </CardContent>
       </Card>
 
-      <EmptyState
-        description="Pelacakan status real-time dan detail pesanan pelanggan akan diimplementasikan pada Fase 3/5."
-        icon={ReceiptText}
-        title="Pelacakan belum aktif"
-      />
+      <Card>
+        <CardHeader
+          description="Pesanan diperbarui oleh staf RAVIKA."
+          title="Progres pesanan"
+        />
+        <CardContent>
+          <ServiceFlow orientation="vertical" steps={orderSteps} />
+        </CardContent>
+      </Card>
+
+      <p className="text-caption text-muted-foreground">
+        Pembayaran dilakukan di kasir. Halaman ini tidak menampilkan data
+        pelanggan lain.
+      </p>
     </div>
   );
 }

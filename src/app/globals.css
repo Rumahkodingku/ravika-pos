@@ -31,22 +31,35 @@
   --color-input: var(--ravika-input);
   --color-primary: var(--ravika-primary);
   --color-primary-foreground: var(--ravika-primary-foreground);
+  --color-primary-action: var(--ravika-primary-action);
+  --color-primary-action-foreground: var(--ravika-primary-action-foreground);
+  --color-primary-strong: var(--ravika-primary-strong);
   --color-secondary: var(--ravika-secondary);
   --color-secondary-foreground: var(--ravika-secondary-foreground);
   --color-success: var(--ravika-success);
+  --color-success-strong: var(--ravika-success-strong);
   --color-success-subtle: var(--ravika-success-subtle);
   --color-warning: var(--ravika-warning);
+  --color-warning-strong: var(--ravika-warning-strong);
   --color-warning-subtle: var(--ravika-warning-subtle);
   --color-danger: var(--ravika-danger);
+  --color-danger-strong: var(--ravika-danger-strong);
   --color-danger-subtle: var(--ravika-danger-subtle);
   --color-info: var(--ravika-info);
+  --color-info-strong: var(--ravika-info-strong);
   --color-info-subtle: var(--ravika-info-subtle);
   --color-focus-ring: var(--ravika-focus-ring);
+  --color-surface-inverse: var(--ravika-surface-inverse);
+  --color-inverse-foreground: var(--ravika-inverse-foreground);
 
   --radius-sm: var(--ravika-radius-sm);
   --radius-md: var(--ravika-radius-md);
   --radius-lg: var(--ravika-radius-lg);
   --radius-xl: var(--ravika-radius-xl);
+
+  --shadow-overlay: var(--shadow-overlay);
+  --ease-smooth: var(--motion-ease-out);
+  --ease-smooth-in-out: var(--motion-ease-in-out);
 
   --breakpoint-2xl: 1440px;
 
@@ -96,6 +109,21 @@
 
   html {
     scroll-behavior: smooth;
+    scroll-padding-top: var(--ravika-header-height);
+  }
+
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  summary,
+  label[for],
+  select:not(:disabled) {
+    cursor: pointer;
+  }
+
+  button:disabled,
+  [role="button"][aria-disabled="true"],
+  select:disabled {
+    cursor: not-allowed;
   }
 
   body {
@@ -117,6 +145,21 @@
     background-color: rgb(16 24 40 / 0.55);
     backdrop-filter: blur(2px);
   }
+}
+
+@keyframes mega-menu-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -4px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+.mega-menu-panel {
+  animation: mega-menu-in var(--motion-base) var(--motion-ease-out);
 }
 
 @media (prefers-reduced-motion: reduce) {

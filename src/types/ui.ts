@@ -28,11 +28,28 @@ export type NavItem = {
   href: string;
   icon: LucideIcon;
   permission: string;
+  description: string;
 };
 
 export type NavGroup = {
   label: string;
+  description?: string;
   items: NavItem[];
+};
+
+export type QuickAction = {
+  label: string;
+  href: string;
+  icon: LucideIcon;
+  permission: string;
+  description?: string;
+};
+
+export type ServiceFlowStep = {
+  id: string;
+  label: string;
+  count?: number;
+  state: "complete" | "current" | "upcoming" | "cancelled";
 };
 
 export type SelectOption = {

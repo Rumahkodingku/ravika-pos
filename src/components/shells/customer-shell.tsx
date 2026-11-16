@@ -15,8 +15,8 @@ export function CustomerShell({
   return (
     <ShellTheme defaultTheme="light">
       <div className="flex min-h-dvh flex-col bg-surface-subtle">
-        <header className="border-b border-border bg-background">
-          <div className="mx-auto flex w-full max-w-lg items-center gap-3 px-4 py-4">
+        <header className="border-b border-border bg-surface">
+          <div className="mx-auto flex w-full max-w-[480px] items-center gap-3 px-4 py-4">
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
               <Store aria-hidden="true" className="h-5 w-5" />
             </span>
@@ -31,11 +31,11 @@ export function CustomerShell({
             </div>
           </div>
         </header>
-        <main className="mx-auto w-full max-w-lg flex-1 px-4 py-5">
+        <main className="mx-auto w-full max-w-[480px] flex-1 px-4 py-5">
           {children}
         </main>
-        <footer className="border-t border-border bg-background py-4">
-          <p className="mx-auto max-w-lg px-4 text-center text-caption text-muted-foreground">
+        <footer className="border-t border-border bg-surface py-4">
+          <p className="mx-auto max-w-[480px] px-4 text-center text-caption text-muted-foreground">
             Pesanan diproses oleh staf RAVIKA.
           </p>
         </footer>

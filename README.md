@@ -4,7 +4,7 @@
 
 POS self-hosted untuk kafe dan UMKM. Satu instalasi melayani satu bisnis, berjalan di komputer server lokal, dan diakses lewat LAN/Wi-Fi tanpa mewajibkan internet untuk transaksi.
 
-**Status:** Fase 1 selesai — frontend foundation dan design system. Fase 2 (management UI) berikutnya. Backend belum diimplementasikan.
+**Status:** Fase 1.5 selesai. Frontend foundation, design system, dan refactor UI/UX operational focus sudah diterapkan. Fase 2 (management UI) berikutnya. Backend belum diimplementasikan.
 
 ## Stack
 
@@ -85,7 +85,7 @@ Route group masih placeholder. Halaman fitur diisi pada Fase 2 dan Fase 3. `src/
 | `/kds` | Kitchen Display System |
 | `/menu/[token]` | Menu pelanggan via QR |
 | `/order/[publicToken]` | Status pesanan pelanggan |
-| `/app/design-system` | Pratinjau komponen Fase 1 |
+| `/app/design-system` | Pratinjau komponen Fase 1.5 |
 
 Token desain ada di `src/styles/tokens.css`. Theme, shell, dan komponen dasar sudah tersedia; pratinjau ada di `/app/design-system`.
 
@@ -99,6 +99,7 @@ API, database, autentikasi nyata, dan SSE belum dibuat.
 - `docs/design/design-direction.md` — arah visual
 - `docs/design/design-system.md` — token dan spesifikasi komponen
 - `docs/design/ui-ux-guidelines.md` — interaksi, responsive, aksesibilitas, QA
+- `docs/specification/phase-1-5-ui-ux-refinement.md` — spec refactor Fase 1.5
 
 Baca PRD dan seluruh dokumen desain sebelum membuat halaman atau komponen baru.
 
@@ -109,6 +110,8 @@ Baca PRD dan seluruh dokumen desain sebelum membuat halaman atau komponen baru.
 - Jangan menambah UI library tanpa persetujuan. Komponen dasar dibuat custom dengan HTML native.
 - Gunakan token desain; jangan sebar nilai warna, spacing, atau radius mentah.
 - Copy UI berbahasa Indonesia. Kode dan komentar berbahasa Inggris.
+- Copy UI tidak memakai em dash atau middle dot untuk metadata.
 - Status pembayaran dan status persiapan pesanan harus tetap terpisah.
+- Navigasi management memakai quick links dan mega menu. Mobile memakai full-screen sheet.
 - Jangan mengarang aturan bisnis, field, permission, atau transisi status.
 - Keputusan yang belum final ada di `docs/PRD.md` bagian 17.

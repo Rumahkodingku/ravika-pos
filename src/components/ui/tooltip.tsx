@@ -49,7 +49,7 @@ export function Tooltip({
       {open ? (
         <span
           className={cn(
-            "absolute bottom-full left-1/2 z-[var(--z-dropdown)] mb-2 w-max max-w-64 -translate-x-1/2 rounded-md bg-foreground px-2 py-1 text-caption text-background shadow-lg",
+            "absolute bottom-full left-1/2 z-[var(--z-dropdown)] mb-2 w-max max-w-64 -translate-x-1/2 rounded-md bg-foreground px-2 py-1 text-caption text-background shadow-overlay",
           )}
           id={id}
           role="tooltip"

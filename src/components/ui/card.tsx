@@ -6,7 +6,9 @@ export type CardVariant =
   | "stat"
   | "product"
   | "order"
-  | "surface-subtle";
+  | "surface-subtle"
+  | "elevated"
+  | "inverse";
 
 const variantClasses: Record<CardVariant, string> = {
   default: "bg-surface",
@@ -16,6 +18,8 @@ const variantClasses: Record<CardVariant, string> = {
   product: "overflow-hidden bg-surface",
   order: "bg-surface",
   "surface-subtle": "bg-surface-subtle",
+  elevated: "bg-surface-elevated shadow-overlay",
+  inverse: "border-surface-inverse bg-surface-inverse text-inverse-foreground",
 };
 
 export function Card({
@@ -30,7 +34,7 @@ export function Card({
   return (
     <div
       className={cn(
-        "rounded-lg border border-border text-foreground shadow-sm",
+        "rounded-lg border border-border text-foreground",
         variantClasses[variant],
         className,
       )}

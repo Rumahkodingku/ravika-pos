@@ -1,4 +1,4 @@
-import { ThemeProvider, ThemeScript } from "@/components/theme/theme-provider";
+import { ThemeProvider } from "@/components/theme/theme-provider";
 import type { ThemeMode } from "@/types/ui";
 
 export function ShellTheme({
@@ -8,10 +8,5 @@ export function ShellTheme({
   children: React.ReactNode;
   defaultTheme: ThemeMode;
 }) {
-  return (
-    <ThemeProvider defaultTheme={defaultTheme}>
-      <ThemeScript defaultTheme={defaultTheme} />
-      {children}
-    </ThemeProvider>
-  );
+  return <ThemeProvider defaultTheme={defaultTheme}>{children}</ThemeProvider>;
 }

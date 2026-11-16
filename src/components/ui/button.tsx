@@ -13,19 +13,17 @@ export type ButtonVariant =
 export type ButtonSize = "sm" | "md" | "lg" | "icon";
 
 const baseClasses =
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-button transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50 motion-reduce:transition-none";
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-button transition-[background-color,color,transform] duration-[var(--motion-base)] ease-smooth focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50 motion-reduce:transition-none motion-reduce:active:scale-100";
 
 const variantClasses: Record<ButtonVariant, string> = {
   primary:
-    "bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 active:bg-primary/80",
-  secondary:
-    "bg-secondary text-secondary-foreground hover:bg-secondary/80 active:bg-secondary/70",
-  outline:
-    "border border-border bg-transparent text-foreground hover:bg-muted active:bg-muted/80",
-  ghost: "bg-transparent text-foreground hover:bg-muted active:bg-muted/80",
+    "bg-primary-action text-primary-action-foreground hover:bg-primary-action/90",
+  secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
+  outline: "border border-border bg-transparent text-foreground hover:bg-muted",
+  ghost: "bg-transparent text-foreground hover:bg-muted",
   danger:
-    "bg-danger text-white shadow-sm hover:bg-danger/90 active:bg-danger/80",
-  link: "bg-transparent px-0 text-primary underline-offset-4 hover:underline",
+    "bg-danger-strong text-white hover:bg-danger-strong/90 dark:text-[#081B34]",
+  link: "bg-transparent px-0 text-primary-strong underline-offset-4 hover:underline",
 };
 
 const sizeClasses: Record<ButtonSize, string> = {

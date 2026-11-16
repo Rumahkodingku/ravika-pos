@@ -9,17 +9,17 @@ const config: Record<
   connected: {
     label: "Terhubung",
     dot: "bg-success",
-    text: "text-success",
+    text: "text-success-strong",
   },
   reconnecting: {
     label: "Menyambung ulang",
     dot: "bg-warning",
-    text: "text-warning",
+    text: "text-warning-strong",
   },
   disconnected: {
     label: "Terputus",
     dot: "bg-danger",
-    text: "text-danger",
+    text: "text-danger-strong",
   },
 };
 

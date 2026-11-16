@@ -46,7 +46,7 @@ export function PageHeader({
     >
       <div className="flex min-w-0 flex-col gap-1">
         {eyebrow ? (
-          <p className="text-caption font-medium uppercase tracking-wide text-muted-foreground">
+          <p className="text-label font-medium text-muted-foreground">
             {eyebrow}
           </p>
         ) : null}
@@ -67,11 +67,13 @@ export function PageHeader({
 }
 
 export function Section({
+  action,
   children,
   className,
   description,
   title,
 }: {
+  action?: React.ReactNode;
   children: React.ReactNode;
   className?: string;
   description?: React.ReactNode;
@@ -80,11 +82,14 @@ export function Section({
   return (
     <section className={cn("flex flex-col gap-3", className)}>
       {title ? (
-        <div className="flex flex-col gap-1">
-          <h2 className="text-section-title text-foreground">{title}</h2>
-          {description ? (
-            <p className="text-body text-muted-foreground">{description}</p>
-          ) : null}
+        <div className="flex items-end justify-between gap-4">
+          <div className="flex flex-col gap-1">
+            <h2 className="text-section-title text-foreground">{title}</h2>
+            {description ? (
+              <p className="text-body text-muted-foreground">{description}</p>
+            ) : null}
+          </div>
+          {action ? <div className="shrink-0">{action}</div> : null}
         </div>
       ) : null}
       {children}

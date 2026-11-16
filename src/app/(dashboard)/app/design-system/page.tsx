@@ -23,10 +23,12 @@ import { Drawer } from "@/components/ui/drawer";
 import { Field } from "@/components/ui/field";
 import { Input, SearchInput } from "@/components/ui/input";
 import { PageHeader, Section } from "@/components/ui/layout";
+import { MegaMenu } from "@/components/ui/mega-menu";
 import { Pagination } from "@/components/ui/pagination";
 import { QuantityControl } from "@/components/ui/quantity-control";
 import { RadioGroup } from "@/components/ui/radio-group";
 import { Select } from "@/components/ui/select";
+import { ServiceFlow } from "@/components/ui/service-flow";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
 import {
@@ -42,6 +44,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/toast";
 import { Tooltip } from "@/components/ui/tooltip";
 import { formatCurrency } from "@/lib/format";
+import { megaMenuGroups, quickActions } from "@/mocks/navigation";
 
 const chartData = [
   { label: "Sen", value: 12 },
@@ -58,6 +61,31 @@ const tableRows = [
   { number: "SNP-0119", total: 54000, status: "UNPAID" as const },
 ];
 
+const flowSteps = [
+  { id: "new", label: "Baru", count: 12, state: "complete" as const },
+  { id: "accepted", label: "Diterima", count: 8, state: "complete" as const },
+  {
+    id: "preparing",
+    label: "Disiapkan",
+    count: 6,
+    state: "current" as const,
+  },
+  { id: "ready", label: "Siap", count: 3, state: "upcoming" as const },
+];
+
+const tokenSwatches = [
+  { name: "Primary action", token: "var(--ravika-primary-action)" },
+  { name: "Primary", token: "var(--ravika-primary)" },
+  { name: "Success", token: "var(--ravika-success)" },
+  { name: "Warning", token: "var(--ravika-warning)" },
+  { name: "Danger", token: "var(--ravika-danger)" },
+  { name: "Info", token: "var(--ravika-info)" },
+  { name: "Surface", token: "var(--ravika-surface)" },
+  { name: "Surface subtle", token: "var(--ravika-surface-subtle)" },
+  { name: "Border", token: "var(--ravika-border)" },
+  { name: "Inverse", token: "var(--ravika-surface-inverse)" },
+];
+
 export default function DesignSystemPage() {
   const { toast } = useToast();
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -70,11 +98,93 @@ export default function DesignSystemPage() {
   return (
     <div className="flex flex-col gap-8">
       <PageHeader
-        actions={<Badge tone="info">Fase 1</Badge>}
+        actions={<Badge tone="info">Fase 1.5</Badge>}
         description="Pratinjau komponen, token, theme, dan state untuk QA internal."
         eyebrow="Frontend foundation"
         title="Design system"
       />
+
+      <Section
+        description="Semantic color, type scale, dan spacing yang dipakai aplikasi."
+        title="Tokens"
+      >
+        <Card>
+          <CardContent className="flex flex-col gap-5">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+              {tokenSwatches.map((swatch) => (
+                <div className="flex flex-col gap-1.5" key={swatch.name}>
+                  <span
+                    aria-hidden="true"
+                    className="h-12 rounded-md border border-border"
+                    style={{ backgroundColor: swatch.token }}
+                  />
+                  <span className="text-caption font-medium text-foreground">
+                    {swatch.name}
+                  </span>
+                </div>
+              ))}
+            </div>
+            <div className="grid gap-2 border-t border-border pt-4">
+              <p className="text-display text-foreground">Display 32</p>
+              <p className="text-page-title text-foreground">Page title 28</p>
+              <p className="text-section-title text-foreground">
+                Section title 20
+              </p>
+              <p className="text-card-title text-foreground">Card title 16</p>
+              <p className="text-body text-foreground">Body 14</p>
+              <p className="text-label text-foreground">Label 13</p>
+              <p className="text-caption text-muted-foreground">Caption 12</p>
+            </div>
+            <div className="flex flex-wrap items-end gap-2 border-t border-border pt-4">
+              {[1, 2, 3, 4, 6, 8].map((step) => (
+                <div className="flex flex-col items-center gap-1" key={step}>
+                  <span
+                    aria-hidden="true"
+                    className="bg-primary/30"
+                    style={{ height: `${step * 4}px`, width: `${step * 4}px` }}
+                  />
+                  <span className="text-caption text-muted-foreground">
+                    {step * 4}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </Section>
+
+      <Section
+        description="Panel navigasi full-width dengan grup dan aksi cepat."
+        title="Mega menu"
+      >
+        <Card>
+          <CardContent className="flex flex-col gap-3">
+            <p className="text-body text-muted-foreground">
+              Klik tombol Menu untuk membuka panel. Gunakan Tab dan Escape untuk
+              menguji keyboard.
+            </p>
+            <div className="flex min-h-11 items-center">
+              <MegaMenu
+                activePath="/app/design-system"
+                groups={megaMenuGroups}
+                quickActions={quickActions}
+              />
+            </div>
+          </CardContent>
+        </Card>
+      </Section>
+
+      <Section
+        description="Motif service flow untuk dashboard, KDS, dan status pesanan."
+        title="Service flow"
+      >
+        <Card>
+          <CardContent className="flex flex-col gap-6">
+            <ServiceFlow steps={flowSteps} />
+            <ServiceFlow orientation="vertical" steps={flowSteps} />
+          </CardContent>
+        </Card>
+      </Section>
 
       <Section
         description="Varian, ukuran, state loading, dan ikon."
@@ -130,7 +240,7 @@ export default function DesignSystemPage() {
             </Field>
             <div className="flex flex-col gap-4">
               <label
-                className="flex items-center gap-2 text-body text-muted-foreground"
+                className="flex min-h-11 items-center gap-2 text-body text-muted-foreground"
                 htmlFor="demo-checkbox"
               >
                 <Checkbox defaultChecked id="demo-checkbox" />

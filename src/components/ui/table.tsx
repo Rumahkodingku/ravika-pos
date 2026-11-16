@@ -23,7 +23,11 @@ export function TableHeader({
   children: React.ReactNode;
   className?: string;
 }) {
-  return <thead className={cn("[&_tr]:border-b", className)}>{children}</thead>;
+  return (
+    <thead className={cn("bg-surface-subtle [&_tr]:border-b", className)}>
+      {children}
+    </thead>
+  );
 }
 
 export function TableBody({

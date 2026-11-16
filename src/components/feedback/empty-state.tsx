@@ -17,11 +17,13 @@ export function EmptyState({
   return (
     <div
       className={cn(
-        "flex min-h-48 flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-border bg-surface-subtle p-6 text-center",
+        "flex min-h-48 flex-col items-center justify-center gap-3 rounded-lg border border-border bg-surface-subtle p-6 text-center",
         className,
       )}
     >
-      <Icon aria-hidden={true} className="h-8 w-8 text-muted-foreground" />
+      <span className="flex h-10 w-10 items-center justify-center rounded-md border border-border bg-surface text-muted-foreground">
+        <Icon aria-hidden={true} className="h-5 w-5" />
+      </span>
       <div className="flex max-w-sm flex-col gap-1">
         <h3 className="text-card-title text-foreground">{title}</h3>
         {description ? (

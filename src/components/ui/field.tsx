@@ -37,7 +37,7 @@ export function Field({
       <Label htmlFor={htmlFor}>
         {label}
         {required ? (
-          <span aria-hidden="true" className="ml-0.5 text-danger">
+          <span aria-hidden="true" className="ml-0.5 text-danger-strong">
             *
           </span>
         ) : null}
@@ -55,7 +55,7 @@ export function FieldDescription({ children }: { children: ReactNode }) {
 
 export function FieldError({ children }: { children: ReactNode }) {
   return (
-    <p className="text-caption font-medium text-danger" role="alert">
+    <p className="text-caption font-medium text-danger-strong" role="alert">
       {children}
     </p>
   );

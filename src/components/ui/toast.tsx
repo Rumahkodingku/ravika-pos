@@ -41,10 +41,17 @@ const icons = {
 };
 
 const toneClasses: Record<ToastTone, string> = {
-  success: "border-success/30 bg-success-subtle text-success",
-  warning: "border-warning/30 bg-warning-subtle text-warning",
-  danger: "border-danger/30 bg-danger-subtle text-danger",
-  info: "border-info/30 bg-info-subtle text-info",
+  success: "border-success/30 bg-surface-elevated",
+  warning: "border-warning/30 bg-surface-elevated",
+  danger: "border-danger/30 bg-surface-elevated",
+  info: "border-info/30 bg-surface-elevated",
+};
+
+const iconClasses: Record<ToastTone, string> = {
+  success: "text-success-strong",
+  warning: "text-warning-strong",
+  danger: "text-danger-strong",
+  info: "text-info-strong",
 };
 
 export function ToastProvider({ children }: { children: ReactNode }) {
@@ -84,22 +91,29 @@ export function ToastProvider({ children }: { children: ReactNode }) {
           return (
             <div
               className={cn(
-                "pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-lg border p-3 shadow-xl",
+                "pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-lg border p-3 shadow-overlay",
                 toneClasses[tone],
               )}
               key={item.id}
               role={tone === "danger" ? "alert" : "status"}
             >
-              <Icon aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0" />
+              <Icon
+                aria-hidden="true"
+                className={cn("mt-0.5 h-5 w-5 shrink-0", iconClasses[tone])}
+              />
               <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-                <p className="text-body font-medium">{item.title}</p>
+                <p className="text-body font-medium text-foreground">
+                  {item.title}
+                </p>
                 {item.description ? (
-                  <p className="text-caption opacity-90">{item.description}</p>
+                  <p className="text-caption text-muted-foreground">
+                    {item.description}
+                  </p>
                 ) : null}
               </div>
               <Button
                 aria-label="Tutup notifikasi"
-                className="-mr-1 -mt-1 h-8 w-8 shrink-0 text-current"
+                className="-mr-1 -mt-1 h-8 w-8 shrink-0 text-foreground"
                 onClick={() => dismiss(item.id)}
                 size="icon"
                 variant="ghost"

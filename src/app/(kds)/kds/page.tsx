@@ -1,49 +1,121 @@
 import { ClipboardList } from "lucide-react";
 import { EmptyState } from "@/components/feedback/empty-state";
-import { StatusBadge } from "@/components/ui/badge";
-import type { PreparationStatus } from "@/types/ui";
-
-const columns: Array<{ label: string; status: PreparationStatus }> = [
-  { label: "Baru", status: "NEW" },
-  { label: "Diterima", status: "ACCEPTED" },
-  { label: "Disiapkan", status: "PREPARING" },
-  { label: "Siap", status: "READY" },
-  { label: "Selesai", status: "COMPLETED" },
-];
+import { Badge, StatusBadge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
+import { OrderTicket } from "@/components/ui/order-ticket";
+import { ServiceFlow } from "@/components/ui/service-flow";
+import { kdsColumns, mockKdsTickets } from "@/mocks/kds";
+import type { ServiceFlowStep } from "@/types/ui";
 
 export default function KdsPage() {
+  const activeCount = mockKdsTickets.filter(
+    (ticket) => ticket.status !== "COMPLETED",
+  ).length;
+  const readyCount = mockKdsTickets.filter(
+    (ticket) => ticket.status === "READY",
+  ).length;
+
+  const flowSteps: ServiceFlowStep[] = kdsColumns.map((column) => ({
+    id: column.status,
+    label: column.label,
+    count: mockKdsTickets.filter((ticket) => ticket.status === column.status)
+      .length,
+    state:
+      column.status === "NEW" || column.status === "ACCEPTED"
+        ? "complete"
+        : column.status === "PREPARING"
+          ? "current"
+          : "upcoming",
+  }));
+
   return (
-    <div className="flex min-w-[980px] flex-col gap-4">
-      <div className="flex items-center justify-between gap-3">
-        <div>
-          <h1 className="text-page-title text-foreground">Antrean pesanan</h1>
+    <div className="flex flex-col gap-5">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div className="flex flex-col gap-1">
+          <div className="flex items-center gap-2">
+            <h1 className="text-page-title text-foreground">Antrean pesanan</h1>
+            <Badge tone="neutral">Data contoh</Badge>
+          </div>
           <p className="text-body text-muted-foreground">
-            Board KDS dengan data mock. Perubahan status akan aktif pada Fase 3.
+            Pantau alur persiapan dan status pesanan aktif.
           </p>
         </div>
         <StatusBadge kind="preparation" status="READY" />
       </div>
-      <div className="grid grid-cols-5 gap-3">
-        {columns.map((column) => (
-          <section
-            className="flex min-h-[420px] flex-col gap-3 rounded-lg border border-border bg-surface-subtle p-3"
-            key={column.status}
-          >
-            <div className="flex items-center justify-between gap-2">
-              <StatusBadge kind="preparation" status={column.status} />
-              <span className="text-caption tabular-nums text-muted-foreground">
-                0
-              </span>
-            </div>
-            <EmptyState
-              className="min-h-0 flex-1 border-0 bg-transparent p-3"
-              description="Belum ada tiket."
-              icon={ClipboardList}
-              title="Kosong"
-            />
-          </section>
-        ))}
+
+      <div className="grid grid-cols-3 gap-2 sm:gap-3">
+        <Card className="p-3 sm:p-4" variant="stat">
+          <p className="text-caption text-muted-foreground">Pesanan aktif</p>
+          <p className="text-section-title tabular-nums text-foreground sm:text-page-title">
+            {activeCount}
+          </p>
+        </Card>
+        <Card className="p-3 sm:p-4" variant="stat">
+          <p className="text-caption text-muted-foreground">Siap diambil</p>
+          <p className="text-section-title tabular-nums text-foreground sm:text-page-title">
+            {readyCount}
+          </p>
+        </Card>
+        <Card className="p-3 sm:p-4" variant="stat">
+          <p className="text-caption text-muted-foreground">Rata-rata waktu</p>
+          <p className="text-section-title tabular-nums text-foreground sm:text-page-title">
+            6 mnt
+          </p>
+        </Card>
       </div>
+
+      <ServiceFlow steps={flowSteps} />
+
+      <p className="text-caption text-muted-foreground lg:hidden">
+        Geser ke samping untuk melihat semua status.
+      </p>
+
+      <div className="overflow-x-auto pb-2">
+        <div className="grid min-w-[1120px] grid-cols-5 gap-3">
+          {kdsColumns.map((column) => {
+            const tickets = mockKdsTickets.filter(
+              (ticket) => ticket.status === column.status,
+            );
+
+            return (
+              <section
+                className="flex min-h-[420px] flex-col gap-3 rounded-lg border border-border bg-surface-subtle p-3"
+                key={column.status}
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex flex-col gap-0.5">
+                    <StatusBadge kind="preparation" status={column.status} />
+                    <p className="text-caption text-muted-foreground">
+                      {column.description}
+                    </p>
+                  </div>
+                  <span className="text-caption tabular-nums text-muted-foreground">
+                    {tickets.length}
+                  </span>
+                </div>
+                {tickets.length === 0 ? (
+                  <EmptyState
+                    className="min-h-0 flex-1 border-0 bg-transparent p-3"
+                    description="Belum ada tiket."
+                    icon={ClipboardList}
+                    title="Kosong"
+                  />
+                ) : (
+                  <div className="flex flex-col gap-2">
+                    {tickets.map((ticket) => (
+                      <OrderTicket key={ticket.id} ticket={ticket} />
+                    ))}
+                  </div>
+                )}
+              </section>
+            );
+          })}
+        </div>
+      </div>
+
+      <p className="text-caption text-muted-foreground">
+        Aksi perubahan status akan aktif pada Fase 3.
+      </p>
     </div>
   );
 }

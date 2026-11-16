@@ -5,6 +5,7 @@ import {
   type ReactNode,
   useContext,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useState,
 } from "react";
@@ -50,7 +51,7 @@ export function ThemeProvider({
     defaultTheme === "dark" ? "dark" : "light",
   );
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const storedTheme = window.localStorage.getItem(STORAGE_KEY);
     const nextTheme: ThemeMode =
       storedTheme === "light" ||
@@ -111,27 +112,4 @@ export function useTheme() {
   }
 
   return context;
-}
-
-export function ThemeScript({
-  defaultTheme = "system",
-}: {
-  defaultTheme?: ThemeMode;
-}) {
-  const script = `
-    (function () {
-      try {
-        var key = "${STORAGE_KEY}";
-        var stored = window.localStorage.getItem(key);
-        var theme = stored === "light" || stored === "dark" || stored === "system" ? stored : "${defaultTheme}";
-        var isDark = theme === "dark" || (theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
-        document.documentElement.classList.toggle("dark", isDark);
-      } catch (error) {
-        document.documentElement.classList.remove("dark");
-      }
-    })();
-  `;
-
-  // biome-ignore lint/security/noDangerouslySetInnerHtml: static theme bootstrap script
-  return <script dangerouslySetInnerHTML={{ __html: script }} />;
 }

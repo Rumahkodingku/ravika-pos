@@ -1,5 +1,5 @@
 import { LoadingState } from "@/components/feedback/loading-state";
 
 export default function Loading() {
-  return <LoadingState message="Memuat menu…" />;
+  return <LoadingState message="Memuat halaman..." />;
 }

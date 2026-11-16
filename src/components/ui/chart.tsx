@@ -1,5 +1,5 @@
 import { cn } from "@/lib/cn";
-import { formatNumber } from "@/lib/format";
+import { formatCompactNumber, formatNumber } from "@/lib/format";
 
 export type ChartDatum = {
   label: string;
@@ -54,25 +54,92 @@ function ChartTable({ data }: { data: ChartDatum[] }) {
   );
 }
 
+function niceMax(value: number) {
+  if (value <= 0) {
+    return 1;
+  }
+
+  const magnitude = 10 ** Math.floor(Math.log10(value));
+  const normalized = value / magnitude;
+  const nice =
+    normalized <= 1 ? 1 : normalized <= 2 ? 2 : normalized <= 5 ? 5 : 10;
+
+  return nice * magnitude;
+}
+
+function ChartAxes({
+  data,
+  height,
+  valueFormatter,
+  width,
+}: {
+  data: ChartDatum[];
+  height: number;
+  valueFormatter: (value: number) => string;
+  width: number;
+}) {
+  const paddingLeft = 64;
+  const paddingRight = 20;
+  const paddingTop = 18;
+  const paddingBottom = 32;
+  const plotHeight = height - paddingTop - paddingBottom;
+  const maxValue = niceMax(Math.max(...data.map((datum) => datum.value), 1));
+  const ticks = [0, 0.25, 0.5, 0.75, 1];
+
+  return (
+    <>
+      {ticks.map((tick) => {
+        const y = paddingTop + plotHeight - tick * plotHeight;
+
+        return (
+          <g key={tick}>
+            <line
+              stroke="var(--ravika-border)"
+              strokeWidth="1"
+              x1={paddingLeft}
+              x2={width - paddingRight}
+              y1={y}
+              y2={y}
+            />
+            <text
+              fill="var(--ravika-muted-foreground)"
+              fontSize="10"
+              textAnchor="end"
+              x={paddingLeft - 8}
+              y={y + 3}
+            >
+              {valueFormatter(maxValue * tick)}
+            </text>
+          </g>
+        );
+      })}
+    </>
+  );
+}
+
 export function BarChart({
   ariaLabel,
   className,
   data,
-  height = 240,
+  height = 260,
+  valueFormatter = formatCompactNumber,
 }: {
   ariaLabel: string;
   className?: string;
   data: ChartDatum[];
   height?: number;
+  valueFormatter?: (value: number) => string;
 }) {
   const width = 640;
-  const padding = 32;
-  const labelHeight = 28;
-  const chartHeight = height - padding - labelHeight;
-  const chartWidth = width - padding * 2;
-  const maxValue = Math.max(...data.map((datum) => datum.value), 1);
-  const slotWidth = chartWidth / Math.max(data.length, 1);
-  const barWidth = Math.min(slotWidth * 0.56, 72);
+  const paddingLeft = 64;
+  const paddingRight = 20;
+  const paddingTop = 18;
+  const paddingBottom = 32;
+  const plotWidth = width - paddingLeft - paddingRight;
+  const plotHeight = height - paddingTop - paddingBottom;
+  const maxValue = niceMax(Math.max(...data.map((datum) => datum.value), 1));
+  const slotWidth = plotWidth / Math.max(data.length, 1);
+  const barWidth = Math.min(slotWidth * 0.48, 56);
 
   return (
     <div className={cn("flex flex-col gap-2", className)}>
@@ -83,25 +150,24 @@ export function BarChart({
         viewBox={`0 0 ${width} ${height}`}
       >
         <title>{ariaLabel}</title>
-        <line
-          stroke="var(--ravika-border)"
-          strokeWidth="1"
-          x1={padding}
-          x2={width - padding}
-          y1={height - labelHeight}
-          y2={height - labelHeight}
+        <ChartAxes
+          data={data}
+          height={height}
+          valueFormatter={valueFormatter}
+          width={width}
         />
         {data.map((datum, index) => {
-          const barHeight = Math.max((datum.value / maxValue) * chartHeight, 2);
-          const x = padding + index * slotWidth + (slotWidth - barWidth) / 2;
-          const y = height - labelHeight - barHeight;
+          const barHeight = Math.max((datum.value / maxValue) * plotHeight, 2);
+          const x =
+            paddingLeft + index * slotWidth + (slotWidth - barWidth) / 2;
+          const y = paddingTop + plotHeight - barHeight;
 
           return (
             <g key={datum.label}>
               <rect
                 fill="var(--ravika-primary)"
                 height={barHeight}
-                rx="6"
+                rx="4"
                 width={barWidth}
                 x={x}
                 y={y}
@@ -128,27 +194,28 @@ export function LineChart({
   ariaLabel,
   className,
   data,
-  height = 240,
+  height = 260,
+  valueFormatter = formatCompactNumber,
 }: {
   ariaLabel: string;
   className?: string;
   data: ChartDatum[];
   height?: number;
+  valueFormatter?: (value: number) => string;
 }) {
   const width = 640;
-  const padding = 32;
-  const labelHeight = 28;
-  const chartHeight = height - padding - labelHeight;
-  const chartWidth = width - padding * 2;
-  const maxValue = Math.max(...data.map((datum) => datum.value), 1);
-  const step = data.length > 1 ? chartWidth / (data.length - 1) : 0;
+  const paddingLeft = 64;
+  const paddingRight = 20;
+  const paddingTop = 18;
+  const paddingBottom = 32;
+  const plotWidth = width - paddingLeft - paddingRight;
+  const plotHeight = height - paddingTop - paddingBottom;
+  const maxValue = niceMax(Math.max(...data.map((datum) => datum.value), 1));
+  const step = data.length > 1 ? plotWidth / (data.length - 1) : 0;
   const points = data
     .map((datum, index) => {
-      const x = padding + index * step;
-      const y =
-        height -
-        labelHeight -
-        Math.max((datum.value / maxValue) * chartHeight, 2);
+      const x = paddingLeft + index * step;
+      const y = paddingTop + plotHeight - (datum.value / maxValue) * plotHeight;
       return `${x},${y}`;
     })
     .join(" ");
@@ -162,13 +229,11 @@ export function LineChart({
         viewBox={`0 0 ${width} ${height}`}
       >
         <title>{ariaLabel}</title>
-        <line
-          stroke="var(--ravika-border)"
-          strokeWidth="1"
-          x1={padding}
-          x2={width - padding}
-          y1={height - labelHeight}
-          y2={height - labelHeight}
+        <ChartAxes
+          data={data}
+          height={height}
+          valueFormatter={valueFormatter}
+          width={width}
         />
         <polyline
           fill="none"
@@ -179,11 +244,9 @@ export function LineChart({
           strokeWidth="3"
         />
         {data.map((datum, index) => {
-          const x = padding + index * step;
+          const x = paddingLeft + index * step;
           const y =
-            height -
-            labelHeight -
-            Math.max((datum.value / maxValue) * chartHeight, 2);
+            paddingTop + plotHeight - (datum.value / maxValue) * plotHeight;
 
           return (
             <g key={datum.label}>
@@ -191,9 +254,9 @@ export function LineChart({
                 cx={x}
                 cy={y}
                 fill="var(--ravika-surface)"
-                r="5"
+                r="4"
                 stroke="var(--ravika-primary)"
-                strokeWidth="3"
+                strokeWidth="2.5"
               />
               <text
                 fill="var(--ravika-muted-foreground)"
@@ -242,21 +305,24 @@ export function Sparkline({
     .join(" ");
 
   return (
-    <svg
-      aria-label={ariaLabel}
-      className={cn("h-auto w-full max-w-48", className)}
-      role="img"
-      viewBox={`0 0 ${width} ${height}`}
-    >
-      <title>{ariaLabel}</title>
-      <polyline
-        fill="none"
-        points={points}
-        stroke="var(--ravika-primary)"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="2.5"
-      />
-    </svg>
+    <div className={cn("h-14 w-full max-w-48", className)}>
+      <svg
+        aria-label={ariaLabel}
+        className="h-full w-full"
+        role="img"
+        viewBox={`0 0 ${width} ${height}`}
+        preserveAspectRatio="none"
+      >
+        <title>{ariaLabel}</title>
+        <polyline
+          fill="none"
+          points={points}
+          stroke="var(--ravika-primary)"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="2.5"
+        />
+      </svg>
+    </div>
   );
 }

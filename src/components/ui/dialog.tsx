@@ -57,7 +57,7 @@ export function Dialog({
       aria-describedby={description ? descriptionId : undefined}
       aria-labelledby={titleId}
       className={cn(
-        "fixed inset-0 m-auto w-[calc(100%-2rem)] rounded-xl border border-border bg-surface p-0 text-foreground shadow-2xl open:flex open:flex-col",
+        "fixed inset-0 m-auto w-[calc(100%-2rem)] rounded-xl border border-border bg-surface p-0 text-foreground shadow-overlay open:flex open:flex-col",
         sizeClasses[size],
         className,
       )}

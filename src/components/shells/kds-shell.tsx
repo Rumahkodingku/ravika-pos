@@ -12,10 +12,10 @@ export function KdsShell({ children }: { children: React.ReactNode }) {
   return (
     <ShellTheme defaultTheme="dark">
       <div className="flex min-h-dvh flex-col bg-background">
-        <header className="sticky top-0 z-[var(--z-sticky)] border-b border-border bg-background/95 backdrop-blur">
-          <div className="flex min-h-16 flex-wrap items-center gap-3 px-4 py-2 sm:px-6">
+        <header className="sticky top-0 z-[var(--z-sticky)] border-b border-border bg-surface">
+          <div className="flex min-h-[var(--ravika-header-height)] flex-wrap items-center gap-3 px-4 py-2 sm:px-6">
             <Link
-              className="flex shrink-0 items-center gap-2 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
+              className="flex min-h-11 shrink-0 items-center gap-2 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
               href="/kds"
             >
               <span className="flex h-9 w-9 items-center justify-center rounded-md bg-primary text-primary-foreground">
@@ -33,7 +33,7 @@ export function KdsShell({ children }: { children: React.ReactNode }) {
             <ConnectionIndicator className="ml-auto" status="connected" />
             <ThemeToggle />
             <Link
-              className={buttonVariants({ variant: "outline", size: "sm" })}
+              className={buttonVariants({ variant: "outline", size: "md" })}
               href="/app"
             >
               <LogOut aria-hidden="true" className="h-4 w-4" />

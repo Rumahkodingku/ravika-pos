@@ -24,22 +24,34 @@
   --ravika-input: #d0d5dd;
   --ravika-primary: #3978d5;
   --ravika-primary-foreground: #ffffff;
+  --ravika-primary-action: #2f66b8;
+  --ravika-primary-action-foreground: #ffffff;
+  --ravika-primary-strong: #315b91;
   --ravika-secondary: #eef2f7;
   --ravika-secondary-foreground: #101828;
   --ravika-success: #16a36a;
+  --ravika-success-strong: #0f7a4f;
   --ravika-success-subtle: #e8f7ef;
   --ravika-warning: #b7791f;
+  --ravika-warning-strong: #8a5a12;
   --ravika-warning-subtle: #fff5df;
   --ravika-danger: #dc4c4c;
+  --ravika-danger-strong: #b42318;
   --ravika-danger-subtle: #fdecec;
   --ravika-info: #3978d5;
+  --ravika-info-strong: #315b91;
   --ravika-info-subtle: #eaf2ff;
   --ravika-focus-ring: #3978d5;
+  --ravika-surface-inverse: #101828;
+  --ravika-inverse-foreground: #f8fafc;
 
   --ravika-radius-sm: 6px;
   --ravika-radius-md: 8px;
   --ravika-radius-lg: 12px;
   --ravika-radius-xl: 16px;
+
+  --ravika-header-height: 64px;
+  --ravika-content-max: 1440px;
 
   --z-base: 0;
   --z-dropdown: 40;
@@ -48,10 +60,16 @@
   --z-dialog: 70;
   --z-toast: 80;
 
+  --motion-fast: 120ms;
+  --motion-base: 160ms;
   --motion-micro: 120ms;
-  --motion-standard: 180ms;
-  --motion-overlay: 220ms;
-  --motion-ease: cubic-bezier(0.2, 0, 0, 1);
+  --motion-standard: 160ms;
+  --motion-overlay: 200ms;
+  --motion-ease: cubic-bezier(0.23, 1, 0.32, 1);
+  --motion-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --motion-ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+
+  --shadow-overlay: 0 24px 60px -28px rgb(16 24 40 / 0.35);
 }
 
 .dark {
@@ -68,15 +86,24 @@
   --ravika-input: #46566d;
   --ravika-primary: #6ea5f5;
   --ravika-primary-foreground: #081b34;
+  --ravika-primary-action: #6ea5f5;
+  --ravika-primary-action-foreground: #081b34;
+  --ravika-primary-strong: #8ab8ff;
   --ravika-secondary: #29384d;
   --ravika-secondary-foreground: #e8eef6;
   --ravika-success: #35c78a;
+  --ravika-success-strong: #35c78a;
   --ravika-success-subtle: #123b2c;
   --ravika-warning: #f0b64d;
+  --ravika-warning-strong: #f0b64d;
   --ravika-warning-subtle: #453414;
   --ravika-danger: #f07878;
+  --ravika-danger-strong: #f07878;
   --ravika-danger-subtle: #481f27;
   --ravika-info: #6ea5f5;
+  --ravika-info-strong: #6ea5f5;
   --ravika-info-subtle: #172f50;
   --ravika-focus-ring: #8ab8ff;
+  --ravika-surface-inverse: #101828;
+  --ravika-inverse-foreground: #f8fafc;
 }

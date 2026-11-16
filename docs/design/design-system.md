@@ -71,8 +71,19 @@ Initial token proposal:
 | `info`                 | `#3978D5` | `#6EA5F5` |
 | `info-subtle`          | `#EAF2FF` | `#172F50` |
 | `focus-ring`           | `#3978D5` | `#8AB8FF` |
+| `primary-action`       | `#2F66B8` | `#6EA5F5` |
+| `primary-action-foreground` | `#FFFFFF` | `#081B34` |
+| `primary-strong`       | `#315B91` | `#8AB8FF` |
+| `success-strong`       | `#0F7A4F` | `#35C78A` |
+| `warning-strong`       | `#8A5A12` | `#F0B64D` |
+| `danger-strong`        | `#B42318` | `#F07878` |
+| `info-strong`          | `#315B91` | `#6EA5F5` |
+| `surface-inverse`      | `#101828` | `#101828` |
+| `inverse-foreground`   | `#F8FAFC` | `#F8FAFC` |
 
 **Important:** Values are starting tokens and must be contrast-tested before release. Do not assume every foreground/background pairing is accessible merely because both values are in this table.
+
+**Contrast note:** The original light-theme `primary` and semantic text colors did not meet WCAG AA for normal text. Fase 1.5 adds `primary-action` for filled actions and `*-strong` tokens for text, links, icons, and badges. Use `primary` as an accent and chart color, not as normal text on white. `primary-action` with `primary-action-foreground` passes 5.65:1 in light theme. `success-strong`, `warning-strong`, `danger-strong`, and `info-strong` pass on their respective subtle backgrounds.
 
 ### 2.3 Typography
 

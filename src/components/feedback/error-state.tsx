@@ -23,10 +23,13 @@ export function ErrorState({
       )}
       role="alert"
     >
-      <AlertTriangle aria-hidden="true" className="h-8 w-8 text-danger" />
+      <AlertTriangle
+        aria-hidden="true"
+        className="h-8 w-8 text-danger-strong"
+      />
       <div className="flex max-w-sm flex-col gap-1">
         <h3 className="text-card-title text-foreground">{title}</h3>
-        <p className="text-body text-muted-foreground">{description}</p>
+        <p className="text-body text-foreground">{description}</p>
       </div>
       {onRetry ? (
         <Button onClick={onRetry} variant="outline">

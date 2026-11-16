@@ -131,7 +131,7 @@ export function DropdownMenu({
       {open ? (
         <div
           className={cn(
-            "absolute top-full z-[var(--z-dropdown)] mt-2 min-w-56 rounded-lg border border-border bg-surface-elevated p-1 shadow-xl",
+            "absolute top-full z-[var(--z-dropdown)] mt-2 min-w-56 rounded-lg border border-border bg-surface-elevated p-1 shadow-overlay",
             align === "end" ? "right-0" : "left-0",
             menuClassName,
           )}

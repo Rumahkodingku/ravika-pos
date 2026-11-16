@@ -31,6 +31,39 @@ export const dashboardStats = [
   },
 ];
 
+export const todaySales = {
+  value: 4850000,
+  change: "+12,4%",
+  comparison: "dibanding kemarin",
+  transactions: 128,
+  average: 37890,
+  itemsSold: 342,
+  sparkline: [
+    { label: "08", value: 280000 },
+    { label: "09", value: 460000 },
+    { label: "10", value: 610000 },
+    { label: "11", value: 540000 },
+    { label: "12", value: 780000 },
+    { label: "13", value: 920000 },
+    { label: "14", value: 760000 },
+    { label: "15", value: 500000 },
+  ],
+};
+
+export const queueSteps = [
+  { id: "new", label: "Baru", count: 12, state: "current" as const },
+  { id: "accepted", label: "Diterima", count: 8, state: "upcoming" as const },
+  { id: "preparing", label: "Disiapkan", count: 6, state: "upcoming" as const },
+  { id: "ready", label: "Siap", count: 3, state: "upcoming" as const },
+];
+
+export const topProducts = [
+  { name: "Kopi Susu", quantity: 86, revenue: 2408000 },
+  { name: "Croissant Butter", quantity: 64, revenue: 1664000 },
+  { name: "Matcha Latte", quantity: 42, revenue: 1344000 },
+  { name: "Chicken Sandwich", quantity: 31, revenue: 1178000 },
+];
+
 export const salesTrend = [
   { label: "Sen", value: 3200000 },
   { label: "Sel", value: 4100000 },

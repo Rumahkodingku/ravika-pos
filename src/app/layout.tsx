@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
+import { ThemeScript } from "@/components/theme/theme-script";
 import { ToastProvider } from "@/components/ui/toast";
 import "./globals.css";
 
@@ -12,7 +13,7 @@ const plusJakarta = Plus_Jakarta_Sans({
 export const metadata: Metadata = {
   title: {
     default: "RAVIKA POS",
-    template: "%s · RAVIKA POS",
+    template: "%s | RAVIKA POS",
   },
   description: "POS self-hosted untuk operasional kafe dan UMKM.",
 };
@@ -27,6 +28,9 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="id" suppressHydrationWarning>
+      <head>
+        <ThemeScript />
+      </head>
       <body
         className={`${plusJakarta.variable} min-h-dvh bg-background font-sans text-foreground antialiased`}
       >

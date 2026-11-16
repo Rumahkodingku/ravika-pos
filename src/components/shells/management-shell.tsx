@@ -8,7 +8,6 @@ import { ShellTheme } from "@/components/shells/shell-theme";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Drawer } from "@/components/ui/drawer";
 import {
   DropdownMenu,
   DropdownMenuItem,
@@ -16,37 +15,26 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { Container } from "@/components/ui/layout";
-import { Select } from "@/components/ui/select";
+import { MegaMenu } from "@/components/ui/mega-menu";
+import { MobileMenuSheet } from "@/components/ui/mobile-menu-sheet";
+import { OutletSwitcher } from "@/components/ui/outlet-switcher";
 import { useToast } from "@/components/ui/toast";
 import { cn } from "@/lib/cn";
-import { managementNavigation } from "@/mocks/navigation";
+import {
+  megaMenuGroups,
+  quickActions,
+  quickNavigation,
+} from "@/mocks/navigation";
 import { mockOutlets } from "@/mocks/outlets";
 import { hasPermission, mockCurrentUser, mockUsers } from "@/mocks/session";
 import type { Outlet, SessionUser } from "@/types/auth";
 import type { NavItem } from "@/types/ui";
 
-const primaryHrefs = [
-  "/app",
-  "/app/orders",
-  "/app/pos",
-  "/kds",
-  "/app/products",
-  "/app/reports",
-];
-
 function isActivePath(pathname: string, href: string) {
   return href === "/app" ? pathname === "/app" : pathname.startsWith(href);
 }
 
-function NavLink({
-  item,
-  pathname,
-  onNavigate,
-}: {
-  item: NavItem;
-  pathname: string;
-  onNavigate?: () => void;
-}) {
+function QuickNavLink({ item, pathname }: { item: NavItem; pathname: string }) {
   const Icon = item.icon;
   const active = isActivePath(pathname, item.href);
 
@@ -54,13 +42,15 @@ function NavLink({
     <Link
       aria-current={active ? "page" : undefined}
       className={cn(
-        "inline-flex min-h-11 items-center gap-2 rounded-md px-3 py-2 text-label font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring motion-reduce:transition-none",
-        active && "bg-muted text-foreground",
+        "inline-flex min-h-11 items-center gap-2 rounded-md px-2.5 text-label font-medium text-muted-foreground transition-colors duration-[var(--motion-fast)] ease-smooth hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background motion-reduce:transition-none",
+        active && "bg-surface-subtle text-foreground",
       )}
       href={item.href}
-      onClick={onNavigate}
     >
-      <Icon aria-hidden="true" className="h-[18px] w-[18px]" />
+      <Icon
+        aria-hidden="true"
+        className={cn("h-[18px] w-[18px]", active && "text-primary-strong")}
+      />
       {item.label}
     </Link>
   );
@@ -90,7 +80,7 @@ export function ManagementShell({
 
   const visibleGroups = useMemo(
     () =>
-      managementNavigation
+      megaMenuGroups
         .map((group) => ({
           ...group,
           items: group.items.filter((item) =>
@@ -101,9 +91,11 @@ export function ManagementShell({
     [currentUser],
   );
 
-  const allItems = visibleGroups.flatMap((group) => group.items);
-  const primaryItems = allItems.filter((item) =>
-    primaryHrefs.includes(item.href),
+  const visibleQuickNavigation = quickNavigation.filter((item) =>
+    hasPermission(currentUser, item.permission),
+  );
+  const visibleQuickActions = quickActions.filter((action) =>
+    hasPermission(currentUser, action.permission),
   );
   const availableOutlets = allowedOutlets(currentUser, outlets);
   const activeOutlet =
@@ -137,84 +129,58 @@ export function ManagementShell({
   return (
     <ShellTheme defaultTheme="system">
       <div className="flex min-h-dvh flex-col bg-background">
-        <header className="sticky top-0 z-[var(--z-sticky)] border-b border-border bg-background/95 backdrop-blur">
+        <a
+          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[var(--z-toast)] focus:rounded-md focus:border focus:border-border focus:bg-surface focus:px-4 focus:py-2 focus:text-body focus:text-foreground focus:shadow-overlay"
+          href="#main-content"
+        >
+          Lewati ke konten utama
+        </a>
+
+        <header className="sticky top-0 z-[var(--z-sticky)] border-b border-border bg-surface">
           <Container size="wide">
-            <div className="flex h-16 items-center gap-3">
+            <div className="flex h-[var(--ravika-header-height)] items-center gap-2">
               <Link
-                className="flex shrink-0 items-baseline gap-1.5 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
+                className="flex shrink-0 items-baseline gap-1.5 rounded-md px-1 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
                 href="/app"
               >
                 <span className="text-lg font-bold tracking-tight text-foreground">
                   RAVIKA
                 </span>
-                <span className="text-caption font-semibold text-primary">
+                <span className="text-caption font-semibold text-primary-strong">
                   POS
                 </span>
               </Link>
 
               <nav
                 aria-label="Navigasi utama"
-                className="ml-4 hidden items-center gap-0.5 lg:flex"
+                className="ml-2 hidden items-center gap-0.5 lg:flex"
               >
-                {primaryItems.map((item) => (
-                  <NavLink item={item} key={item.href} pathname={pathname} />
+                {visibleQuickNavigation.map((item) => (
+                  <QuickNavLink
+                    item={item}
+                    key={item.href}
+                    pathname={pathname}
+                  />
                 ))}
-                <DropdownMenu
-                  size="sm"
-                  trigger={
-                    <>
-                      Menu
-                      <ChevronDown aria-hidden="true" className="h-4 w-4" />
-                    </>
-                  }
-                  variant="ghost"
-                >
-                  {visibleGroups.map((group) => (
-                    <div key={group.label}>
-                      <DropdownMenuLabel>{group.label}</DropdownMenuLabel>
-                      {group.items.map((item) => {
-                        const Icon = item.icon;
-                        return (
-                          <DropdownMenuItem
-                            key={item.href}
-                            onSelect={() => router.push(item.href)}
-                          >
-                            <Icon aria-hidden="true" className="h-4 w-4" />
-                            {item.label}
-                          </DropdownMenuItem>
-                        );
-                      })}
-                    </div>
-                  ))}
-                </DropdownMenu>
               </nav>
 
               <div className="ml-auto flex items-center gap-2">
-                <div className="hidden sm:block">
-                  <Select
-                    aria-label="Outlet aktif"
-                    className="h-9 min-w-40 text-label"
-                    onChange={(event) =>
-                      setSelectedOutletId(event.target.value)
-                    }
+                <div className="hidden md:block">
+                  <OutletSwitcher
+                    onChange={setSelectedOutletId}
+                    outlets={availableOutlets}
                     value={activeOutlet?.id ?? ""}
-                  >
-                    {availableOutlets.map((outlet) => (
-                      <option key={outlet.id} value={outlet.id}>
-                        {outlet.name}
-                      </option>
-                    ))}
-                  </Select>
+                  />
                 </div>
                 <ThemeToggle />
                 <DropdownMenu
                   className="hidden sm:inline-flex"
                   trigger={
                     <span className="flex items-center gap-2">
-                      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-caption font-semibold text-primary-foreground">
+                      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-action text-caption font-semibold text-primary-action-foreground">
                         {initials}
                       </span>
-                      <span className="hidden max-w-28 truncate text-label md:inline">
+                      <span className="hidden max-w-28 truncate text-label xl:inline">
                         {currentUser.name}
                       </span>
                       <ChevronDown aria-hidden="true" className="h-4 w-4" />
@@ -223,7 +189,12 @@ export function ManagementShell({
                   variant="ghost"
                 >
                   <DropdownMenuLabel>
-                    {currentUser.name} · {currentUser.roleLabel}
+                    <span className="flex flex-col">
+                      <span>{currentUser.name}</span>
+                      <span className="font-normal text-muted-foreground">
+                        {currentUser.roleLabel}
+                      </span>
+                    </span>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
@@ -232,12 +203,23 @@ export function ManagementShell({
                     <UserRound aria-hidden="true" className="h-4 w-4" />
                     Profil
                   </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onSelect={() => router.push("/app/design-system")}
+                  >
+                    <span className="flex h-4 w-4 items-center justify-center text-caption font-semibold">
+                      UI
+                    </span>
+                    Design system
+                    <Badge className="ml-auto" tone="neutral">
+                      Internal
+                    </Badge>
+                  </DropdownMenuItem>
                   <DropdownMenuItem onSelect={() => showSoon("Keluar")}>
                     <LogOut aria-hidden="true" className="h-4 w-4" />
                     Keluar
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuLabel>Pratinjau role (mock)</DropdownMenuLabel>
+                  <DropdownMenuLabel>Pratinjau role mock</DropdownMenuLabel>
                   {mockUsers.map((mockUser) => (
                     <DropdownMenuItem
                       key={mockUser.id}
@@ -261,47 +243,40 @@ export function ManagementShell({
                 >
                   <Menu aria-hidden="true" className="h-5 w-5" />
                 </Button>
+                <div className="hidden lg:block">
+                  <MegaMenu
+                    activePath={pathname}
+                    groups={visibleGroups}
+                    quickActions={visibleQuickActions}
+                  />
+                </div>
               </div>
             </div>
           </Container>
         </header>
 
-        <main className="flex-1 py-6">
+        <main className="flex-1 py-6" id="main-content">
           <Container size="wide">{children}</Container>
         </main>
 
         <footer className="border-t border-border py-4">
           <Container size="wide">
             <p className="text-caption text-muted-foreground">
-              RAVIKA POS · Mode UI · Data mock · {currentUser.roleLabel}
+              Mode UI dengan data simulasi. Sesi: {currentUser.roleLabel}.
             </p>
           </Container>
         </footer>
 
-        <Drawer
+        <MobileMenuSheet
+          activePath={pathname}
+          groups={visibleGroups}
           onOpenChange={setMobileNavOpen}
+          onOutletChange={setSelectedOutletId}
           open={mobileNavOpen}
-          side="left"
-          title="Navigasi"
-        >
-          <nav aria-label="Navigasi mobile" className="flex flex-col gap-5">
-            {visibleGroups.map((group) => (
-              <div className="flex flex-col gap-1" key={group.label}>
-                <p className="px-3 text-caption font-medium uppercase tracking-wide text-muted-foreground">
-                  {group.label}
-                </p>
-                {group.items.map((item) => (
-                  <NavLink
-                    item={item}
-                    key={item.href}
-                    onNavigate={() => setMobileNavOpen(false)}
-                    pathname={pathname}
-                  />
-                ))}
-              </div>
-            ))}
-          </nav>
-        </Drawer>
+          outlets={availableOutlets}
+          quickActions={visibleQuickActions}
+          selectedOutletId={activeOutlet?.id ?? ""}
+        />
       </div>
     </ShellTheme>
   );
