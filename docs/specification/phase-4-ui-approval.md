@@ -8,7 +8,7 @@
 
 ## Scope
 
-Perbaikan ini menutup tujuh temuan UI. Setelah selesai, audit penuh Phase 4 dilanjutkan pada baseline baru.
+Perbaikan ini menutup delapan temuan UI. Setelah selesai, audit penuh Phase 4 dilanjutkan pada baseline baru.
 
 Di luar scope: fitur baru, backend, database, API, auth nyata, dan SSE.
 
@@ -33,6 +33,7 @@ Di luar scope: fitur baru, backend, database, API, auth nyata, dan SSE.
 | P4-005 | P2 | Status | Status badge memakai dot dekoratif | Hapus dot, pertahankan label dan warna | FIXED | `1f414c7` |
 | P4-006 | P2 | Stepper | Hanya status pertama yang berwarna | Warna per status, state tetap terbaca | FIXED | `1f414c7` |
 | P4-007 | P1 | Dashboard | Card Antrean persiapan hanya count, state terbalik, tanpa tiket | Card Antrean pesanan dengan warna status, empat tiket tertua, empty state | FIXED | `bedb681` |
+| P4-008 | P2 | Drawer | Bottom sheet terpotong `max-width` bawaan browser | Tambah `max-w-none` pada side `bottom` | FIXED | `2077f14` |
 
 ## Verifikasi yang harus lulus
 
@@ -64,6 +65,8 @@ Di luar scope: fitur baru, backend, database, API, auth nyata, dan SSE.
 | Antrean dashboard mobile | Stepper grid 2x2 pada 320 dan 390, tanpa clipping |
 | Antrean dashboard empty | Diuji dengan menyelesaikan semua tiket Senopati, empty state tampil |
 | Antrean dashboard viewport | 320, 390, 768, 1024, 1440, light dan dark, tanpa overflow |
+| Bottom sheet | Full width pada 320 dan 390 di POS, QR menu, dan filter produk |
+| Bottom sheet keyboard | Escape menutup sheet, tanpa console error |
 | Impeccable detector | Tidak ada temuan pada file UI yang berubah |
 
 ## Catatan
