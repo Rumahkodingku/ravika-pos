@@ -100,6 +100,7 @@ API, database, autentikasi nyata, dan SSE belum dibuat.
 - `docs/design/design-system.md` — token dan spesifikasi komponen
 - `docs/design/ui-ux-guidelines.md` — interaksi, responsive, aksesibilitas, QA
 - `docs/specification/phase-1-5-ui-ux-refinement.md` — spec refactor Fase 1.5
+- `docs/specification/phase-2-management-ui.md` — spec management UI Fase 2
 
 Baca PRD dan seluruh dokumen desain sebelum membuat halaman atau komponen baru.
 
