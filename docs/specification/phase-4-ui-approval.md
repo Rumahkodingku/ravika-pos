@@ -1,9 +1,10 @@
 # RAVIKA POS - Spesifikasi Fase 4: Frontend Review, Revision, and Approval
 
-**Status:** Approved scope, audit penuh belum dimulai
+**Status:** Audit penuh berlangsung
 **Fase:** 4, Frontend Review, Revision, and Approval
 **Tanggal:** 16 November 2026
-**Baseline terakhir:** `3e42471`
+**Audit dimulai:** 17 November 2026
+**Baseline audit:** `b4a5d60`
 **Referensi utama:** `docs/PRD.md`, `docs/ROADMAP.md`, `docs/design/design-brief.md`, `docs/design/design-direction.md`, `docs/design/design-system.md`, `docs/design/ui-ux-guidelines.md`, `docs/specification/phase-2-management-ui.md`, `docs/specification/phase-3-operational-ui.md`
 
 ## Daftar isi
