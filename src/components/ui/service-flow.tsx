@@ -48,10 +48,12 @@ function StepDot({ step }: { step: ServiceFlowStep }) {
 
 export function ServiceFlow({
   className,
+  layout = "row",
   orientation = "horizontal",
   steps,
 }: {
   className?: string;
+  layout?: "row" | "grid";
   orientation?: "horizontal" | "vertical";
   steps: ServiceFlowStep[];
 }) {
@@ -101,14 +103,21 @@ export function ServiceFlow({
     <ol
       aria-label="Alur status pesanan"
       className={cn(
-        "flex w-full items-start gap-2 overflow-x-auto pb-1",
+        layout === "grid"
+          ? "grid grid-cols-2 gap-x-4 gap-y-3 sm:flex sm:w-full sm:items-start sm:gap-2 sm:overflow-x-auto sm:pb-1"
+          : "flex w-full items-start gap-2 overflow-x-auto pb-1",
         className,
       )}
     >
       {steps.map((step, index) => (
         <li
           aria-current={step.state === "current" ? "step" : undefined}
-          className="flex min-w-[72px] flex-1 flex-col gap-1.5"
+          className={cn(
+            "flex flex-col gap-1.5",
+            layout === "grid"
+              ? "min-w-0 sm:min-w-[72px] sm:flex-1"
+              : "min-w-[72px] flex-1",
+          )}
           data-step-tone={step.tone ?? "neutral"}
           key={step.id}
           title={step.label}
@@ -118,7 +127,11 @@ export function ServiceFlow({
             {index < steps.length - 1 ? (
               <span
                 aria-hidden="true"
-                className={cn("h-px flex-1", lineStateClasses[step.state])}
+                className={cn(
+                  "h-px flex-1",
+                  layout === "grid" && "hidden sm:block",
+                  lineStateClasses[step.state],
+                )}
               />
             ) : null}
           </div>

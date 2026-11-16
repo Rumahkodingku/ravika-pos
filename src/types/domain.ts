@@ -202,6 +202,7 @@ export type DashboardSummary = {
     label: string;
     count: number;
   }>;
+  queueOrders: Order[];
   salesTrend: Array<{ label: string; value: number }>;
   topProducts: Array<{ name: string; quantity: number; revenue: number }>;
   recentOrders: Order[];

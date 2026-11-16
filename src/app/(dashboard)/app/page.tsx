@@ -35,14 +35,17 @@ import {
   formatCompactCurrency,
   formatCurrency,
   formatDateTime,
+  formatElapsed,
   formatNumber,
 } from "@/lib/format";
+import { preparationStatusConfig } from "@/lib/status";
 import { useAsyncData, useManagementStore } from "@/mocks/management/hooks";
 import { managementService } from "@/mocks/management/service";
 
 export default function DashboardPage() {
   const { user } = useMockSession();
   const allOutlets = useManagementStore((state) => state.outlets);
+  const tables = useManagementStore((state) => state.tables);
   const outlets = allOutlets.filter((outlet) =>
     user?.outletIds.includes(outlet.id),
   );
@@ -55,6 +58,10 @@ export default function DashboardPage() {
 
   const outletName = (id: string) =>
     outlets.find((outlet) => outlet.id === id)?.name ?? "Tidak ada";
+  const tableName = (id: string | null) =>
+    tables.find((table) => table.id === id)?.name ?? "meja";
+  const totalActive =
+    data?.queue.reduce((total, item) => total + item.count, 0) ?? 0;
 
   return (
     <RequirePermission permission="dashboard.view">
@@ -191,32 +198,80 @@ export default function DashboardPage() {
                 />
               </ChartContainer>
 
-              <Card>
+              <Card className="flex flex-col">
                 <CardHeader
                   action={<Badge tone="info">Data contoh</Badge>}
-                  description="Status persiapan pesanan pada periode ini."
-                  title="Antrean persiapan"
+                  description="Status persiapan dan tiket aktif pada periode ini."
+                  title="Antrean pesanan"
                 />
-                <CardContent className="flex flex-col gap-4">
+                <CardContent className="flex flex-1 flex-col gap-4">
                   <ServiceFlow
+                    layout="grid"
                     steps={data.queue.map((item) => ({
                       id: item.status,
                       label: item.label,
                       count: item.count,
-                      state:
-                        item.status === "NEW"
-                          ? "current"
-                          : item.count > 0
-                            ? "upcoming"
-                            : "complete",
+                      tone: preparationStatusConfig[item.status].tone,
+                      state: item.count > 0 ? "active" : "upcoming",
                     }))}
                   />
+
+                  <div className="flex flex-1 flex-col gap-2 border-t border-border pt-4">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <p className="text-label font-medium text-foreground">
+                        Tiket tertua
+                      </p>
+                      <p className="text-caption text-muted-foreground">
+                        {data.queueOrders.length} dari {totalActive} pesanan
+                        aktif
+                      </p>
+                    </div>
+
+                    {data.queueOrders.length === 0 ? (
+                      <div className="flex flex-1 flex-col items-center justify-center gap-2 rounded-md border border-dashed border-border p-6 text-center">
+                        <ChefHat
+                          aria-hidden="true"
+                          className="h-5 w-5 text-muted-foreground"
+                        />
+                        <p className="text-body font-medium text-foreground">
+                          Tidak ada pesanan aktif
+                        </p>
+                        <p className="max-w-sm text-caption text-muted-foreground">
+                          Belum ada pesanan yang perlu disiapkan pada periode
+                          dan outlet ini.
+                        </p>
+                      </div>
+                    ) : (
+                      <ul className="flex flex-col divide-y divide-border">
+                        {data.queueOrders.map((order) => (
+                          <li
+                            className="flex flex-wrap items-center justify-between gap-2 py-3 first:pt-0 last:pb-0"
+                            key={order.id}
+                          >
+                            <div className="flex min-w-0 flex-col gap-0.5">
+                              <span className="truncate text-body font-medium text-foreground">
+                                {order.orderNumber}
+                              </span>
+                              <span className="text-caption text-muted-foreground">
+                                {order.orderType === "DINE_IN"
+                                  ? `Dine-in, ${tableName(order.tableId)}`
+                                  : "Takeaway"}
+                                , {formatElapsed(order.createdAt)}
+                              </span>
+                            </div>
+                            <StatusBadge
+                              kind="preparation"
+                              status={order.orderStatus}
+                            />
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
                 </CardContent>
                 <CardFooter className="justify-between gap-3">
                   <span className="text-caption text-muted-foreground">
-                    Total aktif:{" "}
-                    {data.queue.reduce((total, item) => total + item.count, 0)}{" "}
-                    pesanan
+                    Total aktif: {totalActive} pesanan
                   </span>
                   <PermissionGate permission="kds.view">
                     <Link

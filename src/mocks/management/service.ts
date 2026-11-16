@@ -475,6 +475,10 @@ function buildDashboard(params: {
       label: queueLabels[status],
       count: orders.filter((order) => order.orderStatus === status).length,
     })),
+    queueOrders: orders
+      .filter((order) => queueStatuses.includes(order.orderStatus))
+      .sort((left, right) => left.createdAt.localeCompare(right.createdAt))
+      .slice(0, 4),
     salesTrend: buildTrend(orders),
     topProducts: buildTopProducts(orders),
     recentOrders: orders
