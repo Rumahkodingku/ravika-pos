@@ -34,7 +34,7 @@ export function CustomerShell({
         <main className="mx-auto w-full max-w-[480px] flex-1 px-4 py-5">
           {children}
         </main>
-        <footer className="border-t border-border bg-surface py-4">
+        <footer className="border-t border-border bg-surface pt-4 pb-24">
           <p className="mx-auto max-w-[480px] px-4 text-center text-caption text-muted-foreground">
             Pesanan diproses oleh staf RAVIKA.
           </p>

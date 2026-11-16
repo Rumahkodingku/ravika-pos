@@ -37,7 +37,11 @@ export function ProductCard({
           </p>
         </div>
         <Button
-          aria-label={`Tambah ${product.name}`}
+          aria-label={
+            product.available
+              ? `Tambah ${product.name}`
+              : `${product.name} habis`
+          }
           className="mt-auto w-full"
           disabled={!product.available || !onAdd}
           onClick={() => onAdd?.(product)}

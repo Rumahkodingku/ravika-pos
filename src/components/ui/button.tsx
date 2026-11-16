@@ -22,7 +22,7 @@ const variantClasses: Record<ButtonVariant, string> = {
   outline: "border border-border bg-transparent text-foreground hover:bg-muted",
   ghost: "bg-transparent text-foreground hover:bg-muted",
   danger:
-    "bg-danger-strong text-white hover:bg-danger-strong/90 dark:text-[#081B34]",
+    "bg-danger-strong text-white hover:bg-danger-strong/90 dark:text-primary-action-foreground",
   link: "bg-transparent px-0 text-primary-strong underline-offset-4 hover:underline",
 };
 

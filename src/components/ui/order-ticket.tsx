@@ -13,6 +13,7 @@ export function OrderTicket({ ticket }: { ticket: MockKdsTicket }) {
           <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
             <span>{ticket.orderType}</span>
             {ticket.table ? <span>{ticket.table}</span> : null}
+            <span>{ticket.time}</span>
             <span className="inline-flex items-center gap-1">
               <Clock3 aria-hidden="true" className="h-3 w-3" />
               {ticket.elapsed}

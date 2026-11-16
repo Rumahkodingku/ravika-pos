@@ -97,7 +97,7 @@ function CartPanel() {
                 </div>
                 <Button
                   aria-label={`Hapus ${line.product.name}`}
-                  className="-mr-1 -mt-1 h-8 w-8 shrink-0"
+                  className="-mr-1 -mt-1 shrink-0"
                   onClick={() => removeProduct(line.product.id)}
                   size="icon"
                   variant="ghost"
@@ -186,6 +186,7 @@ function PosShellContent({
             {itemCount > 0 ? <Badge tone="primary">{itemCount}</Badge> : null}
           </Button>
           <Link
+            aria-label="Keluar POS"
             className={buttonVariants({ variant: "outline", size: "md" })}
             href="/app"
           >
@@ -224,11 +225,6 @@ function PosShellContent({
       </div>
 
       <Drawer
-        footer={
-          <Button className="w-full" disabled>
-            Checkout aktif di Fase 3
-          </Button>
-        }
         onOpenChange={setCartOpen}
         open={cartOpen}
         side="right"

@@ -15,17 +15,16 @@ export default function KdsPage() {
     (ticket) => ticket.status === "READY",
   ).length;
 
+  const firstOpenStatus = kdsColumns.find((column) =>
+    mockKdsTickets.some((ticket) => ticket.status === column.status),
+  )?.status;
+
   const flowSteps: ServiceFlowStep[] = kdsColumns.map((column) => ({
     id: column.status,
     label: column.label,
     count: mockKdsTickets.filter((ticket) => ticket.status === column.status)
       .length,
-    state:
-      column.status === "NEW" || column.status === "ACCEPTED"
-        ? "complete"
-        : column.status === "PREPARING"
-          ? "current"
-          : "upcoming",
+    state: column.status === firstOpenStatus ? "current" : "upcoming",
   }));
 
   return (
@@ -40,7 +39,6 @@ export default function KdsPage() {
             Pantau alur persiapan dan status pesanan aktif.
           </p>
         </div>
-        <StatusBadge kind="preparation" status="READY" />
       </div>
 
       <div className="grid grid-cols-3 gap-2 sm:gap-3">
@@ -71,7 +69,7 @@ export default function KdsPage() {
       </p>
 
       <div className="overflow-x-auto pb-2">
-        <div className="grid min-w-[1120px] grid-cols-5 gap-3">
+        <div className="grid min-w-[1348px] grid-cols-5 gap-3">
           {kdsColumns.map((column) => {
             const tickets = mockKdsTickets.filter(
               (ticket) => ticket.status === column.status,
@@ -79,7 +77,7 @@ export default function KdsPage() {
 
             return (
               <section
-                className="flex min-h-[420px] flex-col gap-3 rounded-lg border border-border bg-surface-subtle p-3"
+                className="flex min-h-[420px] min-w-[260px] flex-col gap-3 rounded-lg border border-border bg-surface-subtle p-3"
                 key={column.status}
               >
                 <div className="flex items-start justify-between gap-2">

@@ -40,6 +40,10 @@ const maxProductQuantity = Math.max(
 );
 
 const maxSalesValue = Math.max(...salesTrend.map((item) => item.value), 1);
+const activeOrderCount = queueSteps.reduce(
+  (total, step) => total + (step.count ?? 0),
+  0,
+);
 
 function SalesTrendList() {
   return (
@@ -173,7 +177,7 @@ export default function DashboardPage() {
           </CardContent>
           <CardFooter className="justify-between gap-3">
             <span className="text-caption text-muted-foreground">
-              Total aktif: 29 pesanan
+              Total aktif: {activeOrderCount} pesanan
             </span>
             <Link
               className={buttonVariants({

@@ -97,6 +97,8 @@ export function ManagementShell({
   const visibleQuickActions = quickActions.filter((action) =>
     hasPermission(currentUser, action.permission),
   );
+  const hasMenu = visibleGroups.length > 0 || visibleQuickActions.length > 0;
+  const canViewDashboard = hasPermission(currentUser, "dashboard.view");
   const availableOutlets = allowedOutlets(currentUser, outlets);
   const activeOutlet =
     availableOutlets.find((outlet) => outlet.id === selectedOutletId) ??
@@ -234,22 +236,41 @@ export function ManagementShell({
                     </DropdownMenuItem>
                   ))}
                 </DropdownMenu>
-                <Button
-                  aria-label="Buka navigasi"
-                  className="lg:hidden"
-                  onClick={() => setMobileNavOpen(true)}
-                  size="icon"
-                  variant="ghost"
-                >
-                  <Menu aria-hidden="true" className="h-5 w-5" />
-                </Button>
-                <div className="hidden lg:block">
-                  <MegaMenu
-                    activePath={pathname}
-                    groups={visibleGroups}
-                    quickActions={visibleQuickActions}
-                  />
-                </div>
+                {hasMenu ? (
+                  <>
+                    <Button
+                      aria-controls="mobile-menu-sheet"
+                      aria-expanded={mobileNavOpen}
+                      aria-haspopup="dialog"
+                      aria-label="Buka navigasi"
+                      className="lg:hidden"
+                      onClick={() => setMobileNavOpen(true)}
+                      size="icon"
+                      variant="ghost"
+                    >
+                      <Menu aria-hidden="true" className="h-5 w-5" />
+                    </Button>
+                    <div className="hidden lg:block">
+                      <MegaMenu
+                        activePath={pathname}
+                        groups={visibleGroups}
+                        quickActions={visibleQuickActions}
+                      />
+                    </div>
+                  </>
+                ) : (
+                  <div className="flex items-center gap-2 text-caption text-muted-foreground">
+                    <span>Tidak ada menu</span>
+                    {canViewDashboard ? (
+                      <Link
+                        className="font-medium text-primary-strong underline-offset-4 hover:underline"
+                        href="/app"
+                      >
+                        Dashboard
+                      </Link>
+                    ) : null}
+                  </div>
+                )}
               </div>
             </div>
           </Container>

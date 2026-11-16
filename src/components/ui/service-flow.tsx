@@ -104,8 +104,9 @@ export function ServiceFlow({
         return (
           <li
             aria-current={step.state === "current" ? "step" : undefined}
-            className="flex min-w-0 flex-1 flex-col gap-1.5"
+            className="flex min-w-[72px] flex-1 flex-col gap-1.5"
             key={step.id}
+            title={step.label}
           >
             <div className="flex items-center gap-2">
               <StepDot step={step} />

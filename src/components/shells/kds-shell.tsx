@@ -33,6 +33,7 @@ export function KdsShell({ children }: { children: React.ReactNode }) {
             <ConnectionIndicator className="ml-auto" status="connected" />
             <ThemeToggle />
             <Link
+              aria-label="Keluar KDS"
               className={buttonVariants({ variant: "outline", size: "md" })}
               href="/app"
             >

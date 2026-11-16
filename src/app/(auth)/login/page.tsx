@@ -54,7 +54,7 @@ export default function LoginPage() {
             </span>
           </div>
           <div className="flex flex-col gap-2">
-            <h1 className="text-display">Run your business with clarity.</h1>
+            <p className="text-display">Run your business with clarity.</p>
             <p className="max-w-sm text-body text-inverse-foreground/70">
               Satu alur untuk pesanan, pembayaran, persiapan, dan laporan
               operasional kafe.
@@ -85,9 +85,9 @@ export default function LoginPage() {
       <div className="flex flex-col justify-center gap-6 p-6 sm:p-8">
         <div className="flex flex-col gap-1">
           <div className="flex items-center justify-between gap-3">
-            <h2 className="text-section-title text-foreground">
+            <h1 className="text-section-title text-foreground">
               Masuk ke RAVIKA POS
-            </h2>
+            </h1>
             <Badge tone="neutral">Mode UI</Badge>
           </div>
           <p className="text-body text-muted-foreground">

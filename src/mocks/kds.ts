@@ -12,6 +12,7 @@ export type MockKdsTicket = {
   status: PreparationStatus;
   orderType: "Dine-in" | "Takeaway";
   table?: string;
+  time: string;
   elapsed: string;
   items: MockKdsItem[];
   note?: string;
@@ -24,6 +25,7 @@ export const mockKdsTickets: MockKdsTicket[] = [
     status: "NEW",
     orderType: "Dine-in",
     table: "Meja 04",
+    time: "10:42",
     elapsed: "2 mnt",
     items: [
       { name: "Kopi Susu", quantity: 2, note: "Less sugar" },
@@ -36,6 +38,7 @@ export const mockKdsTickets: MockKdsTicket[] = [
     orderNumber: "KMG-0247",
     status: "PREPARING",
     orderType: "Takeaway",
+    time: "10:39",
     elapsed: "5 mnt",
     items: [
       { name: "Matcha Latte", quantity: 1, note: "Oat milk" },
@@ -48,6 +51,7 @@ export const mockKdsTickets: MockKdsTicket[] = [
     status: "READY",
     orderType: "Dine-in",
     table: "Meja 02",
+    time: "10:36",
     elapsed: "8 mnt",
     items: [
       { name: "Espresso", quantity: 2 },
@@ -60,6 +64,7 @@ export const mockKdsTickets: MockKdsTicket[] = [
     status: "ACCEPTED",
     orderType: "Dine-in",
     table: "Meja 07",
+    time: "10:41",
     elapsed: "3 mnt",
     items: [
       { name: "Kopi Susu", quantity: 1 },

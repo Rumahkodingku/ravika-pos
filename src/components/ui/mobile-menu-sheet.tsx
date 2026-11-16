@@ -1,10 +1,9 @@
 "use client";
 
-import { X } from "lucide-react";
+import { Check, X } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useId, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Select } from "@/components/ui/select";
 import { cn } from "@/lib/cn";
 import type { Outlet } from "@/types/auth";
 import type { NavGroup, QuickAction } from "@/types/ui";
@@ -30,7 +29,19 @@ export function MobileMenuSheet({
 }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const titleId = useId();
-  const outletId = useId();
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [open]);
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -51,6 +62,7 @@ export function MobileMenuSheet({
   return (
     <dialog
       aria-labelledby={titleId}
+      id="mobile-menu-sheet"
       className="fixed inset-0 m-0 h-dvh max-h-none w-full max-w-none rounded-none border-0 bg-background p-0 text-foreground open:flex open:flex-col"
       onCancel={(event) => {
         event.preventDefault();
@@ -88,30 +100,43 @@ export function MobileMenuSheet({
         </Button>
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto px-4 py-5">
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-5">
         <h2 className="sr-only" id={titleId}>
           Menu utama
         </h2>
 
-        <div className="mb-5 flex flex-col gap-1.5">
-          <label
-            className="text-label font-medium text-foreground"
-            htmlFor={outletId}
-          >
+        <fieldset className="mb-5 flex flex-col gap-1.5">
+          <legend className="text-label font-medium text-foreground">
             Outlet aktif
-          </label>
-          <Select
-            id={outletId}
-            onChange={(event) => onOutletChange(event.target.value)}
-            value={selectedOutletId}
-          >
-            {outlets.map((outlet) => (
-              <option key={outlet.id} value={outlet.id}>
-                {outlet.name}
-              </option>
-            ))}
-          </Select>
-        </div>
+          </legend>
+          <div className="grid gap-1">
+            {outlets.map((outlet) => {
+              const active = outlet.id === selectedOutletId;
+
+              return (
+                <button
+                  aria-pressed={active}
+                  className={`flex min-h-11 items-center justify-between gap-2 rounded-md border px-3 text-left text-label font-medium transition-colors ${
+                    active
+                      ? "border-border bg-surface-subtle text-foreground"
+                      : "border-transparent text-muted-foreground hover:bg-muted hover:text-foreground"
+                  }`}
+                  key={outlet.id}
+                  onClick={() => onOutletChange(outlet.id)}
+                  type="button"
+                >
+                  <span className="truncate">{outlet.name}</span>
+                  {active ? (
+                    <Check
+                      aria-hidden="true"
+                      className="h-4 w-4 shrink-0 text-primary-strong"
+                    />
+                  ) : null}
+                </button>
+              );
+            })}
+          </div>
+        </fieldset>
 
         <section className="flex flex-col gap-2">
           <p className="text-label font-semibold text-foreground">Aksi cepat</p>

@@ -83,7 +83,7 @@ export function MegaMenu({
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
-  const panelRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLElement>(null);
   const panelId = useId();
 
   useEffect(() => {
@@ -153,12 +153,13 @@ export function MegaMenu({
       </button>
 
       {open ? (
-        <div
+        <nav
+          aria-label="Menu utama"
           className="mega-menu-panel fixed left-1/2 top-[calc(var(--ravika-header-height)+0.5rem)] z-[var(--z-dropdown)] w-[min(1180px,calc(100vw-2rem))] -translate-x-1/2 overflow-hidden rounded-xl border border-border bg-surface text-foreground shadow-overlay"
           id={panelId}
           ref={panelRef}
         >
-          <div className="grid max-h-[min(72dvh,620px)] gap-6 overflow-y-auto p-5 md:grid-cols-2 xl:grid-cols-4 xl:p-6">
+          <div className="grid max-h-[min(72dvh,620px)] gap-6 overflow-y-auto p-5 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 xl:p-6">
             {groupColumns.map((column) => (
               <div
                 className="flex min-w-0 flex-col gap-5"
@@ -216,7 +217,7 @@ export function MegaMenu({
               Tekan Esc untuk menutup.
             </p>
           </div>
-        </div>
+        </nav>
       ) : null}
     </div>
   );
