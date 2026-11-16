@@ -519,7 +519,7 @@ export default function ProductsPage() {
               <Input
                 id="product-price"
                 min={0}
-                step={1000}
+                step={1}
                 type="number"
                 {...register("basePrice", { valueAsNumber: true })}
               />
@@ -588,7 +588,7 @@ export default function ProductsPage() {
                   <Input
                     id={`variant-price-${field.id}`}
                     min={0}
-                    step={1000}
+                    step={1}
                     type="number"
                     {...register(`variants.${index}.priceAdjustment`, {
                       valueAsNumber: true,

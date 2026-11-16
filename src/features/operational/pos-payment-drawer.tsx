@@ -299,7 +299,7 @@ export function PosPaymentDrawer({
                 <Input
                   id="payment-amount"
                   min={1}
-                  step={1000}
+                  step={1}
                   type="number"
                   {...register("amount", { valueAsNumber: true })}
                 />
