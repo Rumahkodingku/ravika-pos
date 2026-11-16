@@ -113,7 +113,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
               </div>
               <Button
                 aria-label="Tutup notifikasi"
-                className="-mr-1 -mt-1 h-8 w-8 shrink-0 text-foreground"
+                className="-mr-2 -mt-2 h-11 w-11 shrink-0 text-foreground"
                 onClick={() => dismiss(item.id)}
                 size="icon"
                 variant="ghost"

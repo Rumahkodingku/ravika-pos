@@ -335,6 +335,18 @@ Do not use a toast as the only record of a critical transaction outcome.
 - Avoid chart types that obscure the data.
 - Provide an accessible textual/table alternative for important figures.
 
+### 4.9 Management patterns
+
+- `FormDrawer`: right drawer on desktop, full-screen sheet on mobile. Sticky footer, submit loading state, dirty-form confirmation, Escape and focus restoration.
+- `ConfirmDialog`: title, description, optional consequence, cancel, confirm. Destructive confirmation uses the danger variant.
+- `DataTableToolbar`: debounced search (250 ms), filter slots, reset, result count, and a mobile filter sheet.
+- `SortableTableHead`: button header with `aria-sort` and asc/desc indicator.
+- `TableSkeleton`, `TableEmpty`, and `TablePagination`: preserve columns, show a specific empty message, and expose `aria-current` on the active page.
+- `ResponsiveList`: table on desktop, card list below `1024px`.
+- `QrPlaceholder`: deterministic non-scannable preview. Copy and print actions must keep the "Pratinjau QR, belum scannable" label.
+- `PermissionGate` and `RequirePermission`: hide actions or show `PermissionDeniedState` based on session permissions.
+- `MockControls`: latency, fail-next-request, and store reset. Only on `/app/design-system`.
+
 ## 5. Domain-specific components
 
 ### 5.1 POS components
@@ -439,7 +451,7 @@ Use restrained easing. Avoid animation that blocks input or delays transaction c
 - Quantities: display units consistently.
 - Large values: do not abbreviate monetary amounts if abbreviation could cause transaction ambiguity.
 - Order numbers: preserve exact identifiers returned by the system.
-- Empty/unknown values: use a consistent placeholder such as an em dash, not misleading zero values.
+- Empty/unknown values: use "Tidak ada" or "Belum ada", not misleading zero values or an em dash.
 
 ## 9. Accessibility requirements
 

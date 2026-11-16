@@ -15,6 +15,7 @@ import {
   Store,
   Tags,
   Users,
+  Wallet,
 } from "lucide-react";
 import type { NavGroup, QuickAction } from "@/types/ui";
 
@@ -42,6 +43,13 @@ export const megaMenuGroups: NavGroup[] = [
         icon: ClipboardList,
         permission: "orders.view",
         description: "Cari, periksa, dan kelola status pesanan",
+      },
+      {
+        label: "Pembayaran",
+        href: "/app/payments",
+        icon: Wallet,
+        permission: "payments.view",
+        description: "Periksa pembayaran yang sudah tercatat",
       },
       {
         label: "POS",

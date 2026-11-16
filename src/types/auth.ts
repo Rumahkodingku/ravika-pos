@@ -3,6 +3,8 @@ export type UserRole = "OWNER" | "CASHIER" | "BARISTA";
 export type SessionUser = {
   id: string;
   name: string;
+  email: string;
+  username: string;
   role: UserRole;
   roleLabel: string;
   outletIds: string[];
@@ -14,4 +16,6 @@ export type Outlet = {
   name: string;
   code: string;
   city: string;
+  address?: string;
+  isActive?: boolean;
 };

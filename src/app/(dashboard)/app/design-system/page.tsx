@@ -43,6 +43,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/toast";
 import { Tooltip } from "@/components/ui/tooltip";
+import { MockControls } from "@/features/management/mock-controls";
+import { QrPlaceholder } from "@/features/management/qr-placeholder";
+import { TableSkeleton } from "@/features/management/table-skeleton";
 import { formatCurrency } from "@/lib/format";
 import { megaMenuGroups, quickActions } from "@/mocks/navigation";
 
@@ -98,7 +101,7 @@ export default function DesignSystemPage() {
   return (
     <div className="flex flex-col gap-8">
       <PageHeader
-        actions={<Badge tone="info">Fase 1.5</Badge>}
+        actions={<Badge tone="info">Fase 2</Badge>}
         description="Pratinjau komponen, token, theme, dan state untuk QA internal."
         eyebrow="Frontend foundation"
         title="Design system"
@@ -419,6 +422,41 @@ export default function DesignSystemPage() {
         <ChartContainer description="Sparkline ringkas." title="Sparkline">
           <Sparkline ariaLabel="Sparkline contoh" data={chartData} />
         </ChartContainer>
+      </Section>
+
+      <Section
+        description="Pola tabel, QR, dan kontrol mock untuk QA Fase 2."
+        title="Pola management"
+      >
+        <div className="grid gap-4 xl:grid-cols-2">
+          <Card>
+            <CardHeader
+              description="Skeleton mempertahankan kolom tabel."
+              title="Table skeleton"
+            />
+            <CardContent className="p-0">
+              <TableSkeleton columns={4} rows={5} />
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader
+              description="Pratinjau QR palsu yang deterministik."
+              title="QR placeholder"
+            />
+            <CardContent>
+              <QrPlaceholder label="Meja 01" token="demo-table-1" />
+            </CardContent>
+          </Card>
+        </div>
+        <Card>
+          <CardHeader
+            description="Latensi, error berikutnya, dan reset data mock."
+            title="Mock controls"
+          />
+          <CardContent>
+            <MockControls />
+          </CardContent>
+        </Card>
       </Section>
 
       <Section

@@ -4,7 +4,7 @@
 
 POS self-hosted untuk kafe dan UMKM. Satu instalasi melayani satu bisnis, berjalan di komputer server lokal, dan diakses lewat LAN/Wi-Fi tanpa mewajibkan internet untuk transaksi.
 
-**Status:** Fase 1.5 selesai. Frontend foundation, design system, dan refactor UI/UX operational focus sudah diterapkan. Fase 2 (management UI) berikutnya. Backend belum diimplementasikan.
+**Status:** Fase 2 selesai. Management UI memakai mock data, mock auth, dan mock service. Backend, database, API, auth nyata, dan SSE belum diimplementasikan.
 
 ## Stack
 
@@ -18,11 +18,14 @@ Sudah terpasang:
 - pnpm 10.34.5
 - Node.js 26.9.0
 - Lucide React
+- React Hook Form 7.92
+- Zod 4.6
+- `@hookform/resolvers` 7.0
 
 Direncanakan, belum dipasang:
 
 - SQLite + Drizzle ORM + `better-sqlite3`
-- Zod, Zustand, TanStack Query, React Hook Form
+- Zustand dan TanStack Query
 - SSE untuk KDS
 - Vitest dan Playwright
 
@@ -66,30 +69,42 @@ src/
 │   ├── shells/          # layout per experience
 │   ├── feedback/        # loading, empty, error, offline
 │   └── theme/           # theme provider, script, toggle
-├── features/            # UI per domain
+├── features/            # auth, management, dan UI per domain
 ├── lib/                 # utilitas dan service contracts
-├── mocks/               # fixtures dan mock service
+├── mocks/               # fixtures, mock auth, dan mock service
 ├── styles/              # token CSS
 └── types/               # tipe domain bersama
 ```
 
-Route group masih placeholder. Halaman fitur diisi pada Fase 2 dan Fase 3. `src/modules` dan `src/infrastructure` ditambahkan pada Fase 5 saat backend dimulai.
+Fase 2 mengisi seluruh route management. POS, KDS, dan QR menu penuh tetap Fase 3. `src/modules` dan `src/infrastructure` ditambahkan pada Fase 5 saat backend dimulai.
 
 ## Route yang direncanakan
 
 | Route | Area |
 |---|---|
 | `/login` | Autentikasi internal |
-| `/app` | Dashboard owner |
+| `/app` | Dashboard |
+| `/app/products` | Produk |
+| `/app/categories` | Kategori |
+| `/app/tables` | Meja dan QR |
+| `/app/orders` | Pesanan |
+| `/app/payments` | Pembayaran |
+| `/app/users` | Pengguna |
+| `/app/roles` | Peran dan izin |
+| `/app/outlets` | Outlet |
+| `/app/settings` | Pengaturan |
+| `/app/reports` | Laporan |
+| `/app/license` | Lisensi |
+| `/app/backup` | Backup |
 | `/app/pos` | POS kasir |
 | `/kds` | Kitchen Display System |
 | `/menu/[token]` | Menu pelanggan via QR |
 | `/order/[publicToken]` | Status pesanan pelanggan |
-| `/app/design-system` | Pratinjau komponen Fase 1.5 |
+| `/app/design-system` | Pratinjau komponen internal |
 
 Token desain ada di `src/styles/tokens.css`. Theme, shell, dan komponen dasar sudah tersedia; pratinjau ada di `/app/design-system`.
 
-API, database, autentikasi nyata, dan SSE belum dibuat.
+API, database, autentikasi nyata, dan SSE belum dibuat. Login memakai sessionStorage dan tiga akun demo: `owner@ravika.id`, `cashier@ravika.id`, dan `barista@ravika.id` dengan kata sandi `demo123`. Data mock kembali ke seed saat reload.
 
 ## Dokumen
 

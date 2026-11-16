@@ -2,6 +2,7 @@
 
 import { LogOut, ShoppingCart, Trash2 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ConnectionIndicator } from "@/components/feedback/connection-indicator";
 import { EmptyState } from "@/components/feedback/empty-state";
@@ -15,9 +16,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Drawer } from "@/components/ui/drawer";
 import { QuantityControl } from "@/components/ui/quantity-control";
+import { useMockSession } from "@/features/auth/mock-session";
 import { formatCurrency } from "@/lib/format";
-import { mockOutlets } from "@/mocks/outlets";
-import { mockUsers } from "@/mocks/session";
+import { useManagementStore } from "@/mocks/management/hooks";
 import type { Outlet, SessionUser } from "@/types/auth";
 
 function CartPanel() {
@@ -141,10 +142,12 @@ function CartPanel() {
 function PosShellContent({
   cashier,
   children,
+  onLogout,
   outlet,
 }: {
   cashier: SessionUser;
   children: React.ReactNode;
+  onLogout: () => void;
   outlet: Outlet;
 }) {
   const [cartOpen, setCartOpen] = useState(false);
@@ -185,14 +188,15 @@ function PosShellContent({
             Keranjang
             {itemCount > 0 ? <Badge tone="primary">{itemCount}</Badge> : null}
           </Button>
-          <Link
+          <button
             aria-label="Keluar POS"
             className={buttonVariants({ variant: "outline", size: "md" })}
-            href="/app"
+            onClick={onLogout}
+            type="button"
           >
             <LogOut aria-hidden="true" className="h-4 w-4" />
             <span className="hidden sm:inline">Keluar POS</span>
-          </Link>
+          </button>
         </div>
       </header>
 
@@ -236,19 +240,30 @@ function PosShellContent({
   );
 }
 
-export function PosShell({
-  cashier = mockUsers[1],
-  children,
-  outlet = mockOutlets[0],
-}: {
-  cashier?: SessionUser;
-  children: React.ReactNode;
-  outlet?: Outlet;
-}) {
+export function PosShell({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
+  const { logout, user } = useMockSession();
+  const outlets = useManagementStore((state) => state.outlets);
+  const outlet = outlets.find(
+    (candidate) =>
+      candidate.isActive !== false && user?.outletIds.includes(candidate.id),
+  );
+
+  if (!user || !outlet) {
+    return null;
+  }
+
   return (
     <ShellTheme defaultTheme="light">
       <PosCartProvider>
-        <PosShellContent cashier={cashier} outlet={outlet}>
+        <PosShellContent
+          cashier={user}
+          onLogout={() => {
+            logout();
+            router.replace("/login");
+          }}
+          outlet={outlet}
+        >
           {children}
         </PosShellContent>
       </PosCartProvider>

@@ -1,6 +1,6 @@
 # RAVIKA POS
 
-Self-hosted, LAN-first POS for cafes. Phase 1 frontend foundation, design system, and Phase 1.5 operational UI refactor are implemented. Backend is intentionally not implemented yet.
+Self-hosted, LAN-first POS for cafes. Phase 1 foundation, Phase 1.5 operational UI, and Phase 2 management UI are implemented with mock data, mock auth, and a mock service. Backend is intentionally not implemented yet.
 
 ## Commands
 
@@ -19,13 +19,14 @@ Self-hosted, LAN-first POS for cafes. Phase 1 frontend foundation, design system
 ## Stack and config
 
 - Next.js 16.4.6, React 19.3, TypeScript strict, Tailwind CSS 4.3, Lucide React.
+- Forms use React Hook Form, Zod, and `@hookform/resolvers`. Do not add another form or validation library.
 - Path alias: `@/*` -> `./src/*`.
 - Biome 2.4: 2-space indent, organize imports on, Tailwind directives enabled in CSS.
 - No UI library. Build primitives with native HTML and local components; ask before adding Radix, shadcn, or similar.
 - Design tokens live in `src/styles/tokens.css`; Tailwind mapping and base styles live in `src/app/globals.css`.
 - Use `primary-action` for filled primary buttons, `primary-strong` for links and active icons, and `*-strong` for semantic text. Do not use raw `primary` as normal text on white.
 - Cards are flat by default. Shadow is reserved for overlays. Do not reintroduce glassmorphism or header blur.
-- `next.config.ts`: `experimental.agentFeedback`, `cacheComponents`, `partialPrefetching`, Turbopack `*.css` loader via `@tailwindcss/turbopack`.
+- `next.config.ts`: `experimental.agentFeedback`, `experimental.instantInsights.validationLevel = "manual-warning"`, `cacheComponents`, `partialPrefetching`, Turbopack `*.css` loader via `@tailwindcss/turbopack`.
 - Do not edit `next-env.d.ts`; it is generated and references `.next` route types.
 - `.next/` is build output and ignored.
 
@@ -38,9 +39,13 @@ Self-hosted, LAN-first POS for cafes. Phase 1 frontend foundation, design system
 - Route groups are already reserved: `(auth)`, `(dashboard)`, `(cashier)`, `(kds)`, `(customer)`.
 - UI structure: `src/components/ui`, `src/components/shells`, `src/components/feedback`, `src/components/theme`, `src/features`, `src/lib`, `src/mocks`, `src/styles`, `src/types`.
 - Management navigation uses quick links plus `MegaMenu` on desktop and `MobileMenuSheet` below `1024px`. Keep permission filtering.
-- `/app/design-system` is the component preview. Keep it for visual QA until Phase 2 replaces placeholders.
+- `/app/design-system` is the component preview and mock-control surface. Keep it for visual QA.
 - Product behavior and business rules live in `docs/PRD.md`. Read PRD plus `docs/design/*` before new pages or shared components.
 - Do not invent business rules, fields, states, or permissions.
+- Management data lives in one in-memory mock store and resets on reload. Mutations go through `managementService`.
+- Mock auth uses `sessionStorage` key `ravika-session-user-id`. Demo accounts: `owner@ravika.id`, `cashier@ravika.id`, `barista@ravika.id`, password `demo123`.
+- Payments are read-only. Orders are read-only except cancellation from `NEW`, `ACCEPTED`, or `PREPARING` with a reason.
+- QR previews are not scannable. Product images are neutral placeholders with no upload.
 
 ## Design
 

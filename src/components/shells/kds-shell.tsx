@@ -1,13 +1,23 @@
+"use client";
+
 import { ChefHat, LogOut } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ConnectionIndicator } from "@/components/feedback/connection-indicator";
 import { ShellTheme } from "@/components/shells/shell-theme";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
-import { buttonVariants } from "@/components/ui/button";
-import { mockOutlets } from "@/mocks/outlets";
+import { Button } from "@/components/ui/button";
+import { useMockSession } from "@/features/auth/mock-session";
+import { useManagementStore } from "@/mocks/management/hooks";
 
 export function KdsShell({ children }: { children: React.ReactNode }) {
-  const outlet = mockOutlets[0];
+  const router = useRouter();
+  const { logout, user } = useMockSession();
+  const outlets = useManagementStore((state) => state.outlets);
+  const outlet = outlets.find(
+    (candidate) =>
+      candidate.isActive !== false && user?.outletIds.includes(candidate.id),
+  );
 
   return (
     <ShellTheme defaultTheme="dark">
@@ -26,20 +36,23 @@ export function KdsShell({ children }: { children: React.ReactNode }) {
                   RAVIKA KDS
                 </span>
                 <span className="text-caption text-muted-foreground">
-                  {outlet.name}
+                  {outlet?.name ?? "Outlet belum dipilih"}
                 </span>
               </span>
             </Link>
             <ConnectionIndicator className="ml-auto" status="connected" />
             <ThemeToggle />
-            <Link
+            <Button
               aria-label="Keluar KDS"
-              className={buttonVariants({ variant: "outline", size: "md" })}
-              href="/app"
+              onClick={() => {
+                logout();
+                router.replace("/login");
+              }}
+              variant="outline"
             >
               <LogOut aria-hidden="true" className="h-4 w-4" />
               <span className="hidden sm:inline">Keluar KDS</span>
-            </Link>
+            </Button>
           </div>
         </header>
         <main className="min-h-0 flex-1 overflow-x-auto p-4 sm:p-6">

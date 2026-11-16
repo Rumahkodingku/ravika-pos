@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronDown, LogOut, Menu, UserRound } from "lucide-react";
+import { ChevronDown, LogOut, Menu } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
@@ -19,15 +19,14 @@ import { MegaMenu } from "@/components/ui/mega-menu";
 import { MobileMenuSheet } from "@/components/ui/mobile-menu-sheet";
 import { OutletSwitcher } from "@/components/ui/outlet-switcher";
 import { useToast } from "@/components/ui/toast";
+import { useMockSession } from "@/features/auth/mock-session";
 import { cn } from "@/lib/cn";
+import { useManagementStore } from "@/mocks/management/hooks";
 import {
   megaMenuGroups,
   quickActions,
   quickNavigation,
 } from "@/mocks/navigation";
-import { mockOutlets } from "@/mocks/outlets";
-import { hasPermission, mockCurrentUser, mockUsers } from "@/mocks/session";
-import type { Outlet, SessionUser } from "@/types/auth";
 import type { NavItem } from "@/types/ui";
 
 function isActivePath(pathname: string, href: string) {
@@ -56,27 +55,17 @@ function QuickNavLink({ item, pathname }: { item: NavItem; pathname: string }) {
   );
 }
 
-function allowedOutlets(user: SessionUser, outlets: Outlet[]) {
-  return outlets.filter((outlet) => user.outletIds.includes(outlet.id));
-}
-
-export function ManagementShell({
-  children,
-  outlets = mockOutlets,
-  user = mockCurrentUser,
-}: {
-  children: React.ReactNode;
-  outlets?: Outlet[];
-  user?: SessionUser;
-}) {
+export function ManagementShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const { toast } = useToast();
+  const { logout, user } = useMockSession();
+  const outlets = useManagementStore((state) => state.outlets);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
-  const [currentUser, setCurrentUser] = useState(user);
-  const [selectedOutletId, setSelectedOutletId] = useState(
-    allowedOutlets(user, outlets)[0]?.id ?? "",
-  );
+  const [selectedOutletId, setSelectedOutletId] = useState("");
+
+  const permissions = user?.permissions ?? [];
+  const can = (permission: string) => permissions.includes(permission);
 
   const visibleGroups = useMemo(
     () =>
@@ -84,48 +73,48 @@ export function ManagementShell({
         .map((group) => ({
           ...group,
           items: group.items.filter((item) =>
-            hasPermission(currentUser, item.permission),
+            permissions.includes(item.permission),
           ),
         }))
         .filter((group) => group.items.length > 0),
-    [currentUser],
+    [permissions],
   );
 
   const visibleQuickNavigation = quickNavigation.filter((item) =>
-    hasPermission(currentUser, item.permission),
+    can(item.permission),
   );
   const visibleQuickActions = quickActions.filter((action) =>
-    hasPermission(currentUser, action.permission),
+    can(action.permission),
   );
   const hasMenu = visibleGroups.length > 0 || visibleQuickActions.length > 0;
-  const canViewDashboard = hasPermission(currentUser, "dashboard.view");
-  const availableOutlets = allowedOutlets(currentUser, outlets);
+  const canViewDashboard = can("dashboard.view");
+  const availableOutlets = outlets.filter(
+    (outlet) =>
+      outlet.isActive !== false &&
+      (!user || user.outletIds.includes(outlet.id)),
+  );
   const activeOutlet =
     availableOutlets.find((outlet) => outlet.id === selectedOutletId) ??
     availableOutlets[0];
 
-  const initials = currentUser.name
+  if (!user) {
+    return null;
+  }
+
+  const initials = user.name
     .split(" ")
     .map((part) => part[0])
     .slice(0, 2)
     .join("");
 
-  const changeRole = (nextUser: SessionUser) => {
-    setCurrentUser(nextUser);
-    setSelectedOutletId(allowedOutlets(nextUser, outlets)[0]?.id ?? "");
+  const handleLogout = () => {
+    logout();
     toast({
-      title: `Mode pratinjau: ${nextUser.roleLabel}`,
-      description: "Data sesi masih mock sampai backend tersedia.",
+      title: "Sesi demo berakhir",
+      description: "Anda kembali ke halaman masuk.",
       tone: "info",
     });
-  };
-
-  const showSoon = (label: string) => {
-    toast({
-      title: label,
-      description: "Aksi ini akan tersedia pada fase berikutnya.",
-      tone: "info",
-    });
+    router.replace("/login");
   };
 
   return (
@@ -175,67 +164,48 @@ export function ManagementShell({
                   />
                 </div>
                 <ThemeToggle />
-                <DropdownMenu
-                  className="hidden sm:inline-flex"
-                  trigger={
-                    <span className="flex items-center gap-2">
-                      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-action text-caption font-semibold text-primary-action-foreground">
-                        {initials}
+                <div className="hidden sm:block">
+                  <DropdownMenu
+                    trigger={
+                      <span className="flex items-center gap-2">
+                        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-action text-caption font-semibold text-primary-action-foreground">
+                          {initials}
+                        </span>
+                        <span className="hidden max-w-28 truncate text-label xl:inline">
+                          {user.name}
+                        </span>
+                        <ChevronDown aria-hidden="true" className="h-4 w-4" />
                       </span>
-                      <span className="hidden max-w-28 truncate text-label xl:inline">
-                        {currentUser.name}
-                      </span>
-                      <ChevronDown aria-hidden="true" className="h-4 w-4" />
-                    </span>
-                  }
-                  variant="ghost"
-                >
-                  <DropdownMenuLabel>
-                    <span className="flex flex-col">
-                      <span>{currentUser.name}</span>
-                      <span className="font-normal text-muted-foreground">
-                        {currentUser.roleLabel}
-                      </span>
-                    </span>
-                  </DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    onSelect={() => showSoon("Profil pengguna")}
+                    }
+                    variant="ghost"
                   >
-                    <UserRound aria-hidden="true" className="h-4 w-4" />
-                    Profil
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onSelect={() => router.push("/app/design-system")}
-                  >
-                    <span className="flex h-4 w-4 items-center justify-center text-caption font-semibold">
-                      UI
-                    </span>
-                    Design system
-                    <Badge className="ml-auto" tone="neutral">
-                      Internal
-                    </Badge>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onSelect={() => showSoon("Keluar")}>
-                    <LogOut aria-hidden="true" className="h-4 w-4" />
-                    Keluar
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuLabel>Pratinjau role mock</DropdownMenuLabel>
-                  {mockUsers.map((mockUser) => (
+                    <DropdownMenuLabel>
+                      <span className="flex flex-col">
+                        <span>{user.name}</span>
+                        <span className="font-normal text-muted-foreground">
+                          {user.roleLabel}
+                        </span>
+                      </span>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
                     <DropdownMenuItem
-                      key={mockUser.id}
-                      onSelect={() => changeRole(mockUser)}
+                      onSelect={() => router.push("/app/design-system")}
                     >
-                      {mockUser.roleLabel}
-                      {mockUser.id === currentUser.id ? (
-                        <Badge className="ml-auto" tone="primary">
-                          Aktif
-                        </Badge>
-                      ) : null}
+                      <span className="flex h-4 w-4 items-center justify-center text-caption font-semibold">
+                        UI
+                      </span>
+                      Design system
+                      <Badge className="ml-auto" tone="neutral">
+                        Internal
+                      </Badge>
                     </DropdownMenuItem>
-                  ))}
-                </DropdownMenu>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onSelect={handleLogout}>
+                      <LogOut aria-hidden="true" className="h-4 w-4" />
+                      Keluar
+                    </DropdownMenuItem>
+                  </DropdownMenu>
+                </div>
                 {hasMenu ? (
                   <>
                     <Button
@@ -283,7 +253,7 @@ export function ManagementShell({
         <footer className="border-t border-border py-4">
           <Container size="wide">
             <p className="text-caption text-muted-foreground">
-              Mode UI dengan data simulasi. Sesi: {currentUser.roleLabel}.
+              Mode UI dengan data simulasi. Sesi: {user.roleLabel}.
             </p>
           </Container>
         </footer>

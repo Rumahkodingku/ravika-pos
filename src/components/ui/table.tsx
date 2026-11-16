@@ -107,12 +107,17 @@ export function TableHead({
 export function TableCell({
   children,
   className,
+  colSpan,
 }: {
   children: React.ReactNode;
   className?: string;
+  colSpan?: number;
 }) {
   return (
-    <td className={cn("px-3 py-3 align-middle text-body", className)}>
+    <td
+      className={cn("px-3 py-3 align-middle text-body", className)}
+      colSpan={colSpan}
+    >
       {children}
     </td>
   );

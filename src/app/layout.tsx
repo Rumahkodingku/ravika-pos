@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import { ThemeScript } from "@/components/theme/theme-script";
 import { ToastProvider } from "@/components/ui/toast";
+import { MockSessionProvider } from "@/features/auth/mock-session";
 import "./globals.css";
 
 const plusJakarta = Plus_Jakarta_Sans({
@@ -27,14 +28,16 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="id" suppressHydrationWarning>
+    <html data-scroll-behavior="smooth" lang="id" suppressHydrationWarning>
       <head>
         <ThemeScript />
       </head>
       <body
         className={`${plusJakarta.variable} min-h-dvh bg-background font-sans text-foreground antialiased`}
       >
-        <ToastProvider>{children}</ToastProvider>
+        <ToastProvider>
+          <MockSessionProvider>{children}</MockSessionProvider>
+        </ToastProvider>
       </body>
     </html>
   );

@@ -50,7 +50,10 @@ export function Pagination({
   return (
     <nav
       aria-label="Pagination"
-      className={cn("flex items-center justify-between gap-3", className)}
+      className={cn(
+        "flex flex-wrap items-center justify-between gap-2",
+        className,
+      )}
     >
       <Button
         aria-label="Halaman sebelumnya"
@@ -63,7 +66,7 @@ export function Pagination({
         <ChevronLeft aria-hidden="true" className="h-4 w-4" />
         <span className="hidden sm:inline">Sebelumnya</span>
       </Button>
-      <div className="flex items-center gap-1">
+      <div className="flex flex-wrap items-center justify-center gap-1">
         {getPageItems(page, pageCount).map((item, index) =>
           item === "ellipsis" ? (
             <span

@@ -34,7 +34,7 @@ export function Card({
   return (
     <div
       className={cn(
-        "rounded-lg border border-border text-foreground",
+        "min-w-0 rounded-lg border border-border text-foreground",
         variantClasses[variant],
         className,
       )}

@@ -1,4 +1,10 @@
-import { forwardRef, type ReactNode } from "react";
+import {
+  cloneElement,
+  forwardRef,
+  isValidElement,
+  type ReactElement,
+  type ReactNode,
+} from "react";
 import { cn } from "@/lib/cn";
 
 export const Label = forwardRef<
@@ -32,6 +38,19 @@ export function Field({
   label: ReactNode;
   required?: boolean;
 }) {
+  const descriptionId =
+    description && htmlFor ? `${htmlFor}-description` : undefined;
+  const errorId = error && htmlFor ? `${htmlFor}-error` : undefined;
+  const describedBy =
+    [descriptionId, errorId].filter(Boolean).join(" ") || undefined;
+  const control =
+    isValidElement(children) && (descriptionId || errorId)
+      ? cloneElement(children as ReactElement<Record<string, unknown>>, {
+          "aria-describedby": describedBy,
+          "aria-invalid": error ? true : undefined,
+        })
+      : children;
+
   return (
     <div className={cn("flex flex-col gap-1.5", className)}>
       <Label htmlFor={htmlFor}>
@@ -42,20 +61,42 @@ export function Field({
           </span>
         ) : null}
       </Label>
-      {children}
-      {description ? <FieldDescription>{description}</FieldDescription> : null}
-      {error ? <FieldError>{error}</FieldError> : null}
+      {control}
+      {description ? (
+        <FieldDescription id={descriptionId}>{description}</FieldDescription>
+      ) : null}
+      {error ? <FieldError id={errorId}>{error}</FieldError> : null}
     </div>
   );
 }
 
-export function FieldDescription({ children }: { children: ReactNode }) {
-  return <p className="text-caption text-muted-foreground">{children}</p>;
+export function FieldDescription({
+  children,
+  id,
+}: {
+  children: ReactNode;
+  id?: string;
+}) {
+  return (
+    <p className="text-caption text-muted-foreground" id={id}>
+      {children}
+    </p>
+  );
 }
 
-export function FieldError({ children }: { children: ReactNode }) {
+export function FieldError({
+  children,
+  id,
+}: {
+  children: ReactNode;
+  id?: string;
+}) {
   return (
-    <p className="text-caption font-medium text-danger-strong" role="alert">
+    <p
+      className="text-caption font-medium text-danger-strong"
+      id={id}
+      role="alert"
+    >
       {children}
     </p>
   );
