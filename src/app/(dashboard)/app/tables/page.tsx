@@ -33,9 +33,9 @@ import {
   PermissionGate,
   RequirePermission,
 } from "@/features/management/permission-gate";
-import { QrPlaceholder } from "@/features/management/qr-placeholder";
 import { ResponsiveList } from "@/features/management/responsive-list";
 import { TablePagination } from "@/features/management/table-pagination";
+import { TableQrCode } from "@/features/management/table-qr-code";
 import { TableSkeleton } from "@/features/management/table-skeleton";
 import { useAsyncData, useManagementStore } from "@/mocks/management/hooks";
 import { managementService } from "@/mocks/management/service";
@@ -444,7 +444,7 @@ export default function TablesPage() {
                   <dd>{detail.isActive ? "Ya" : "Tidak"}</dd>
                 </div>
               </dl>
-              <QrPlaceholder label={detail.name} token={detail.qrToken} />
+              <TableQrCode label={detail.name} token={detail.qrToken} />
               <PermissionGate permission="tables.manage">
                 <div className="flex flex-wrap gap-2 border-t border-border pt-4">
                   <Button onClick={() => openEdit(detail)} variant="outline">

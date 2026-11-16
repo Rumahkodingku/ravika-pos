@@ -44,7 +44,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/toast";
 import { Tooltip } from "@/components/ui/tooltip";
 import { MockControls } from "@/features/management/mock-controls";
-import { QrPlaceholder } from "@/features/management/qr-placeholder";
+import { TableQrCode } from "@/features/management/table-qr-code";
 import { TableSkeleton } from "@/features/management/table-skeleton";
 import { formatCurrency } from "@/lib/format";
 import { megaMenuGroups, quickActions } from "@/mocks/navigation";
@@ -444,7 +444,7 @@ export default function DesignSystemPage() {
               title="QR placeholder"
             />
             <CardContent>
-              <QrPlaceholder label="Meja 01" token="demo-table-1" />
+              <TableQrCode label="Meja 01" token="tbl-demo" />
             </CardContent>
           </Card>
         </div>

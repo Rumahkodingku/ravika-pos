@@ -8,7 +8,11 @@ import type {
   DiningTable,
   ManagementUser,
   Order,
+  OrderItem,
+  OrderItemAddOn,
   OrderStatusHistory,
+  Payment,
+  PaymentMethod,
   Product,
   ProductAddOn,
   ProductVariant,
@@ -17,7 +21,7 @@ import type {
   TableStatus,
   UserRole,
 } from "@/types/domain";
-import type { PreparationStatus } from "@/types/ui";
+import type { PaymentStatus, PreparationStatus } from "@/types/ui";
 
 export type Paginated<T> = {
   items: T[];
@@ -117,6 +121,40 @@ export type BusinessInput = {
   phone: string;
 };
 
+export type CreateOrderItemInput = {
+  productId: string;
+  variantId: string | null;
+  addOnIds: string[];
+  quantity: number;
+  notes: string;
+};
+
+export type CreateOrderInput = {
+  outletId: string;
+  orderType: "DINE_IN" | "TAKEAWAY";
+  tableId: string | null;
+  tableToken?: string | null;
+  source: "CASHIER" | "QR";
+  createdBy: string | null;
+  notes: string;
+  items: CreateOrderItemInput[];
+};
+
+export type RecordPaymentInput = {
+  orderId: string;
+  method: PaymentMethod;
+  amount: number;
+  reference: string;
+  notes: string;
+  actorId: string;
+};
+
+export type OrderStatusUpdateInput = {
+  orderId: string;
+  nextStatus: "ACCEPTED" | "PREPARING" | "READY" | "COMPLETED";
+  actorId: string;
+};
+
 async function respondAfter<T>(work: () => T, ms: number): Promise<T> {
   await new Promise((resolve) => setTimeout(resolve, ms));
   if (consumeFailure()) {
@@ -198,6 +236,151 @@ function sumPayments(orderIds: string[]) {
   return getState()
     .payments.filter((payment) => orderIds.includes(payment.orderId))
     .reduce((total, payment) => total + payment.amount, 0);
+}
+
+const activeOrderStatuses: PreparationStatus[] = [
+  "NEW",
+  "ACCEPTED",
+  "PREPARING",
+  "READY",
+];
+
+function remainingAmount(order: Order) {
+  const paid = getState()
+    .payments.filter(
+      (payment) =>
+        payment.orderId === order.id && payment.status === "RECORDED",
+    )
+    .reduce((total, payment) => total + payment.amount, 0);
+
+  return Math.max(0, order.grandTotal - paid);
+}
+
+function activeOrdersForTable(tableId: string) {
+  return getState().orders.filter(
+    (order) =>
+      order.tableId === tableId &&
+      activeOrderStatuses.includes(order.orderStatus),
+  );
+}
+
+function nextOrderNumber(outletId: string) {
+  const outlet = getState().outlets.find(
+    (candidate) => candidate.id === outletId,
+  );
+
+  if (!outlet) {
+    throw new Error("Outlet tidak ditemukan.");
+  }
+
+  const highest = getState()
+    .orders.filter((order) => order.outletId === outletId)
+    .map((order) =>
+      Number.parseInt(order.orderNumber.split("-").at(-1) ?? "", 10),
+    )
+    .filter((value) => Number.isFinite(value))
+    .reduce((max, value) => Math.max(max, value), 2000);
+
+  return `${outlet.code}-${highest + 1}`;
+}
+
+function makePublicToken() {
+  return makeId("public");
+}
+
+function calculateOrderItems(items: CreateOrderItemInput[]): OrderItem[] {
+  if (items.length === 0) {
+    throw new Error("Pesanan minimal memiliki satu item.");
+  }
+
+  const state = getState();
+
+  return items.map((item, index) => {
+    if (!Number.isInteger(item.quantity) || item.quantity < 1) {
+      throw new Error("Kuantitas item minimal 1.");
+    }
+
+    const product = state.products.find(
+      (candidate) => candidate.id === item.productId,
+    );
+
+    if (!product || !product.isActive || !product.isAvailable) {
+      throw new Error("Produk tidak tersedia.");
+    }
+
+    const activeVariants = product.variants.filter(
+      (variant) => variant.isActive,
+    );
+    let variant: ProductVariant | null = null;
+
+    if (activeVariants.length > 0) {
+      variant =
+        activeVariants.find((candidate) => candidate.id === item.variantId) ??
+        null;
+
+      if (!variant) {
+        throw new Error(`Varian ${product.name} wajib dipilih.`);
+      }
+    } else if (item.variantId) {
+      throw new Error(`Produk ${product.name} tidak memiliki varian.`);
+    }
+
+    const selectedIds = Array.from(new Set(item.addOnIds));
+    const selected = selectedIds.map((addOnId) => {
+      const addOn = state.addOns.find(
+        (candidate) => candidate.id === addOnId && candidate.isActive,
+      );
+      const relation = product.addOns.find(
+        (candidate) => candidate.addOnId === addOnId,
+      );
+
+      if (!addOn || !relation) {
+        throw new Error(`Add-on ${product.name} tidak valid.`);
+      }
+
+      return { addOn, relation };
+    });
+
+    for (const relation of product.addOns) {
+      const count = selectedIds.filter(
+        (addOnId) => addOnId === relation.addOnId,
+      ).length;
+
+      if (relation.isRequired && count === 0) {
+        throw new Error(`Add-on wajib untuk ${product.name} belum dipilih.`);
+      }
+      if (count < relation.minSelection) {
+        throw new Error(`Jumlah add-on ${product.name} kurang.`);
+      }
+      if (count > relation.maxSelection) {
+        throw new Error(`Jumlah add-on ${product.name} melebihi batas.`);
+      }
+    }
+
+    const addOns: OrderItemAddOn[] = selected.map(({ addOn }) => ({
+      id: makeId("order-addon"),
+      addOnId: addOn.id,
+      name: addOn.name,
+      price: addOn.price,
+      quantity: 1,
+    }));
+    const unitPrice =
+      product.basePrice +
+      (variant?.priceAdjustment ?? 0) +
+      addOns.reduce((total, addOn) => total + addOn.price, 0);
+
+    return {
+      id: makeId(`order-item-${index}`),
+      productId: product.id,
+      productName: product.name,
+      variantName: variant?.name ?? null,
+      quantity: item.quantity,
+      unitPrice,
+      lineTotal: unitPrice * item.quantity,
+      notes: item.notes,
+      addOns,
+    };
+  });
 }
 
 function buildTopProducts(orders: Order[]) {
@@ -518,6 +701,16 @@ export const managementService = {
 
   updateTable: (id: string, input: TableInput) =>
     respond(() => {
+      if (
+        activeOrdersForTable(id).length > 0 &&
+        (input.status === "AVAILABLE" ||
+          input.status === "INACTIVE" ||
+          input.isActive === false)
+      ) {
+        throw new Error(
+          "Meja masih memiliki pesanan aktif. Selesaikan atau batalkan pesanan terlebih dahulu.",
+        );
+      }
       setState((state) => ({
         ...state,
         tables: state.tables.map((table) =>
@@ -528,6 +721,14 @@ export const managementService = {
 
   setTableStatus: (id: string, status: TableStatus) =>
     respond(() => {
+      if (
+        activeOrdersForTable(id).length > 0 &&
+        (status === "AVAILABLE" || status === "INACTIVE")
+      ) {
+        throw new Error(
+          "Meja masih memiliki pesanan aktif. Selesaikan atau batalkan pesanan terlebih dahulu.",
+        );
+      }
       setState((state) => ({
         ...state,
         tables: state.tables.map((table) =>
@@ -548,6 +749,283 @@ export const managementService = {
         ),
       }));
       return token;
+    }),
+
+  createOrder: (input: CreateOrderInput) =>
+    respond(() => {
+      const current = getState();
+      const outlet = current.outlets.find(
+        (candidate) => candidate.id === input.outletId,
+      );
+
+      if (!outlet || outlet.isActive === false) {
+        throw new Error("Outlet tidak ditemukan atau tidak aktif.");
+      }
+      if (input.source === "CASHIER" && !input.createdBy) {
+        throw new Error("Kasir wajib dikenali untuk pesanan ini.");
+      }
+      if (input.source === "QR" && input.createdBy) {
+        throw new Error("Pesanan QR tidak memiliki pengguna internal.");
+      }
+      if (input.orderType === "DINE_IN" && !input.tableId) {
+        throw new Error("Pesanan dine-in wajib memilih meja.");
+      }
+      if (input.orderType === "TAKEAWAY" && input.tableId) {
+        throw new Error("Pesanan takeaway tidak memakai meja.");
+      }
+      if (input.source === "QR" && input.orderType !== "DINE_IN") {
+        throw new Error("Takeaway QR belum tersedia di Fase 3.");
+      }
+
+      let table: DiningTable | null = null;
+
+      if (input.tableId) {
+        table =
+          current.tables.find((candidate) => candidate.id === input.tableId) ??
+          null;
+
+        if (!table || table.isActive === false || table.status === "INACTIVE") {
+          throw new Error("Meja tidak tersedia.");
+        }
+        if (table.outletId !== input.outletId) {
+          throw new Error("Meja bukan milik outlet ini.");
+        }
+        if (input.source === "QR" && table.qrToken !== input.tableToken) {
+          throw new Error("Token QR sudah tidak berlaku.");
+        }
+      }
+
+      const items = calculateOrderItems(input.items);
+      const subtotal = items.reduce((total, item) => total + item.lineTotal, 0);
+      const now = nowIso();
+      const order: Order = {
+        id: makeId("order"),
+        businessId: current.business.id,
+        outletId: input.outletId,
+        orderNumber: nextOrderNumber(input.outletId),
+        orderType: input.orderType,
+        source: input.source,
+        tableId: input.tableId,
+        orderStatus: "NEW",
+        paymentStatus: "UNPAID",
+        publicToken: input.source === "QR" ? makePublicToken() : null,
+        subtotal,
+        grandTotal: subtotal,
+        notes: input.notes,
+        createdBy: input.createdBy,
+        createdAt: now,
+        updatedAt: now,
+        items,
+      };
+      const history: OrderStatusHistory = {
+        id: makeId("history"),
+        orderId: order.id,
+        previousStatus: null,
+        newStatus: "NEW",
+        changedBy: input.createdBy,
+        reason: "",
+        createdAt: now,
+      };
+
+      setState((state) => ({
+        ...state,
+        orders: [order, ...state.orders],
+        statusHistory: [...state.statusHistory, history],
+        tables: table
+          ? state.tables.map((candidate) =>
+              candidate.id === table.id
+                ? { ...candidate, status: "OCCUPIED", updatedAt: now }
+                : candidate,
+            )
+          : state.tables,
+      }));
+
+      return order;
+    }),
+
+  updateOrderStatus: (input: OrderStatusUpdateInput) =>
+    respond(() => {
+      const order = getState().orders.find(
+        (candidate) => candidate.id === input.orderId,
+      );
+
+      if (!order) {
+        throw new Error("Pesanan tidak ditemukan.");
+      }
+      if (!input.actorId) {
+        throw new Error("Pengguna perubahan status wajib dikenali.");
+      }
+
+      const nextStatus: Record<PreparationStatus, PreparationStatus | null> = {
+        NEW: "ACCEPTED",
+        ACCEPTED: "PREPARING",
+        PREPARING: "READY",
+        READY: "COMPLETED",
+        COMPLETED: null,
+        CANCELLED: null,
+      };
+
+      if (nextStatus[order.orderStatus] !== input.nextStatus) {
+        throw new Error("Status pesanan tidak dapat diubah ke tahap itu.");
+      }
+
+      const now = nowIso();
+      const updated: Order = {
+        ...order,
+        orderStatus: input.nextStatus,
+        updatedAt: now,
+      };
+      const history: OrderStatusHistory = {
+        id: makeId("history"),
+        orderId: order.id,
+        previousStatus: order.orderStatus,
+        newStatus: input.nextStatus,
+        changedBy: input.actorId,
+        reason: "",
+        createdAt: now,
+      };
+
+      setState((state) => {
+        const orders = state.orders.map((candidate) =>
+          candidate.id === order.id ? updated : candidate,
+        );
+        const tables = order.tableId
+          ? state.tables.map((table) => {
+              if (table.id !== order.tableId || table.status === "INACTIVE") {
+                return table;
+              }
+              const active = orders.some(
+                (candidate) =>
+                  candidate.tableId === table.id &&
+                  activeOrderStatuses.includes(candidate.orderStatus),
+              );
+              return {
+                ...table,
+                status: (active ? "OCCUPIED" : "AVAILABLE") as TableStatus,
+                updatedAt: now,
+              };
+            })
+          : state.tables;
+
+        return {
+          ...state,
+          orders,
+          statusHistory: [...state.statusHistory, history],
+          tables,
+        };
+      });
+
+      return updated;
+    }),
+
+  recordPayment: (input: RecordPaymentInput) =>
+    respond(() => {
+      const order = getState().orders.find(
+        (candidate) => candidate.id === input.orderId,
+      );
+
+      if (!order) {
+        throw new Error("Pesanan tidak ditemukan.");
+      }
+      if (order.orderStatus === "CANCELLED") {
+        throw new Error("Pesanan dibatalkan tidak dapat dibayar.");
+      }
+      if (order.paymentStatus === "REFUNDED") {
+        throw new Error("Pembayaran pesanan sudah dikembalikan.");
+      }
+      if (!Number.isInteger(input.amount) || input.amount <= 0) {
+        throw new Error("Nominal pembayaran harus lebih dari 0.");
+      }
+      if (!getState().users.some((user) => user.id === input.actorId)) {
+        throw new Error("Pengguna pembayaran tidak ditemukan.");
+      }
+
+      const remaining = remainingAmount(order);
+
+      if (remaining <= 0) {
+        throw new Error("Pesanan sudah lunas.");
+      }
+      if (input.amount > remaining) {
+        throw new Error("Nominal pembayaran melebihi sisa tagihan.");
+      }
+
+      const now = nowIso();
+      const payment: Payment = {
+        id: makeId("payment"),
+        orderId: order.id,
+        method: input.method,
+        amount: input.amount,
+        status: "RECORDED",
+        reference: input.reference,
+        notes: input.notes,
+        recordedBy: input.actorId,
+        paidAt: now,
+        createdAt: now,
+      };
+      const nextPaid = remainingAmount(order) - input.amount;
+      const paymentStatus: PaymentStatus =
+        nextPaid <= 0
+          ? "PAID"
+          : nextPaid < order.grandTotal
+            ? "PARTIALLY_PAID"
+            : "UNPAID";
+      const updated: Order = { ...order, paymentStatus, updatedAt: now };
+
+      setState((state) => ({
+        ...state,
+        payments: [payment, ...state.payments],
+        orders: state.orders.map((candidate) =>
+          candidate.id === order.id ? updated : candidate,
+        ),
+      }));
+
+      return { payment, order: updated };
+    }),
+
+  listPayableOrders: (outletId: string) =>
+    respond(() =>
+      getState()
+        .orders.filter(
+          (order) =>
+            order.outletId === outletId &&
+            order.orderStatus !== "CANCELLED" &&
+            (order.paymentStatus === "UNPAID" ||
+              order.paymentStatus === "PARTIALLY_PAID"),
+        )
+        .sort((left, right) => right.createdAt.localeCompare(left.createdAt)),
+    ),
+
+  getOrderByPublicToken: (token: string) =>
+    respond(() =>
+      token
+        ? (getState().orders.find((order) => order.publicToken === token) ??
+          null)
+        : null,
+    ),
+
+  validateTableToken: (token: string) =>
+    respond(() => {
+      if (!token) {
+        return null;
+      }
+
+      const table = getState().tables.find(
+        (candidate) => candidate.qrToken === token,
+      );
+
+      if (!table || table.isActive === false || table.status === "INACTIVE") {
+        return null;
+      }
+
+      const outlet = getState().outlets.find(
+        (candidate) => candidate.id === table.outletId,
+      );
+
+      if (!outlet || outlet.isActive === false) {
+        return null;
+      }
+
+      return { table, outlet };
     }),
 
   listOrders: (params: OrderListParams = {}) =>
@@ -596,9 +1074,17 @@ export const managementService = {
       if (!order) {
         throw new Error("Pesanan tidak ditemukan.");
       }
+      if (
+        getOrderPayments(id).some((payment) => payment.status === "RECORDED")
+      ) {
+        throw new Error(
+          "Pesanan dengan pembayaran tercatat tidak dapat dibatalkan. Refund belum tersedia di Fase 3.",
+        );
+      }
       if (!["NEW", "ACCEPTED", "PREPARING"].includes(order.orderStatus)) {
         throw new Error("Status pesanan ini tidak dapat dibatalkan.");
       }
+      const now = nowIso();
       const history: OrderStatusHistory = {
         id: makeId("history"),
         orderId: id,
@@ -606,17 +1092,42 @@ export const managementService = {
         newStatus: "CANCELLED",
         changedBy: actorId,
         reason,
-        createdAt: nowIso(),
+        createdAt: now,
       };
-      setState((state) => ({
-        ...state,
-        orders: state.orders.map((candidate) =>
-          candidate.id === id
-            ? { ...candidate, orderStatus: "CANCELLED", updatedAt: nowIso() }
-            : candidate,
-        ),
-        statusHistory: [...state.statusHistory, history],
-      }));
+      const updated: Order = {
+        ...order,
+        orderStatus: "CANCELLED",
+        updatedAt: now,
+      };
+      setState((state) => {
+        const orders = state.orders.map((candidate) =>
+          candidate.id === id ? updated : candidate,
+        );
+        const tables = order.tableId
+          ? state.tables.map((table) => {
+              if (table.id !== order.tableId || table.status === "INACTIVE") {
+                return table;
+              }
+              const active = orders.some(
+                (candidate) =>
+                  candidate.tableId === table.id &&
+                  activeOrderStatuses.includes(candidate.orderStatus),
+              );
+              return {
+                ...table,
+                status: (active ? "OCCUPIED" : "AVAILABLE") as TableStatus,
+                updatedAt: now,
+              };
+            })
+          : state.tables;
+
+        return {
+          ...state,
+          orders,
+          statusHistory: [...state.statusHistory, history],
+          tables,
+        };
+      });
     }),
 
   listPayments: (params: PaymentListParams = {}) =>

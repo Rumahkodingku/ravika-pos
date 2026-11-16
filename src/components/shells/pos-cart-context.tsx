@@ -4,94 +4,232 @@ import {
   createContext,
   type ReactNode,
   useContext,
+  useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
-import {
-  type MockCartItem,
-  type MockProduct,
-  mockCartItems,
-  mockProducts,
-} from "@/mocks/catalog";
+import { useManagementStore } from "@/mocks/management/hooks";
+import type { AddOn, Product, ProductVariant } from "@/types/domain";
 
-type PosCartLine = MockCartItem & {
-  product: MockProduct;
-};
+const STORAGE_KEY = "ravika-pos-cart";
 
 export type PosOrderType = "DINE_IN" | "TAKEAWAY";
 
+export type PosCartDraft = {
+  key: string;
+  productId: string;
+  variantId: string | null;
+  addOnIds: string[];
+  quantity: number;
+  notes: string;
+};
+
+export type PosCartLine = PosCartDraft & {
+  product: Product;
+  variant: ProductVariant | null;
+  addOns: AddOn[];
+  unitPrice: number;
+  lineTotal: number;
+};
+
+type StoredCart = {
+  outletId: string;
+  orderType: PosOrderType;
+  tableId: string | null;
+  orderNotes: string;
+  items: PosCartDraft[];
+};
+
 type PosCartContextValue = {
-  addProduct: (product: MockProduct) => void;
+  addLine: (input: Omit<PosCartDraft, "key">) => void;
+  clearCart: () => void;
   itemCount: number;
   lines: PosCartLine[];
+  orderNotes: string;
   orderType: PosOrderType;
+  outletId: string;
+  removeLine: (key: string) => void;
+  setOrderNotes: (notes: string) => void;
   setOrderType: (orderType: PosOrderType) => void;
-  removeProduct: (productId: string) => void;
-  setQuantity: (productId: string, quantity: number) => void;
+  setQuantity: (key: string, quantity: number) => void;
+  setTableId: (tableId: string | null) => void;
   subtotal: number;
+  tableId: string | null;
 };
 
 const PosCartContext = createContext<PosCartContextValue | null>(null);
 
-function resolveLines(items: MockCartItem[]): PosCartLine[] {
-  return items.flatMap((item) => {
-    const product = mockProducts.find(
-      (candidate) => candidate.id === item.productId,
-    );
-
-    return product ? [{ ...item, product }] : [];
-  });
+function lineKey(input: Omit<PosCartDraft, "key">) {
+  return [
+    input.productId,
+    input.variantId ?? "",
+    [...input.addOnIds].sort().join(","),
+    input.notes.trim(),
+  ].join(":");
 }
 
-export function PosCartProvider({ children }: { children: ReactNode }) {
-  const [items, setItems] = useState<MockCartItem[]>(mockCartItems);
+function resolveLine(
+  draft: PosCartDraft,
+  products: Product[],
+  addOns: AddOn[],
+): PosCartLine | null {
+  const product = products.find(
+    (candidate) =>
+      candidate.id === draft.productId &&
+      candidate.isActive &&
+      candidate.isAvailable,
+  );
+
+  if (!product) {
+    return null;
+  }
+
+  const variant = draft.variantId
+    ? (product.variants.find(
+        (candidate) => candidate.id === draft.variantId && candidate.isActive,
+      ) ?? null)
+    : null;
+
+  if (draft.variantId && !variant) {
+    return null;
+  }
+
+  const selectedAddOns = draft.addOnIds.map((addOnId) =>
+    addOns.find((candidate) => candidate.id === addOnId && candidate.isActive),
+  );
+
+  if (selectedAddOns.some((addOn) => !addOn)) {
+    return null;
+  }
+
+  const addOnList = selectedAddOns as AddOn[];
+  const unitPrice =
+    product.basePrice +
+    (variant?.priceAdjustment ?? 0) +
+    addOnList.reduce((total, addOn) => total + addOn.price, 0);
+
+  return {
+    ...draft,
+    product,
+    variant,
+    addOns: addOnList,
+    unitPrice,
+    lineTotal: unitPrice * draft.quantity,
+  };
+}
+
+export function PosCartProvider({
+  children,
+  outletId,
+}: {
+  children: ReactNode;
+  outletId: string;
+}) {
+  const products = useManagementStore((state) => state.products);
+  const addOns = useManagementStore((state) => state.addOns);
+  const [items, setItems] = useState<PosCartDraft[]>([]);
   const [orderType, setOrderType] = useState<PosOrderType>("DINE_IN");
+  const [tableId, setTableId] = useState<string | null>(null);
+  const [orderNotes, setOrderNotes] = useState("");
+  const [hydrated, setHydrated] = useState(false);
+  const initialOutletId = useRef(outletId);
 
-  const value = useMemo<PosCartContextValue>(() => {
-    const lines = resolveLines(items);
-    const subtotal = lines.reduce(
-      (total, line) => total + line.product.price * line.quantity,
-      0,
-    );
-    const itemCount = lines.reduce((total, line) => total + line.quantity, 0);
+  useEffect(() => {
+    const stored = window.sessionStorage.getItem(STORAGE_KEY);
 
-    return {
-      addProduct: (product) => {
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored) as StoredCart;
+
+        if (parsed.outletId === initialOutletId.current) {
+          setItems(parsed.items);
+          setOrderType(parsed.orderType);
+          setTableId(parsed.tableId);
+          setOrderNotes(parsed.orderNotes);
+        }
+      } catch {
+        window.sessionStorage.removeItem(STORAGE_KEY);
+      }
+    }
+
+    setHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    if (!hydrated) {
+      return;
+    }
+
+    const stored: StoredCart = {
+      outletId,
+      orderType,
+      tableId,
+      orderNotes,
+      items,
+    };
+    window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify(stored));
+  }, [hydrated, items, orderNotes, orderType, outletId, tableId]);
+
+  const lines = useMemo(
+    () =>
+      items
+        .map((item) => resolveLine(item, products, addOns))
+        .filter((line): line is PosCartLine => line !== null),
+    [addOns, items, products],
+  );
+  const subtotal = lines.reduce((total, line) => total + line.lineTotal, 0);
+  const itemCount = lines.reduce((total, line) => total + line.quantity, 0);
+
+  const value = useMemo<PosCartContextValue>(
+    () => ({
+      addLine: (input) => {
+        const key = lineKey(input);
+
         setItems((current) => {
-          const existing = current.find(
-            (item) => item.productId === product.id,
-          );
+          const existing = current.find((item) => item.key === key);
 
           if (existing) {
             return current.map((item) =>
-              item.productId === product.id
-                ? { ...item, quantity: item.quantity + 1 }
+              item.key === key
+                ? { ...item, quantity: item.quantity + input.quantity }
                 : item,
             );
           }
 
-          return [...current, { productId: product.id, quantity: 1 }];
+          return [...current, { ...input, key }];
         });
+      },
+      clearCart: () => {
+        setItems([]);
+        setTableId(null);
+        setOrderNotes("");
       },
       itemCount,
       lines,
+      orderNotes,
       orderType,
+      outletId,
+      removeLine: (key) => {
+        setItems((current) => current.filter((item) => item.key !== key));
+      },
+      setOrderNotes,
       setOrderType,
-      removeProduct: (productId) => {
+      setQuantity: (key, quantity) => {
         setItems((current) =>
-          current.filter((item) => item.productId !== productId),
+          quantity <= 0
+            ? current.filter((item) => item.key !== key)
+            : current.map((item) =>
+                item.key === key ? { ...item, quantity } : item,
+              ),
         );
       },
-      setQuantity: (productId, quantity) => {
-        setItems((current) =>
-          current.map((item) =>
-            item.productId === productId ? { ...item, quantity } : item,
-          ),
-        );
-      },
+      setTableId,
       subtotal,
-    };
-  }, [items, orderType]);
+      tableId,
+    }),
+    [itemCount, lines, orderNotes, orderType, outletId, subtotal, tableId],
+  );
 
   return (
     <PosCartContext.Provider value={value}>{children}</PosCartContext.Provider>

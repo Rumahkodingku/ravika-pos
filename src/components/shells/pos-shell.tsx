@@ -1,6 +1,6 @@
 "use client";
 
-import { LogOut, ShoppingCart, Trash2 } from "lucide-react";
+import { LogOut, ShoppingCart, Trash2, Wallet } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -13,23 +13,46 @@ import {
 import { ShellTheme } from "@/components/shells/shell-theme";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { Badge } from "@/components/ui/badge";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { Drawer } from "@/components/ui/drawer";
+import { Field } from "@/components/ui/field";
+import { OutletSwitcher } from "@/components/ui/outlet-switcher";
 import { QuantityControl } from "@/components/ui/quantity-control";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/components/ui/toast";
 import { useMockSession } from "@/features/auth/mock-session";
+import { ConfirmDialog } from "@/features/management/confirm-dialog";
+import { OrderConfirmation } from "@/features/operational/order-confirmation";
+import { PosCheckoutDrawer } from "@/features/operational/pos-checkout-drawer";
+import { PosPayableOrderDrawer } from "@/features/operational/pos-payable-order-drawer";
+import { PosPaymentDrawer } from "@/features/operational/pos-payment-drawer";
+import { TableSelector } from "@/features/operational/table-selector";
 import { formatCurrency } from "@/lib/format";
 import { useManagementStore } from "@/mocks/management/hooks";
 import type { Outlet, SessionUser } from "@/types/auth";
+import type { Order } from "@/types/domain";
 
-function CartPanel() {
+function CartPanel({
+  idPrefix,
+  onCheckout,
+  outletId,
+}: {
+  idPrefix: string;
+  onCheckout: () => void;
+  outletId: string;
+}) {
   const {
     itemCount,
     lines,
+    orderNotes,
     orderType,
-    removeProduct,
+    removeLine,
+    setOrderNotes,
     setOrderType,
     setQuantity,
+    setTableId,
     subtotal,
+    tableId,
   } = usePosCart();
 
   return (
@@ -64,12 +87,23 @@ function CartPanel() {
               ? "bg-primary-action text-primary-action-foreground"
               : "text-muted-foreground hover:bg-muted hover:text-foreground"
           }`}
-          onClick={() => setOrderType("TAKEAWAY")}
+          onClick={() => {
+            setOrderType("TAKEAWAY");
+            setTableId(null);
+          }}
           type="button"
         >
           Takeaway
         </button>
       </div>
+
+      {orderType === "DINE_IN" ? (
+        <TableSelector
+          onChange={setTableId}
+          outletId={outletId}
+          value={tableId}
+        />
+      ) : null}
 
       {lines.length === 0 ? (
         <EmptyState
@@ -83,23 +117,36 @@ function CartPanel() {
           {lines.map((line) => (
             <div
               className="flex flex-col gap-2 rounded-md border border-border bg-surface p-3"
-              key={line.product.id}
+              key={line.key}
             >
               <div className="flex items-start justify-between gap-2">
                 <div className="flex min-w-0 flex-col gap-0.5">
                   <p className="truncate text-body font-medium text-foreground">
                     {line.product.name}
                   </p>
-                  {line.note ? (
+                  {line.variant ? (
                     <p className="text-caption text-muted-foreground">
-                      {line.note}
+                      Varian {line.variant.name}
+                    </p>
+                  ) : null}
+                  {line.addOns.map((addOn) => (
+                    <p
+                      className="text-caption text-muted-foreground"
+                      key={addOn.id}
+                    >
+                      Add-on {addOn.name}
+                    </p>
+                  ))}
+                  {line.notes ? (
+                    <p className="text-caption text-muted-foreground">
+                      Catatan: {line.notes}
                     </p>
                   ) : null}
                 </div>
                 <Button
                   aria-label={`Hapus ${line.product.name}`}
                   className="-mr-1 -mt-1 shrink-0"
-                  onClick={() => removeProduct(line.product.id)}
+                  onClick={() => removeLine(line.key)}
                   size="icon"
                   variant="ghost"
                 >
@@ -108,19 +155,26 @@ function CartPanel() {
               </div>
               <div className="flex items-center justify-between gap-2">
                 <QuantityControl
-                  onChange={(quantity) =>
-                    setQuantity(line.product.id, quantity)
-                  }
+                  onChange={(quantity) => setQuantity(line.key, quantity)}
                   value={line.quantity}
                 />
                 <span className="text-body font-medium tabular-nums text-foreground">
-                  {formatCurrency(line.product.price * line.quantity)}
+                  {formatCurrency(line.lineTotal)}
                 </span>
               </div>
             </div>
           ))}
         </div>
       )}
+
+      <Field htmlFor={`${idPrefix}-order-notes`} label="Catatan pesanan">
+        <Textarea
+          id={`${idPrefix}-order-notes`}
+          onChange={(event) => setOrderNotes(event.target.value)}
+          placeholder="Contoh: sajikan bersama"
+          value={orderNotes}
+        />
+      </Field>
 
       <div className="mt-auto flex flex-col gap-2 border-t border-border pt-3">
         <div className="flex items-center justify-between text-body text-muted-foreground">
@@ -131,27 +185,68 @@ function CartPanel() {
           <span>Total</span>
           <span className="tabular-nums">{formatCurrency(subtotal)}</span>
         </div>
-        <Button className="w-full" disabled>
-          Checkout aktif di Fase 3
+        <Button
+          className="w-full"
+          disabled={
+            lines.length === 0 || (orderType === "DINE_IN" && tableId === null)
+          }
+          onClick={onCheckout}
+        >
+          Lanjut ke konfirmasi
         </Button>
+        {orderType === "DINE_IN" && tableId === null ? (
+          <p className="text-caption text-muted-foreground">
+            Pilih meja sebelum konfirmasi.
+          </p>
+        ) : null}
       </div>
     </div>
   );
 }
 
 function PosShellContent({
+  availableOutlets,
   cashier,
   children,
   onLogout,
+  onOutletChange,
   outlet,
 }: {
+  availableOutlets: Outlet[];
   cashier: SessionUser;
   children: React.ReactNode;
   onLogout: () => void;
+  onOutletChange: (outletId: string) => void;
   outlet: Outlet;
 }) {
+  const { clearCart, itemCount, subtotal } = usePosCart();
+  const orders = useManagementStore((state) => state.orders);
   const [cartOpen, setCartOpen] = useState(false);
-  const { itemCount, subtotal } = usePosCart();
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [createdOrder, setCreatedOrder] = useState<Order | null>(null);
+  const [confirmationOpen, setConfirmationOpen] = useState(false);
+  const [paymentOrder, setPaymentOrder] = useState<Order | null>(null);
+  const [payableOpen, setPayableOpen] = useState(false);
+  const [pendingOutletId, setPendingOutletId] = useState<string | null>(null);
+
+  const payableCount = orders.filter(
+    (order) =>
+      order.outletId === outlet.id &&
+      order.orderStatus !== "CANCELLED" &&
+      (order.paymentStatus === "UNPAID" ||
+        order.paymentStatus === "PARTIALLY_PAID"),
+  ).length;
+
+  const requestOutletChange = (outletId: string) => {
+    if (outletId === outlet.id) {
+      return;
+    }
+    if (itemCount > 0) {
+      setPendingOutletId(outletId);
+      return;
+    }
+    onOutletChange(outletId);
+  };
 
   return (
     <div className="flex min-h-dvh flex-col bg-surface-subtle">
@@ -176,27 +271,51 @@ function PosShellContent({
               Kasir: {cashier.name}
             </span>
           </div>
-          <ConnectionIndicator className="ml-auto" status="connected" />
-          <ThemeToggle />
-          <Button
-            className="lg:hidden"
-            onClick={() => setCartOpen(true)}
-            size="md"
-            variant="outline"
-          >
-            <ShoppingCart aria-hidden="true" className="h-4 w-4" />
-            Keranjang
-            {itemCount > 0 ? <Badge tone="primary">{itemCount}</Badge> : null}
-          </Button>
-          <button
-            aria-label="Keluar POS"
-            className={buttonVariants({ variant: "outline", size: "md" })}
-            onClick={onLogout}
-            type="button"
-          >
-            <LogOut aria-hidden="true" className="h-4 w-4" />
-            <span className="hidden sm:inline">Keluar POS</span>
-          </button>
+          <div className="hidden md:block">
+            <OutletSwitcher
+              onChange={requestOutletChange}
+              outlets={availableOutlets}
+              value={outlet.id}
+            />
+          </div>
+          <div className="ml-auto flex items-center gap-2">
+            <div className="sm:hidden">
+              <ConnectionIndicator compact status="connected" />
+            </div>
+            <div className="hidden sm:block">
+              <ConnectionIndicator status="connected" />
+            </div>
+            <ThemeToggle />
+            <Button
+              aria-label="Pesanan perlu dibayar"
+              onClick={() => setPayableOpen(true)}
+              variant="outline"
+            >
+              <Wallet aria-hidden="true" className="h-4 w-4" />
+              <span className="hidden sm:inline">Pesanan</span>
+              {payableCount > 0 ? (
+                <Badge tone="warning">{payableCount}</Badge>
+              ) : null}
+            </Button>
+            <Button
+              aria-label="Buka keranjang"
+              className="lg:hidden"
+              onClick={() => setCartOpen(true)}
+              variant="outline"
+            >
+              <ShoppingCart aria-hidden="true" className="h-4 w-4" />
+              <span className="hidden sm:inline">Keranjang</span>
+              {itemCount > 0 ? <Badge tone="primary">{itemCount}</Badge> : null}
+            </Button>
+            <Button
+              aria-label="Keluar POS"
+              onClick={onLogout}
+              variant="outline"
+            >
+              <LogOut aria-hidden="true" className="h-4 w-4" />
+              <span className="hidden sm:inline">Keluar POS</span>
+            </Button>
+          </div>
         </div>
       </header>
 
@@ -206,7 +325,11 @@ function PosShellContent({
         </main>
         <aside className="hidden w-80 shrink-0 border-l border-border bg-surface p-4 lg:block xl:w-96">
           <div className="sticky top-24 h-[calc(100dvh-7rem)]">
-            <CartPanel />
+            <CartPanel
+              idPrefix="pos-cart-desktop"
+              onCheckout={() => setCheckoutOpen(true)}
+              outletId={outlet.id}
+            />
           </div>
         </aside>
       </div>
@@ -234,20 +357,85 @@ function PosShellContent({
         side="right"
         title="Keranjang"
       >
-        <CartPanel />
+        <CartPanel
+          idPrefix="pos-cart-mobile"
+          onCheckout={() => {
+            setCartOpen(false);
+            setCheckoutOpen(true);
+          }}
+          outletId={outlet.id}
+        />
       </Drawer>
+
+      <PosCheckoutDrawer
+        onCreated={(order) => {
+          setCreatedOrder(order);
+          setConfirmationOpen(true);
+        }}
+        onOpenChange={setCheckoutOpen}
+        open={checkoutOpen}
+      />
+
+      <OrderConfirmation
+        onOpenChange={setConfirmationOpen}
+        onPay={setPaymentOrder}
+        open={confirmationOpen}
+        order={createdOrder}
+      />
+
+      <PosPayableOrderDrawer
+        onOpenChange={setPayableOpen}
+        onPay={setPaymentOrder}
+        open={payableOpen}
+        outletId={outlet.id}
+      />
+
+      <PosPaymentDrawer
+        onOpenChange={(open) => {
+          if (!open) {
+            setPaymentOrder(null);
+          }
+        }}
+        open={paymentOrder !== null}
+        order={paymentOrder}
+      />
+
+      <ConfirmDialog
+        confirmLabel="Ganti outlet"
+        description="Mengganti outlet akan mengosongkan keranjang saat ini."
+        onConfirm={() => {
+          if (pendingOutletId) {
+            clearCart();
+            onOutletChange(pendingOutletId);
+          }
+          setPendingOutletId(null);
+        }}
+        onOpenChange={(open) => {
+          if (!open) {
+            setPendingOutletId(null);
+          }
+        }}
+        open={pendingOutletId !== null}
+        title="Ganti outlet?"
+      />
     </div>
   );
 }
 
 export function PosShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
+  const { toast } = useToast();
   const { logout, user } = useMockSession();
   const outlets = useManagementStore((state) => state.outlets);
-  const outlet = outlets.find(
+  const [selectedOutletId, setSelectedOutletId] = useState("");
+  const availableOutlets = outlets.filter(
     (candidate) =>
-      candidate.isActive !== false && user?.outletIds.includes(candidate.id),
+      candidate.isActive !== false &&
+      Boolean(user?.outletIds.includes(candidate.id)),
   );
+  const outlet =
+    availableOutlets.find((candidate) => candidate.id === selectedOutletId) ??
+    availableOutlets[0];
 
   if (!user || !outlet) {
     return null;
@@ -255,13 +443,20 @@ export function PosShell({ children }: { children: React.ReactNode }) {
 
   return (
     <ShellTheme defaultTheme="light">
-      <PosCartProvider>
+      <PosCartProvider outletId={outlet.id}>
         <PosShellContent
+          availableOutlets={availableOutlets}
           cashier={user}
           onLogout={() => {
             logout();
+            toast({
+              title: "Sesi demo berakhir",
+              description: "Anda kembali ke halaman masuk.",
+              tone: "info",
+            });
             router.replace("/login");
           }}
+          onOutletChange={setSelectedOutletId}
           outlet={outlet}
         >
           {children}

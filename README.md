@@ -4,7 +4,7 @@
 
 POS self-hosted untuk kafe dan UMKM. Satu instalasi melayani satu bisnis, berjalan di komputer server lokal, dan diakses lewat LAN/Wi-Fi tanpa mewajibkan internet untuk transaksi.
 
-**Status:** Fase 2 selesai. Management UI memakai mock data, mock auth, dan mock service. Backend, database, API, auth nyata, dan SSE belum diimplementasikan.
+**Status:** Fase 3 selesai. POS, KDS, QR Menu, dan management UI memakai mock data, mock auth, mock service, dan sinkronisasi antar tab. Backend, database, API, auth nyata, dan SSE belum diimplementasikan.
 
 ## Stack
 
@@ -21,6 +21,7 @@ Sudah terpasang:
 - React Hook Form 7.92
 - Zod 4.6
 - `@hookform/resolvers` 7.0
+- `qrcode.react` 4.2
 
 Direncanakan, belum dipasang:
 
@@ -76,9 +77,9 @@ src/
 └── types/               # tipe domain bersama
 ```
 
-Fase 2 mengisi seluruh route management. POS, KDS, dan QR menu penuh tetap Fase 3. `src/modules` dan `src/infrastructure` ditambahkan pada Fase 5 saat backend dimulai.
+Fase 3 mengisi POS, KDS, QR Menu, status pelanggan, dan alur operasional lain. `src/modules` dan `src/infrastructure` ditambahkan pada Fase 5 saat backend dimulai.
 
-## Route yang direncanakan
+## Route aplikasi
 
 | Route | Area |
 |---|---|
@@ -104,7 +105,7 @@ Fase 2 mengisi seluruh route management. POS, KDS, dan QR menu penuh tetap Fase 
 
 Token desain ada di `src/styles/tokens.css`. Theme, shell, dan komponen dasar sudah tersedia; pratinjau ada di `/app/design-system`.
 
-API, database, autentikasi nyata, dan SSE belum dibuat. Login memakai sessionStorage dan tiga akun demo: `owner@ravika.id`, `cashier@ravika.id`, dan `barista@ravika.id` dengan kata sandi `demo123`. Data mock kembali ke seed saat reload.
+API, database, autentikasi nyata, dan SSE belum dibuat. Login memakai sessionStorage dan tiga akun demo: `owner@ravika.id`, `cashier@ravika.id`, dan `barista@ravika.id` dengan kata sandi `demo123`. Data mock kembali ke seed saat reload. Store operasional disinkronkan antar tab lewat BroadcastChannel. QR meja dibuat dengan `qrcode.react`; untuk memindai dari ponsel, buka aplikasi lewat IP LAN, bukan localhost.
 
 ## Dokumen
 
@@ -116,6 +117,7 @@ API, database, autentikasi nyata, dan SSE belum dibuat. Login memakai sessionSto
 - `docs/design/ui-ux-guidelines.md` — interaksi, responsive, aksesibilitas, QA
 - `docs/specification/phase-1-5-ui-ux-refinement.md` — spec refactor Fase 1.5
 - `docs/specification/phase-2-management-ui.md` — spec management UI Fase 2
+- `docs/specification/phase-3-operational-ui.md` — spec POS, KDS, dan QR Menu Fase 3
 
 Baca PRD dan seluruh dokumen desain sebelum membuat halaman atau komponen baru.
 
@@ -128,6 +130,9 @@ Baca PRD dan seluruh dokumen desain sebelum membuat halaman atau komponen baru.
 - Copy UI berbahasa Indonesia. Kode dan komentar berbahasa Inggris.
 - Copy UI tidak memakai em dash atau middle dot untuk metadata.
 - Status pembayaran dan status persiapan pesanan harus tetap terpisah.
+- POS membuat order `NEW` dan `UNPAID`, lalu mencatat pembayaran. Management Payments tetap read-only.
+- KDS hanya memakai transisi maju. Pembatalan tetap di halaman Pesanan.
+- QR meja scannable. Jangan mengembalikan placeholder QR palsu.
 - Navigasi management memakai quick links dan mega menu. Mobile memakai full-screen sheet.
 - Jangan mengarang aturan bisnis, field, permission, atau transisi status.
 - Keputusan yang belum final ada di `docs/PRD.md` bagian 17.

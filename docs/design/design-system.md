@@ -343,7 +343,7 @@ Do not use a toast as the only record of a critical transaction outcome.
 - `SortableTableHead`: button header with `aria-sort` and asc/desc indicator.
 - `TableSkeleton`, `TableEmpty`, and `TablePagination`: preserve columns, show a specific empty message, and expose `aria-current` on the active page.
 - `ResponsiveList`: table on desktop, card list below `1024px`.
-- `QrPlaceholder`: deterministic non-scannable preview. Copy and print actions must keep the "Pratinjau QR, belum scannable" label.
+- `TableQrCode`: scannable QR generated with `qrcode.react`. Copy and print actions use the real menu URL. Keep the table name and URL visible next to the QR.
 - `PermissionGate` and `RequirePermission`: hide actions or show `PermissionDeniedState` based on session permissions.
 - `MockControls`: latency, fail-next-request, and store reset. Only on `/app/design-system`.
 
@@ -402,6 +402,7 @@ KDS-specific rules:
 - `MenuProductDetail`
 - `CartBar`
 - `CustomerCart`
+- `TableQrCode`
 - `CheckoutForm`
 - `OrderSubmittedState`
 

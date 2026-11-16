@@ -54,6 +54,7 @@ export function OrderDetailDrawer({
   const outlets = useManagementStore((state) => state.outlets);
   const tables = useManagementStore((state) => state.tables);
   const users = useManagementStore((state) => state.users);
+  const payments = useManagementStore((state) => state.payments);
   const [cancelOpen, setCancelOpen] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
 
@@ -85,8 +86,15 @@ export function OrderDetailDrawer({
   const userName = (id: string | null) =>
     users.find((candidate) => candidate.id === id)?.name ?? "Sistem";
 
+  const hasRecordedPayment =
+    order !== null &&
+    payments.some(
+      (payment) =>
+        payment.orderId === order.id && payment.status === "RECORDED",
+    );
   const canCancel =
     order !== null &&
+    !hasRecordedPayment &&
     ["NEW", "ACCEPTED", "PREPARING"].includes(order.orderStatus) &&
     user?.permissions.includes("orders.cancel");
 
@@ -311,8 +319,9 @@ export function OrderDetailDrawer({
                 </Button>
               ) : (
                 <p className="rounded-md border border-border bg-surface-subtle px-3 py-2 text-caption text-muted-foreground">
-                  Pesanan dengan status ini tidak dapat dibatalkan dari
-                  management.
+                  {hasRecordedPayment
+                    ? "Pembayaran sudah tercatat. Refund belum tersedia di Fase 3."
+                    : "Pesanan dengan status ini tidak dapat dibatalkan dari management."}
                 </p>
               )}
             </PermissionGate>

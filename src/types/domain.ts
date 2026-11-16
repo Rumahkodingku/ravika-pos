@@ -133,6 +133,7 @@ export type Order = {
   tableId: string | null;
   orderStatus: PreparationStatus;
   paymentStatus: PaymentStatus;
+  publicToken: string | null;
   subtotal: number;
   grandTotal: number;
   notes: string;

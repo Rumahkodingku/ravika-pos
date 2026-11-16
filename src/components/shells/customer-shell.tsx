@@ -1,17 +1,44 @@
-import { MapPin, Store } from "lucide-react";
-import { ShellTheme } from "@/components/shells/shell-theme";
-import { mockOutlets } from "@/mocks/outlets";
-import type { Outlet } from "@/types/auth";
+"use client";
 
-export function CustomerShell({
-  children,
-  contextLabel,
-  outlet = mockOutlets[0],
-}: {
-  children: React.ReactNode;
-  contextLabel?: string;
-  outlet?: Outlet;
-}) {
+import { MapPin, Store } from "lucide-react";
+import { useParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import { ShellTheme } from "@/components/shells/shell-theme";
+import { useManagementStore } from "@/mocks/management/hooks";
+
+export function CustomerShell({ children }: { children: React.ReactNode }) {
+  const params = useParams<{ token?: string; publicToken?: string }>();
+  const tables = useManagementStore((state) => state.tables);
+  const orders = useManagementStore((state) => state.orders);
+  const outlets = useManagementStore((state) => state.outlets);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const menuTable =
+    mounted && params.token
+      ? tables.find((table) => table.qrToken === params.token)
+      : null;
+  const order =
+    mounted && params.publicToken
+      ? orders.find((candidate) => candidate.publicToken === params.publicToken)
+      : null;
+  const orderTable = order?.tableId
+    ? tables.find((table) => table.id === order.tableId)
+    : null;
+  const table = menuTable ?? orderTable;
+  const outlet = mounted
+    ? (outlets.find((candidate) => candidate.id === table?.outletId) ??
+      outlets.find((candidate) => candidate.isActive !== false))
+    : undefined;
+  const contextLabel = table
+    ? `Dine-in, ${table.name}`
+    : order?.orderType === "TAKEAWAY"
+      ? "Takeaway"
+      : "Menu pelanggan";
+
   return (
     <ShellTheme defaultTheme="light">
       <div className="flex min-h-dvh flex-col bg-surface-subtle">
@@ -22,11 +49,11 @@ export function CustomerShell({
             </span>
             <div className="flex min-w-0 flex-col">
               <span className="truncate text-body font-semibold text-foreground">
-                {outlet.name}
+                {outlet?.name ?? "RAVIKA"}
               </span>
               <span className="flex items-center gap-1 text-caption text-muted-foreground">
                 <MapPin aria-hidden="true" className="h-3 w-3" />
-                {contextLabel ?? outlet.city}
+                {contextLabel}
               </span>
             </div>
           </div>

@@ -25,9 +25,11 @@ const config: Record<
 
 export function ConnectionIndicator({
   className,
+  compact = false,
   status,
 }: {
   className?: string;
+  compact?: boolean;
   status: ConnectionStatus;
 }) {
   const item = config[status];
@@ -50,7 +52,7 @@ export function ConnectionIndicator({
             "animate-pulse motion-reduce:animate-none",
         )}
       />
-      {item.label}
+      <span className={compact ? "sr-only" : undefined}>{item.label}</span>
     </output>
   );
 }

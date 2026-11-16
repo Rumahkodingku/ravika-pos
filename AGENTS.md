@@ -1,6 +1,6 @@
 # RAVIKA POS
 
-Self-hosted, LAN-first POS for cafes. Phase 1 foundation, Phase 1.5 operational UI, and Phase 2 management UI are implemented with mock data, mock auth, and a mock service. Backend is intentionally not implemented yet.
+Self-hosted, LAN-first POS for cafes. Phase 1 foundation, Phase 1.5 operational UI, Phase 2 management UI, and Phase 3 operational UI are implemented with mock data, mock auth, a mock service, and cross-tab sync. Backend is intentionally not implemented yet.
 
 ## Commands
 
@@ -20,6 +20,7 @@ Self-hosted, LAN-first POS for cafes. Phase 1 foundation, Phase 1.5 operational 
 
 - Next.js 16.4.6, React 19.3, TypeScript strict, Tailwind CSS 4.3, Lucide React.
 - Forms use React Hook Form, Zod, and `@hookform/resolvers`. Do not add another form or validation library.
+- QR rendering uses `qrcode.react`. Do not add another QR library.
 - Path alias: `@/*` -> `./src/*`.
 - Biome 2.4: 2-space indent, organize imports on, Tailwind directives enabled in CSS.
 - No UI library. Build primitives with native HTML and local components; ask before adding Radix, shadcn, or similar.
@@ -42,10 +43,16 @@ Self-hosted, LAN-first POS for cafes. Phase 1 foundation, Phase 1.5 operational 
 - `/app/design-system` is the component preview and mock-control surface. Keep it for visual QA.
 - Product behavior and business rules live in `docs/PRD.md`. Read PRD plus `docs/design/*` before new pages or shared components.
 - Do not invent business rules, fields, states, or permissions.
-- Management data lives in one in-memory mock store and resets on reload. Mutations go through `managementService`.
+- Management and operational data live in one in-memory mock store and reset on reload. Mutations go through `managementService`.
+- Store changes sync across tabs through `BroadcastChannel`. There is no SSE or backend in Phase 3.
+- POS order flow: create `NEW`/`UNPAID`, then record payment from POS. Management Payments stays read-only.
+- KDS only moves `NEW -> ACCEPTED -> PREPARING -> READY -> COMPLETED`. Cancel stays in management Orders.
+- Dine-in tables become `OCCUPIED` automatically and return to `AVAILABLE` when no active order remains.
+- Cancel is blocked when a recorded payment exists. Refund is not implemented.
 - Mock auth uses `sessionStorage` key `ravika-session-user-id`. Demo accounts: `owner@ravika.id`, `cashier@ravika.id`, `barista@ravika.id`, password `demo123`.
-- Payments are read-only. Orders are read-only except cancellation from `NEW`, `ACCEPTED`, or `PREPARING` with a reason.
-- QR previews are not scannable. Product images are neutral placeholders with no upload.
+- POS cart uses sessionStorage key `ravika-pos-cart`. QR table tokens and order public tokens are separate.
+- QR table codes are scannable. Product images remain neutral placeholders with no upload.
+- Public order status uses `publicToken` and must never show internal user data or other orders.
 
 ## Design
 

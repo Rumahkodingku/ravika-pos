@@ -174,7 +174,7 @@ const seedTables: DiningTable[] = [
   outletId: outletId as string,
   name: name as string,
   status: status as DiningTable["status"],
-  qrToken: `demo-table-${index + 1}`,
+  qrToken: `tbl-${(index + 1).toString(36)}-${(((index + 1) * 2654435761) >>> 0).toString(36)}`,
   isActive: status !== "INACTIVE",
   createdAt,
   updatedAt,
@@ -345,6 +345,10 @@ const seedOrders: Order[] = Array.from({ length: 24 }, (_, index) => {
     tableId: table?.id ?? null,
     orderStatus,
     paymentStatus,
+    publicToken:
+      source === "QR"
+        ? `pub-${outlet.code.toLowerCase()}-${(index + 1).toString(36)}-${(((index + 1) * 2654435761) >>> 0).toString(36)}`
+        : null,
     subtotal: grandTotal,
     grandTotal,
     notes: index % 5 === 0 ? "Sajikan bersama." : "",
@@ -359,6 +363,38 @@ const seedOrders: Order[] = Array.from({ length: 24 }, (_, index) => {
     items,
   };
 });
+
+const activeOrderStatuses = new Set<Order["orderStatus"]>([
+  "NEW",
+  "ACCEPTED",
+  "PREPARING",
+  "READY",
+]);
+
+// Keep KDS timers plausible without changing the fixed demo date.
+const seedNow = Date.now();
+seedOrders.forEach((order, index) => {
+  if (!activeOrderStatuses.has(order.orderStatus)) {
+    return;
+  }
+  const iso = new Date(seedNow - (10 + (index % 6)) * 60_000).toISOString();
+  order.createdAt = iso;
+  order.updatedAt = iso;
+});
+
+const activeTableIds = new Set(
+  seedOrders
+    .filter((order) => activeOrderStatuses.has(order.orderStatus))
+    .map((order) => order.tableId)
+    .filter((tableId): tableId is string => tableId !== null),
+);
+
+for (const table of seedTables) {
+  if (table.status === "INACTIVE") {
+    continue;
+  }
+  table.status = activeTableIds.has(table.id) ? "OCCUPIED" : "AVAILABLE";
+}
 
 const seedPayments: Payment[] = [];
 seedOrders.forEach((order, index) => {
@@ -443,7 +479,7 @@ const seedStatusHistory: OrderStatusHistory[] = seedOrders.flatMap(
         newStatus: order.orderStatus,
         changedBy: "user-barista",
         reason: order.orderStatus === "CANCELLED" ? "Stok tidak tersedia." : "",
-        createdAt: addMinutes(order.createdAt, 5),
+        createdAt: order.updatedAt,
       });
     }
 

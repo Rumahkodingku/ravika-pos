@@ -8,16 +8,10 @@ import { ShellTheme } from "@/components/shells/shell-theme";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { useMockSession } from "@/features/auth/mock-session";
-import { useManagementStore } from "@/mocks/management/hooks";
 
 export function KdsShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  const { logout, user } = useMockSession();
-  const outlets = useManagementStore((state) => state.outlets);
-  const outlet = outlets.find(
-    (candidate) =>
-      candidate.isActive !== false && user?.outletIds.includes(candidate.id),
-  );
+  const { logout } = useMockSession();
 
   return (
     <ShellTheme defaultTheme="dark">
@@ -36,7 +30,7 @@ export function KdsShell({ children }: { children: React.ReactNode }) {
                   RAVIKA KDS
                 </span>
                 <span className="text-caption text-muted-foreground">
-                  {outlet?.name ?? "Outlet belum dipilih"}
+                  Kitchen Display
                 </span>
               </span>
             </Link>

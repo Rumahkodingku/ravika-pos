@@ -91,3 +91,35 @@ export function formatDate(
     ...options,
   }).format(date);
 }
+
+export function formatElapsed(
+  value: string | Date | null | undefined,
+  now: Date = new Date(),
+) {
+  if (!value) {
+    return EMPTY_VALUE;
+  }
+
+  const date = value instanceof Date ? value : new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return EMPTY_VALUE;
+  }
+
+  const minutes = Math.max(
+    0,
+    Math.floor((now.getTime() - date.getTime()) / 60_000),
+  );
+
+  if (minutes < 1) {
+    return "< 1 mnt";
+  }
+  if (minutes < 60) {
+    return `${minutes} mnt`;
+  }
+
+  const hours = Math.floor(minutes / 60);
+  const rest = minutes % 60;
+
+  return rest > 0 ? `${hours} j ${rest} mnt` : `${hours} j`;
+}

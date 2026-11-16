@@ -333,6 +333,7 @@ export type CreateOrderInput = {
   outletId: string;
   orderType: "DINE_IN" | "TAKEAWAY";
   tableId: string | null;
+  tableToken?: string | null;
   source: "CASHIER" | "QR";
   createdBy: string | null;
   notes: string;
@@ -404,6 +405,8 @@ Validasi:
 - `DINE_IN` wajib memiliki meja.
 - Meja harus ada, aktif, dan berada di outlet yang sama.
 - Meja `INACTIVE` ditolak.
+- Untuk `source: "QR"`, `tableToken` wajib cocok dengan `qrToken` meja.
+- Token QR yang sudah diganti ditolak.
 - `TAKEAWAY` tidak boleh memiliki meja.
 - Item minimal 1.
 - Quantity minimal 1.
@@ -665,6 +668,7 @@ Untuk QRIS, TRANSFER, E_WALLET:
 - Token seed harus terlihat acak, bukan `demo-table-1`.
 - Token baru dibuat saat create table dan regenerate.
 - Regenerate membuat token lama invalid.
+- Order QR yang dikirim dari halaman lama dengan token yang sudah diganti ditolak oleh service.
 - QR URL memakai origin aplikasi:
 
 ```text
@@ -1001,7 +1005,7 @@ Aturan:
 - Token invalid menampilkan recovery state.
 - Produk habis tidak bisa ditambahkan.
 - Cart dipertahankan saat error yang dapat dipulihkan.
-- Checkout mengirim `source: "QR"`, `createdBy: null`, `DINE_IN`, `tableId` dari token.
+- Checkout mengirim `source: "QR"`, `createdBy: null`, `DINE_IN`, `tableId` dan `tableToken` dari token.
 - Order awal `NEW` dan `UNPAID`.
 - Setelah sukses, tampilkan nomor order dan tombol lihat status.
 - Pembayaran dilakukan di kasir.
