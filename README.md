@@ -118,12 +118,13 @@ API, database, autentikasi nyata, dan SSE belum dibuat. Login memakai sessionSto
 - `docs/specification/phase-1-5-ui-ux-refinement.md` — spec refactor Fase 1.5
 - `docs/specification/phase-2-management-ui.md` — spec management UI Fase 2
 - `docs/specification/phase-3-operational-ui.md` — spec POS, KDS, dan QR Menu Fase 3
+- `docs/specification/phase-4-ui-approval.md` — audit, issue register, dan approval M4
 
 Baca PRD dan seluruh dokumen desain sebelum membuat halaman atau komponen baru.
 
 ## Aturan pengembangan
 
-- Frontend UI dulu. Backend operasional baru dimulai setelah UI Approval Gate (M4).
+- Frontend UI sudah disetujui pada M4 (17 November 2026, baseline `d6c07b5`). Backend operasional dimulai di Fase 5.
 - Fase 0–4 memakai mock data terpusat; jangan membuat API atau persistence.
 - Jangan menambah UI library tanpa persetujuan. Komponen dasar dibuat custom dengan HTML native.
 - Gunakan token desain; jangan sebar nilai warna, spacing, atau radius mentah.

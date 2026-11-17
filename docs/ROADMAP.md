@@ -445,20 +445,20 @@ interaksi sudah sesuai ekspektasi sebelum backend dibangun.
 
 ### Aktivitas review
 
-- [ ] Review visual seluruh halaman pada light mode.
-- [ ] Review visual seluruh halaman pada dark mode.
-- [ ] Review responsive pada mobile, tablet, desktop, dan layar lebar.
-- [ ] Review dashboard dan seluruh halaman management.
-- [ ] Review alur kasir dari awal sampai pembayaran simulasi.
-- [ ] Review alur KDS dan perubahan status.
-- [ ] Review customer QR Menu.
-- [ ] Review label, copywriting, format mata uang, tanggal, dan waktu.
-- [ ] Review empty, loading, error, disabled, dan success states.
-- [ ] Review navigasi, konsistensi komponen, aksesibilitas, dan
+- [x] Review visual seluruh halaman pada light mode.
+- [x] Review visual seluruh halaman pada dark mode.
+- [x] Review responsive pada mobile, tablet, desktop, dan layar lebar.
+- [x] Review dashboard dan seluruh halaman management.
+- [x] Review alur kasir dari awal sampai pembayaran simulasi.
+- [x] Review alur KDS dan perubahan status.
+- [x] Review customer QR Menu.
+- [x] Review label, copywriting, format mata uang, tanggal, dan waktu.
+- [x] Review empty, loading, error, disabled, dan success states.
+- [x] Review navigasi, konsistensi komponen, aksesibilitas, dan
     usability.
-- [ ] Catat semua temuan sebagai daftar issue.
-- [ ] Perbaiki issue berdasarkan prioritas.
-- [ ] Lakukan review ulang setelah revisi.
+- [x] Catat semua temuan sebagai daftar issue.
+- [x] Perbaiki issue berdasarkan prioritas.
+- [x] Lakukan review ulang setelah revisi.
 
 ### Klasifikasi temuan
 
@@ -504,6 +504,14 @@ Fase ini selesai hanya jika:
 UI yang mengubah business flow atau kebutuhan data, perubahan tersebut
 harus dicatat dan dampaknya terhadap API dievaluasi sebelum
 implementasi.
+
+### Status approval
+
+- Status: APPROVED
+- Tanggal: 17 November 2026
+- Baseline: `d6c07b5`
+- Tag: `phase-4-ui-approved`
+- Dokumen: `docs/specification/phase-4-ui-approval.md`
 
 ------------------------------------------------------------------------
 

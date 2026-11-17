@@ -1,11 +1,13 @@
 # RAVIKA POS - Spesifikasi Fase 4: Frontend Review, Revision, and Approval
 
-**Status:** Audit penuh selesai, menunggu approval product owner
+**Status:** APPROVED, M4 UI Approved
 **Fase:** 4, Frontend Review, Revision, and Approval
 **Tanggal:** 16 November 2026
 **Audit dimulai:** 17 November 2026
+**Approval:** 17 November 2026
 **Baseline audit:** `b4a5d60`
 **Baseline setelah fix:** `d6c07b5`
+**Tag:** `phase-4-ui-approved`
 **Referensi utama:** `docs/PRD.md`, `docs/ROADMAP.md`, `docs/design/design-brief.md`, `docs/design/design-direction.md`, `docs/design/design-system.md`, `docs/design/ui-ux-guidelines.md`, `docs/specification/phase-2-management-ui.md`, `docs/specification/phase-3-operational-ui.md`
 
 ## Daftar isi
@@ -100,7 +102,7 @@
     - [B.5 Customer QR](#b5-customer-qr)
     - [B.6 Cross-tab](#b6-cross-tab)
   - [Appendix C: Evidence checklist](#appendix-c-evidence-checklist)
-  - [Appendix D: Approval template](#appendix-d-approval-template)
+  - [Appendix D: Approval record](#appendix-d-approval-record)
 
 ## 0. Agent quick start
 
@@ -1103,9 +1105,9 @@ Delapan issue awal sudah FIXED sebelum audit penuh.
 
 - Audit penuh selesai.
 - Issue P4-009 sampai P4-028 sudah FIXED.
-- Known limitation menunggu persetujuan product owner.
-- Sign-off M4 belum dicatat.
-- Baseline setelah fix `d6c07b5`; tag belum dibuat.
+- Known limitation sudah disetujui product owner.
+- Sign-off M4 dicatat di Appendix D.
+- Baseline setelah fix `d6c07b5`; tag `phase-4-ui-approved` dibuat pada commit sign-off.
 
 ### Handoff ke Fase 5
 
@@ -1254,19 +1256,25 @@ Gunakan checklist ini per route.
 - [ ] Usulan fix.
 - [ ] Commit setelah fix.
 
-## Appendix D: Approval template
+## Appendix D: Approval record
 
 ```text
 ## M4 UI Approval
 
-Product owner: <nama>
-Tanggal: <tanggal>
-Baseline commit: <hash>
+Product owner: xRiot45
+Tanggal: 17 November 2026
+Baseline commit: d6c07b5
 Tag: phase-4-ui-approved
 Scope: 18 route user-facing
 Known limitation disetujui:
-- ...
-- ...
+- Scan QR fisik dari ponsel belum diuji.
+- Screen reader belum diuji.
+- Perangkat fisik dan browser matrix belum diuji.
+- Backend, API, auth nyata, dan SSE belum ada.
+- Mock data reset saat reload.
+- BroadcastChannel memakai full-state sync, last-write-wins.
+- Dashboard queue refresh lewat navigasi atau filter, bukan live subscription.
+- Format tampilan input tanggal mengikuti locale browser, bukan locale aplikasi.
 
 Pernyataan:
 "Saya menyetujui frontend UI RAVIKA POS sebagai baseline Fase 5.
