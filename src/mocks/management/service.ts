@@ -1055,8 +1055,8 @@ export const managementService = {
             params.paymentStatus === "all" ||
             order.paymentStatus === params.paymentStatus) &&
           (!params.dateFrom ||
-            order.createdAt.slice(0, 10) >= params.dateFrom) &&
-          (!params.dateTo || order.createdAt.slice(0, 10) <= params.dateTo),
+            formatDateKey(order.createdAt) >= params.dateFrom) &&
+          (!params.dateTo || formatDateKey(order.createdAt) <= params.dateTo),
       );
       items = items.sort((left, right) =>
         sortText(
@@ -1162,8 +1162,8 @@ export const managementService = {
               params.outletId === "all" ||
               order?.outletId === params.outletId) &&
             (!params.dateFrom ||
-              payment.paidAt.slice(0, 10) >= params.dateFrom) &&
-            (!params.dateTo || payment.paidAt.slice(0, 10) <= params.dateTo)
+              formatDateKey(payment.paidAt) >= params.dateFrom) &&
+            (!params.dateTo || formatDateKey(payment.paidAt) <= params.dateTo)
           );
         })
         .sort((left, right) => right.paidAt.localeCompare(left.paidAt));

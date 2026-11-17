@@ -211,7 +211,6 @@ export default function PaymentsPage() {
                 setPage(1);
               }}
               onFilterOpen={() => setDraftFilters(filters)}
-              onFilterReset={() => setDraftFilters(defaultPaymentFilters)}
               onReset={resetFilters}
               onSearchChange={(value) => {
                 setSearch(value);

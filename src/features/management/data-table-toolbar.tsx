@@ -20,7 +20,6 @@ export function DataTableToolbar({
   hasActiveFilters = false,
   onFilterApply,
   onFilterOpen,
-  onFilterReset,
   onReset,
   onSearchChange,
   resultCount,
@@ -36,7 +35,6 @@ export function DataTableToolbar({
   hasActiveFilters?: boolean;
   onFilterApply?: () => void;
   onFilterOpen?: () => void;
-  onFilterReset?: () => void;
   onReset: () => void;
   onSearchChange: (value: string) => void;
   resultCount: number;
@@ -69,10 +67,6 @@ export function DataTableToolbar({
   const applyFilter = () => {
     onFilterApply?.();
     setFilterOpen(false);
-  };
-
-  const resetFilter = () => {
-    onFilterReset?.();
   };
 
   return (
@@ -144,11 +138,9 @@ export function DataTableToolbar({
           description={filterDescription}
           footer={
             <>
-              {onFilterReset ? (
-                <Button onClick={resetFilter} variant="ghost">
-                  Reset
-                </Button>
-              ) : null}
+              <Button onClick={onReset} variant="ghost">
+                Reset
+              </Button>
               <Button onClick={applyFilter}>Terapkan filter</Button>
             </>
           }

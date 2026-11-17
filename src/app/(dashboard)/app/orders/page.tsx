@@ -207,7 +207,6 @@ export default function OrdersPage() {
                 setPage(1);
               }}
               onFilterOpen={() => setDraftFilters(filters)}
-              onFilterReset={() => setDraftFilters(defaultOrderFilters)}
               onReset={resetFilters}
               onSearchChange={(value) => {
                 setSearch(value);

@@ -69,6 +69,11 @@ export default function ReportsPage() {
   );
   const [customTo, setCustomTo] = useState(() => rangeDates("7d", "", "").to);
   const dates = rangeDates(period, customFrom, customTo);
+  const isCustomRangeInvalid =
+    period === "custom" &&
+    customFrom !== "" &&
+    customTo !== "" &&
+    customFrom > customTo;
 
   const { data, error, isLoading, refresh } = useAsyncData(
     () =>
@@ -134,9 +139,15 @@ export default function ReportsPage() {
                 />
               </>
             ) : null}
-            <p className="text-caption text-muted-foreground">
-              Periode {formatDate(dates.from)} sampai {formatDate(dates.to)}.
-            </p>
+            {isCustomRangeInvalid ? (
+              <p className="text-caption text-danger-strong" role="alert">
+                Tanggal mulai harus sebelum tanggal akhir.
+              </p>
+            ) : (
+              <p className="text-caption text-muted-foreground">
+                Periode {formatDate(dates.from)} sampai {formatDate(dates.to)}.
+              </p>
+            )}
           </CardContent>
         </Card>
 
@@ -148,7 +159,8 @@ export default function ReportsPage() {
           </div>
         ) : error ? (
           <ErrorState onRetry={refresh} />
-        ) : !data ? null : data.transactionCount === 0 ? (
+        ) : isCustomRangeInvalid ? null : !data ? null : data.transactionCount ===
+          0 ? (
           <EmptyState
             description="Belum ada transaksi pada periode dan outlet ini. Ubah filter untuk melihat data lain."
             icon={BarChart3}
@@ -250,98 +262,85 @@ export default function ReportsPage() {
                 title="Tabel penjualan"
               />
               <CardContent className="p-0">
-                {data.orders.length === 0 ? (
-                  <EmptyState
-                    className="border-0"
-                    description="Belum ada penjualan pada filter ini."
-                    icon={BarChart3}
-                    title="Belum ada data penjualan"
-                  />
-                ) : (
-                  <>
-                    <div className="hidden lg:block">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>Nomor</TableHead>
-                            <TableHead>Waktu</TableHead>
-                            <TableHead>Outlet</TableHead>
-                            <TableHead>Tipe</TableHead>
-                            <TableHead className="text-right">Total</TableHead>
-                            <TableHead>Pembayaran</TableHead>
-                            <TableHead>Persiapan</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {data.orders.map((order) => (
-                            <TableRow key={order.id}>
-                              <TableCell className="font-medium">
-                                {order.orderNumber}
-                              </TableCell>
-                              <TableCell className="whitespace-nowrap text-muted-foreground">
-                                {formatDateTime(order.createdAt)}
-                              </TableCell>
-                              <TableCell>
-                                {outletName(order.outletId)}
-                              </TableCell>
-                              <TableCell>
-                                {order.orderType === "DINE_IN"
-                                  ? "Dine-in"
-                                  : "Takeaway"}
-                              </TableCell>
-                              <TableCell className="text-right tabular-nums">
-                                {formatCurrency(order.grandTotal)}
-                              </TableCell>
-                              <TableCell>
-                                <StatusBadge
-                                  kind="payment"
-                                  status={order.paymentStatus}
-                                />
-                              </TableCell>
-                              <TableCell>
-                                <StatusBadge
-                                  kind="preparation"
-                                  status={order.orderStatus}
-                                />
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </div>
-                    <div className="flex flex-col gap-2 p-3 lg:hidden">
+                <div className="hidden lg:block">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Nomor</TableHead>
+                        <TableHead>Waktu</TableHead>
+                        <TableHead>Outlet</TableHead>
+                        <TableHead>Tipe</TableHead>
+                        <TableHead className="text-right">Total</TableHead>
+                        <TableHead>Pembayaran</TableHead>
+                        <TableHead>Persiapan</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
                       {data.orders.map((order) => (
-                        <div
-                          className="flex flex-col gap-1 rounded-md border border-border p-3"
-                          key={order.id}
-                        >
-                          <div className="flex items-start justify-between gap-2">
-                            <span className="text-body font-medium text-foreground">
-                              {order.orderNumber}
-                            </span>
-                            <span className="text-body tabular-nums text-foreground">
-                              {formatCurrency(order.grandTotal)}
-                            </span>
-                          </div>
-                          <span className="text-caption text-muted-foreground">
-                            {formatDateTime(order.createdAt)}.{" "}
-                            {outletName(order.outletId)}
-                          </span>
-                          <div className="flex flex-wrap gap-1.5">
+                        <TableRow key={order.id}>
+                          <TableCell className="font-medium">
+                            {order.orderNumber}
+                          </TableCell>
+                          <TableCell className="whitespace-nowrap text-muted-foreground">
+                            {formatDateTime(order.createdAt)}
+                          </TableCell>
+                          <TableCell>{outletName(order.outletId)}</TableCell>
+                          <TableCell>
+                            {order.orderType === "DINE_IN"
+                              ? "Dine-in"
+                              : "Takeaway"}
+                          </TableCell>
+                          <TableCell className="text-right tabular-nums">
+                            {formatCurrency(order.grandTotal)}
+                          </TableCell>
+                          <TableCell>
                             <StatusBadge
                               kind="payment"
                               status={order.paymentStatus}
                             />
+                          </TableCell>
+                          <TableCell>
                             <StatusBadge
                               kind="preparation"
                               status={order.orderStatus}
                             />
-                          </div>
-                        </div>
+                          </TableCell>
+                        </TableRow>
                       ))}
+                    </TableBody>
+                  </Table>
+                </div>
+                <div className="flex flex-col gap-2 p-3 lg:hidden">
+                  {data.orders.map((order) => (
+                    <div
+                      className="flex flex-col gap-1 rounded-md border border-border p-3"
+                      key={order.id}
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <span className="text-body font-medium text-foreground">
+                          {order.orderNumber}
+                        </span>
+                        <span className="text-body tabular-nums text-foreground">
+                          {formatCurrency(order.grandTotal)}
+                        </span>
+                      </div>
+                      <span className="text-caption text-muted-foreground">
+                        {formatDateTime(order.createdAt)}.{" "}
+                        {outletName(order.outletId)}
+                      </span>
+                      <div className="flex flex-wrap gap-1.5">
+                        <StatusBadge
+                          kind="payment"
+                          status={order.paymentStatus}
+                        />
+                        <StatusBadge
+                          kind="preparation"
+                          status={order.orderStatus}
+                        />
+                      </div>
                     </div>
-                  </>
-                )}
+                  ))}
+                </div>
               </CardContent>
             </Card>
           </>
