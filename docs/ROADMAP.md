@@ -85,7 +85,7 @@ Gunakan stack yang telah ditetapkan untuk RAVIKA POS:
 - Tailwind CSS v4
 - SQLite
 - Drizzle ORM
-- `better-sqlite3`
+- `node:sqlite`
 - Zod
 - Zustand
 - TanStack Query
@@ -548,26 +548,26 @@ produk dan UI yang telah disetujui.
 
 ### Aktivitas
 
-- [ ] Finalisasi domain model dan relasi data berdasarkan PRD.
-- [ ] Definisikan schema SQLite menggunakan Drizzle ORM.
-- [ ] Siapkan migration dan mekanisme migration saat aplikasi
+- [x] Finalisasi domain model dan relasi data berdasarkan PRD.
+- [x] Definisikan schema SQLite menggunakan Drizzle ORM.
+- [x] Siapkan migration dan mekanisme migration saat aplikasi
     dijalankan.
-- [ ] Siapkan repository/data access layer.
-- [ ] Siapkan application services/use cases.
-- [ ] Siapkan API route handlers.
-- [ ] Tetapkan standar request/response.
-- [ ] Tetapkan validasi request menggunakan Zod.
-- [ ] Tetapkan format error response yang konsisten, termasuk RFC 9457
-    Problem Details jika ditetapkan pada spesifikasi teknis.
-- [ ] Implementasikan authentication dan session management sesuai
+- [x] Siapkan repository/data access layer.
+- [x] Siapkan application services/use cases.
+- [x] Siapkan API route handlers.
+- [x] Tetapkan standar request/response.
+- [x] Tetapkan validasi request menggunakan Zod.
+- [x] Tetapkan format error response yang konsisten, termasuk RFC 9457
+    Problem Details.
+- [x] Implementasikan authentication dan session management sesuai
     keputusan PRD.
-- [ ] Implementasikan RBAC dinamis berbasis database.
-- [ ] Terapkan authorization di server untuk setiap operasi yang
+- [x] Implementasikan RBAC dinamis berbasis database.
+- [x] Terapkan authorization di server untuk setiap operasi yang
     dilindungi.
-- [ ] Terapkan business ownership boundary.
-- [ ] Siapkan logging dan error handling.
-- [ ] Siapkan transaction strategy dan SQLite operational settings.
-- [ ] Siapkan seed data untuk development dan pengujian.
+- [x] Terapkan business ownership boundary.
+- [x] Siapkan logging dan error handling.
+- [x] Siapkan transaction strategy dan SQLite operational settings.
+- [x] Siapkan seed data untuk development dan pengujian.
 
 ### Catatan SQLite
 
@@ -587,6 +587,15 @@ produk dan UI yang telah disetujui.
 - Authentication dan authorization foundation.
 - Standar error dan response.
 - Seed data development.
+
+### Status implementasi
+
+- Status: Selesai dan terverifikasi
+- Baseline: `c05faf1`
+- Tag: `phase-5-backend-foundation`
+- Dokumen: `docs/specification/phase-5-backend-foundation.md`
+- API: auth, health, business
+- Verifikasi: `pnpm check`, `pnpm test`, `pnpm build`, curl flow, bootstrap database kosong, UI smoke
 
 ### Acceptance criteria
 
@@ -833,6 +842,9 @@ M8 --- Release          QA dan dokumentasi      Release approval
 
 **Gate utama:** M4 --- UI Approved. Fase 5 tidak dimulai sebelum
 milestone ini disetujui.
+
+**Status M5:** Selesai dan terverifikasi. Baseline `c05faf1`, tag
+`phase-5-backend-foundation`.
 
 ------------------------------------------------------------------------
 

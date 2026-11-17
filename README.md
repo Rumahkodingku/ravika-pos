@@ -4,7 +4,7 @@
 
 POS self-hosted untuk kafe dan UMKM. Satu instalasi melayani satu bisnis, berjalan di komputer server lokal, dan diakses lewat LAN/Wi-Fi tanpa mewajibkan internet untuk transaksi.
 
-**Status:** Fase 3 selesai. POS, KDS, QR Menu, dan management UI memakai mock data, mock auth, mock service, dan sinkronisasi antar tab. Backend, database, API, auth nyata, dan SSE belum diimplementasikan.
+**Status:** Fase 4.5 selesai dan Fase 5 backend foundation selesai. UI masih memakai mock data dan mock auth sampai Fase 7. Backend menyediakan SQLite, Drizzle, session database, RBAC, auth API, health, dan business API. SSE belum diimplementasikan.
 
 ## Stack
 
@@ -22,24 +22,38 @@ Sudah terpasang:
 - Zod 4.6
 - `@hookform/resolvers` 7.0
 - `qrcode.react` 4.2
+- Drizzle ORM 0.45
+- SQLite `node:sqlite` melalui `drizzle-orm/sqlite-proxy`
+- Vitest 5.1
 
 Direncanakan, belum dipasang:
 
-- SQLite + Drizzle ORM + `better-sqlite3`
 - Zustand dan TanStack Query
 - SSE untuk KDS
-- Vitest dan Playwright
+- Playwright
 
 ## Menjalankan
 
 ```bash
 pnpm install
+cp .env.example .env
 pnpm dev
 ```
 
 Buka `http://localhost:3000`.
 
-Tidak ada environment variable wajib pada fase frontend. Variabel backend dan database ditambahkan pada Fase 5.
+Untuk menjalankan backend produksi, isi `.env` dengan database path, cookie
+Secure, dan bootstrap owner. Database dibuat dan dimigrasikan otomatis saat
+API pertama kali diakses.
+
+```bash
+pnpm build
+pnpm start
+```
+
+Bootstrap development membuat akun demo `owner@ravika.id`,
+`cashier@ravika.id`, dan `barista@ravika.id` dengan password `demo123`.
+Bootstrap produksi hanya membuat owner dari environment variable.
 
 ## Command
 
@@ -50,10 +64,12 @@ pnpm start      # jalankan hasil build
 pnpm lint       # Biome check
 pnpm typecheck  # tsc --noEmit
 pnpm check      # lint + typecheck
+pnpm test       # Vitest
+pnpm db:generate # generate Drizzle migration
 pnpm format     # Biome format --write
 ```
 
-Verifikasi perubahan: `pnpm lint` → `pnpm typecheck` → `pnpm build`.
+Verifikasi perubahan: `pnpm check` → `pnpm test` → `pnpm build`.
 
 ## Struktur
 
@@ -71,13 +87,16 @@ src/
 │   ├── feedback/        # loading, empty, error, offline
 │   └── theme/           # theme provider, script, toggle
 ├── features/            # auth, management, dan UI per domain
+├── infrastructure/      # database, migration, seed, bootstrap
+├── modules/             # auth, business, health, rbac, users
 ├── lib/                 # utilitas dan service contracts
 ├── mocks/               # fixtures, mock auth, dan mock service
+├── shared/              # error, HTTP, logging, permissions, ids
 ├── styles/              # token CSS
 └── types/               # tipe domain bersama
 ```
 
-Fase 3 mengisi POS, KDS, QR Menu, status pelanggan, dan alur operasional lain. `src/modules` dan `src/infrastructure` ditambahkan pada Fase 5 saat backend dimulai.
+API ada di `src/app/api`. UI belum terhubung ke API sampai Fase 7.
 
 ## Route aplikasi
 
@@ -104,7 +123,21 @@ Fase 3 mengisi POS, KDS, QR Menu, status pelanggan, dan alur operasional lain. `
 
 Token desain ada di `src/styles/tokens.css`. Theme, shell, dan komponen dasar sudah tersedia; pratinjau ada di `/app/design-system`.
 
-API, database, autentikasi nyata, dan SSE belum dibuat. Login memakai sessionStorage dan tiga akun demo: `owner@ravika.id`, `cashier@ravika.id`, dan `barista@ravika.id` dengan kata sandi `demo123`. Data mock kembali ke seed saat reload. Store operasional disinkronkan antar tab lewat BroadcastChannel. QR meja dibuat dengan `qrcode.react`; untuk memindai dari ponsel, buka aplikasi lewat IP LAN, bukan localhost.
+## API backend
+
+| Method | Route | Akses |
+|---|---|---|
+| POST | `/api/auth/login` | Publik, rate limited |
+| POST | `/api/auth/logout` | Session opsional |
+| GET | `/api/auth/me` | Session |
+| POST | `/api/auth/change-password` | Session |
+| GET | `/api/health` | Publik |
+| GET | `/api/business` | `business.view` |
+| PATCH | `/api/business` | `business.update` |
+
+Error API memakai RFC 9457 `application/problem+json`.
+
+UI belum terhubung ke API sampai Fase 7. Login UI masih memakai sessionStorage dan tiga akun demo: `owner@ravika.id`, `cashier@ravika.id`, dan `barista@ravika.id` dengan kata sandi `demo123`. Data mock kembali ke seed saat reload. Store operasional disinkronkan antar tab lewat BroadcastChannel. QR meja dibuat dengan `qrcode.react`; untuk memindai dari ponsel, buka aplikasi lewat IP LAN, bukan localhost.
 
 ## Dokumen
 
@@ -118,6 +151,8 @@ API, database, autentikasi nyata, dan SSE belum dibuat. Login memakai sessionSto
 - `docs/specification/phase-2-management-ui.md` — spec management UI Fase 2
 - `docs/specification/phase-3-operational-ui.md` — spec POS, KDS, dan QR Menu Fase 3
 - `docs/specification/phase-4-ui-approval.md` — audit, issue register, dan approval M4
+- `docs/specification/phase-4-5-single-location-mvp.md` — penyelarasan satu lokasi
+- `docs/specification/phase-5-backend-foundation.md` — spec backend foundation Fase 5
 
 Baca PRD dan seluruh dokumen desain sebelum membuat halaman atau komponen baru.
 

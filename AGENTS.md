@@ -1,24 +1,26 @@
 # RAVIKA POS
 
-Self-hosted, LAN-first POS for cafes. Phase 1 foundation, Phase 1.5 operational UI, Phase 2 management UI, and Phase 3 operational UI are implemented with mock data, mock auth, a mock service, and cross-tab sync. Backend is intentionally not implemented yet.
+Self-hosted, LAN-first POS for cafes. Phase 1 foundation, Phase 1.5 operational UI, Phase 2 management UI, Phase 3 operational UI, and Phase 5 backend foundation are implemented. UI still uses mock data and mock auth until Phase 7. The backend provides SQLite/Drizzle, database-backed sessions, RBAC, and auth/health/business APIs.
 
 ## Commands
 
 - Use pnpm only. `package-lock.json` is gone; do not create one.
-- Node baseline: 26.9.0 (`.nvmrc`, `engines`). This is not LTS; re-check native modules in Phase 5.
+- Node baseline: 26.9.0 (`.nvmrc`, `engines`). This is not LTS; re-check native modules before pilot.
 - Dev: `pnpm dev`
 - Build: `pnpm build` (also typechecks)
 - Start: `pnpm start`
 - Lint/format check: `pnpm lint` (`biome check`)
 - Typecheck: `pnpm typecheck` (`tsc --noEmit`)
 - Full check: `pnpm check` (lint + typecheck)
+- Test: `pnpm test` (Vitest)
+- Generate migration: `pnpm db:generate` (Drizzle Kit)
 - Format: `pnpm format` (`biome format --write`)
-- No test script yet. Roadmap plans Vitest + Playwright, but they are not installed.
-- Recommended verification: `pnpm lint`, then `pnpm typecheck`, then `pnpm build` for touched routes.
+- Recommended verification: `pnpm check`, then `pnpm test`, then `pnpm build`.
 
 ## Stack and config
 
 - Next.js 16.4.6, React 19.3, TypeScript strict, Tailwind CSS 4.3, Lucide React.
+- Backend: Drizzle ORM, SQLite `node:sqlite` through `drizzle-orm/sqlite-proxy`, Vitest.
 - Forms use React Hook Form, Zod, and `@hookform/resolvers`. Do not add another form or validation library.
 - QR rendering uses `qrcode.react`. Do not add another QR library.
 - Path alias: `@/*` -> `./src/*`.
@@ -33,10 +35,13 @@ Self-hosted, LAN-first POS for cafes. Phase 1 foundation, Phase 1.5 operational 
 
 ## Architecture and scope
 
-- Frontend-first strategy: build UI with mock data, review, then backend. Do not implement operational backend until UI is approved.
+- Frontend-first strategy: UI was approved in Phase 4. Backend foundation exists; UI integration happens in Phase 7.
 - MVP is single-business and single-location. Do not add location management or location switching.
 - Keep data types and service contracts consistent so mock implementations can be swapped for APIs.
 - Modular monolith. No microservices, Redis, PostgreSQL, NestJS, or cloud dependencies without a product/architecture decision.
+- Backend boundary: Route Handler -> application service -> repository -> Drizzle. Do not query the database from components or Route Handlers.
+- Server modules (`src/infrastructure/database/**`, `src/modules/**`) import `server-only`. Never import them from client components.
+- UI still reads mock data and mock auth until Phase 7. Do not wire UI to the API without the integration phase.
 - Four separate experiences/shells: Owner management, Dedicated POS, KDS, Customer QR menu. Do not build one universal layout.
 - Route groups are already reserved: `(auth)`, `(dashboard)`, `(cashier)`, `(kds)`, `(customer)`.
 - UI structure: `src/components/ui`, `src/components/shells`, `src/components/feedback`, `src/components/theme`, `src/features`, `src/lib`, `src/mocks`, `src/styles`, `src/types`.
@@ -44,8 +49,9 @@ Self-hosted, LAN-first POS for cafes. Phase 1 foundation, Phase 1.5 operational 
 - `/app/design-system` is the component preview and mock-control surface. Keep it for visual QA.
 - Product behavior and business rules live in `docs/PRD.md`. Read PRD plus `docs/design/*` before new pages or shared components.
 - Do not invent business rules, fields, states, or permissions.
-- Management and operational data live in one in-memory mock store and reset on reload. Mutations go through `managementService`.
-- Store changes sync across tabs through `BroadcastChannel`. There is no SSE or backend in Phase 3.
+- Management and operational data in the UI live in one in-memory mock store and reset on reload. Mutations go through `managementService`.
+- Store changes sync across tabs through `BroadcastChannel`. There is no SSE yet.
+- The real backend uses SQLite, Drizzle, database-backed sessions, scrypt passwords, and RBAC. It is not integrated into the UI until Phase 7.
 - POS order flow: create `NEW`/`UNPAID`, then record payment from POS. Management Payments stays read-only.
 - KDS only moves `NEW -> ACCEPTED -> PREPARING -> READY -> COMPLETED`. Cancel stays in management Orders.
 - Dine-in tables become `OCCUPIED` automatically and return to `AVAILABLE` when no active order remains.
@@ -84,9 +90,9 @@ If docs conflict with config or scripts, trust the executable source. If a requi
 - Next.js 16 has breaking changes. Read `node_modules/next/dist/docs/` before framework code.
 - The order status route uses `export const instant = false` to avoid the `cacheComponents` URL-data prerender warning; review before removing.
 - Customer menu uses `useParams` in a client page and does not need `instant = false`.
-- No automated tests are configured; manual and visual checks are required. Use `/app/design-system` for component QA.
-- Do not add SQLite, Drizzle, Zustand, TanStack Query, or other planned dependencies until the relevant phase.
-- No API, database, auth, or SSE exists. Do not add them before the UI approval gate.
+- No automated browser tests yet. Vitest covers backend foundation. Use `/app/design-system` for component QA.
+- Do not add Zustand, TanStack Query, or SSE until the relevant integration phase.
+- Database file lives in `data/` by default and is ignored. Bootstrap owner production requires env variables from `.env.example`.
 
 <!-- BEGIN:nextjs-agent-rules -->
 

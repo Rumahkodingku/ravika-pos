@@ -1,11 +1,13 @@
 # RAVIKA POS - Spesifikasi Fase 5: Backend Foundation
 
-**Status:** Approved untuk implementasi
+**Status:** Implemented dan terverifikasi
 **Milestone:** M5 - Backend Foundation Ready
 **Fase:** 5, Backend Foundation
 **Tanggal:** 17 November 2026
 **Baseline frontend:** `c33e473`
 **Tag frontend:** `phase-4-ui-approved-single-location`
+**Baseline implementasi:** `c05faf1`
+**Tag implementasi:** `phase-5-backend-foundation`
 **Referensi utama:** `docs/PRD.md`, `docs/ROADMAP.md`, `docs/specification/phase-4-5-single-location-mvp.md`, `docs/design/design-system.md`
 
 ## Daftar isi
@@ -696,7 +698,8 @@ Index: `created_at`.
 ### Driver
 
 - Gunakan `node:sqlite` `DatabaseSync`.
-- Gunakan `drizzle-orm/node-sqlite`.
+- Gunakan `drizzle-orm/sqlite-proxy` sebagai adapter di atas `DatabaseSync`.
+- `drizzle-orm@0.45.4` belum mengekspor driver `node-sqlite`, jadi adapter proxy adalah jalur yang dipakai.
 - Jangan memakai `better-sqlite3`.
 
 ### Path database
@@ -1447,33 +1450,53 @@ pnpm db:generate
 15. Seed dua kali -> tidak ada duplikasi.
 16. UI 17 route existing tetap berjalan dengan mock.
 
+### Hasil verifikasi
+
+| Pemeriksaan | Hasil |
+|---|---|
+| `pnpm check` | PASS |
+| `pnpm test` | PASS, 18 test |
+| `pnpm build` | PASS, 6 dynamic API route |
+| Migration dari database kosong | PASS |
+| Seed idempotent | PASS |
+| Password plaintext | Tidak ada |
+| Bootstrap produksi tanpa env | Ditolak dengan pesan jelas |
+| Health | 200 `{"status":"ok","database":"ok"}` |
+| Login owner | 200 dan cookie session |
+| Me/business | 200 |
+| Cashier PATCH business | 403 |
+| Logout dan me | 204 lalu 401 |
+| Rate limit | 429 pada percobaan keenam |
+| Change password | 204, password lama 401, password baru 200 |
+| UI smoke 17 route + design system | 72 cek, tanpa overflow, console 0 |
+
 ### Acceptance criteria
 
-- [ ] Migration berjalan dari database kosong.
-- [ ] Seed deterministic dan idempotent.
-- [ ] Password tidak plaintext.
-- [ ] Session database dapat dicabut.
-- [ ] Login/logout/me/change-password berfungsi.
-- [ ] Email atau username dapat dipakai login.
-- [ ] User nonaktif tidak bisa login.
-- [ ] Session expired/revoked ditolak.
-- [ ] RBAC backend menolak request tanpa permission.
-- [ ] Business GET/PATCH berfungsi.
-- [ ] Cashier tidak bisa update business.
-- [ ] Error response RFC 9457.
-- [ ] Request id dan no-store header ada.
-- [ ] Tidak ada query database di route/component luar repository.
-- [ ] Tidak ada akses database dari client.
-- [ ] `pnpm check` PASS.
-- [ ] `pnpm test` PASS.
-- [ ] `pnpm build` PASS.
-- [ ] UI existing tidak berubah.
+- [x] Migration berjalan dari database kosong.
+- [x] Seed deterministic dan idempotent.
+- [x] Password tidak plaintext.
+- [x] Session database dapat dicabut.
+- [x] Login/logout/me/change-password berfungsi.
+- [x] Email atau username dapat dipakai login.
+- [x] User nonaktif tidak bisa login.
+- [x] Session expired/revoked ditolak.
+- [x] RBAC backend menolak request tanpa permission.
+- [x] Business GET/PATCH berfungsi.
+- [x] Cashier tidak bisa update business.
+- [x] Error response RFC 9457.
+- [x] Request id dan no-store header ada.
+- [x] Tidak ada query database di route/component luar repository.
+- [x] Tidak ada akses database dari client.
+- [x] `pnpm check` PASS.
+- [x] `pnpm test` PASS.
+- [x] `pnpm build` PASS.
+- [x] UI existing tidak berubah.
 
 ## 22. Risiko dan mitigasi
 
 | Risiko                                               | Dampak                           | Mitigasi                                                             |
 | ---------------------------------------------------- | -------------------------------- | -------------------------------------------------------------------- |
-| `node:sqlite` atau Drizzle migrator tidak kompatibel | Fase 5 terhenti                  | Verifikasi Task 1 sebelum schema; fallback `drizzle-kit migrate` CLI |
+| `node:sqlite` atau adapter Drizzle tidak kompatibel | Fase 5 terhenti                  | Verifikasi Task 1 sebelum schema; adapter `sqlite-proxy` sudah diuji insert/select/transaction |
 | Node 26.9.0 non-LTS                                  | Risiko produksi                  | Catat di README; uji di mesin pilot                                  |
 | Full schema berubah di Fase 6                        | Migration tambahan               | Migration additive; jangan edit migration lama                       |
 | Cookie Secure false di LAN HTTP                      | Session sniffing                 | Dokumentasikan; aktifkan HTTPS sebelum pilot                         |
@@ -1735,6 +1758,7 @@ curl -i -b cookies.txt -X POST http://localhost:3000/api/auth/logout
 - `src/app/api/business/route.ts`
 - `src/app/api/health/route.ts`
 - `src/infrastructure/database/client.ts`
+- `src/infrastructure/database/health.ts`
 - `src/infrastructure/database/migrate.ts`
 - `src/infrastructure/database/seed.ts`
 - `src/infrastructure/database/bootstrap.ts`
@@ -1753,6 +1777,7 @@ curl -i -b cookies.txt -X POST http://localhost:3000/api/auth/logout
 - `src/modules/business/business.repository.ts`
 - `src/modules/business/business.schemas.ts`
 - `src/modules/business/business.service.ts`
+- `src/modules/health/health.service.ts`
 - `src/modules/rbac/authorization.ts`
 - `src/modules/rbac/permission.repository.ts`
 - `src/modules/users/user.repository.ts`
@@ -1769,6 +1794,7 @@ curl -i -b cookies.txt -X POST http://localhost:3000/api/auth/logout
 - `vitest.config.ts`
 - `.env.example`
 - `tests/helpers/test-db.ts`
+- `tests/helpers/server-only.ts`
 - `tests/integration/database.test.ts`
 - `tests/integration/auth.test.ts`
 - `tests/integration/rbac.test.ts`
@@ -1796,40 +1822,40 @@ curl -i -b cookies.txt -X POST http://localhost:3000/api/auth/logout
 
 ## Appendix F: Checklist implementasi
 
-- [ ] Branch dibuat.
-- [ ] Dependency ditambahkan.
-- [ ] Script ditambahkan.
-- [ ] `.env.example` dibuat.
-- [ ] `data/` di-ignore dan `!.env.example` ditambahkan.
-- [ ] Schema lengkap dibuat.
-- [ ] Migration dihasilkan.
-- [ ] Database client dan PRAGMA dibuat.
-- [ ] Bootstrap dan seed dibuat.
-- [ ] Password scrypt dibuat.
-- [ ] Session repository dibuat.
-- [ ] Auth context dan guard dibuat.
-- [ ] Problem Details dibuat.
-- [ ] Route wrapper dibuat.
-- [ ] Logger dibuat.
-- [ ] Login endpoint dibuat.
-- [ ] Logout endpoint dibuat.
-- [ ] Me endpoint dibuat.
-- [ ] Change password endpoint dibuat.
-- [ ] Health endpoint dibuat.
-- [ ] Business GET dibuat.
-- [ ] Business PATCH dibuat.
-- [ ] Test database dibuat.
-- [ ] Test auth dibuat.
-- [ ] Test RBAC dibuat.
-- [ ] Test business dibuat.
-- [ ] Test password dibuat.
-- [ ] Test problem details dibuat.
-- [ ] `pnpm check` PASS.
-- [ ] `pnpm test` PASS.
-- [ ] `pnpm build` PASS.
-- [ ] Manual curl PASS.
-- [ ] Clean database bootstrap PASS.
-- [ ] UI smoke PASS.
-- [ ] Dokumentasi diperbarui.
-- [ ] Commit dibuat.
-- [ ] Tag `phase-5-backend-foundation` dibuat.
+- [x] Branch dibuat.
+- [x] Dependency ditambahkan.
+- [x] Script ditambahkan.
+- [x] `.env.example` dibuat.
+- [x] `data/` di-ignore dan `!.env.example` ditambahkan.
+- [x] Schema lengkap dibuat.
+- [x] Migration dihasilkan.
+- [x] Database client dan PRAGMA dibuat.
+- [x] Bootstrap dan seed dibuat.
+- [x] Password scrypt dibuat.
+- [x] Session repository dibuat.
+- [x] Auth context dan guard dibuat.
+- [x] Problem Details dibuat.
+- [x] Route wrapper dibuat.
+- [x] Logger dibuat.
+- [x] Login endpoint dibuat.
+- [x] Logout endpoint dibuat.
+- [x] Me endpoint dibuat.
+- [x] Change password endpoint dibuat.
+- [x] Health endpoint dibuat.
+- [x] Business GET dibuat.
+- [x] Business PATCH dibuat.
+- [x] Test database dibuat.
+- [x] Test auth dibuat.
+- [x] Test RBAC dibuat.
+- [x] Test business dibuat.
+- [x] Test password dibuat.
+- [x] Test problem details dibuat.
+- [x] `pnpm check` PASS.
+- [x] `pnpm test` PASS.
+- [x] `pnpm build` PASS.
+- [x] Manual curl PASS.
+- [x] Clean database bootstrap PASS.
+- [x] UI smoke PASS.
+- [x] Dokumentasi diperbarui.
+- [x] Commit dibuat.
+- [x] Tag `phase-5-backend-foundation` dibuat.

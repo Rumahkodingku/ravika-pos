@@ -618,6 +618,10 @@ pesanan.
 - **AC-AUTH-005** --- Kata sandi tidak tersimpan sebagai teks biasa
     pada basis data.
 
+Catatan implementasi: session memakai token acak yang disimpan sebagai
+hash di tabel `sessions`. Cookie session bersifat HttpOnly, SameSite=Lax,
+dan atribut Secure dikontrol environment.
+
 ## 6.2 Pengguna
 
 ### Kebutuhan
@@ -1247,9 +1251,8 @@ created_at - updated_at
 
 Menyimpan akun pengguna internal.
 
-Atribut konseptual: - id - business_id - name - username atau email
-sesuai keputusan autentikasi - password_hash - is_active - created_at -
-updated_at
+Atribut konseptual: - id - business_id - role_id - name - email -
+username - password_hash - is_active - created_at - updated_at
 
 ### Role
 
@@ -1263,12 +1266,6 @@ code - description - is_system - created_at - updated_at
 Menyimpan permission.
 
 Atribut konseptual: - id - code - name - description
-
-### UserRole
-
-Menghubungkan pengguna dengan role.
-
-Atribut konseptual: - user_id - role_id
 
 ### RolePermission
 
@@ -1407,7 +1404,7 @@ checksum - status - created_by - created_at
   ORM                     Drizzle ORM             Skema, query, dan
                                                   migrasi.
 
-  Driver SQLite           better-sqlite3          Akses basis data
+  Driver SQLite           `node:sqlite`           Akses basis data
                                                   melalui Node.js.
 
   Validasi                Zod                     Validasi input dan
@@ -1576,7 +1573,7 @@ Contoh kelompok endpoint:
 Ketentuan API:
 
 - Validasi request menggunakan Zod.
-- Respons error konsisten.
+- Respons error konsisten memakai RFC 9457 `application/problem+json`.
 - Otorisasi dilakukan pada server.
 - Request mutasi harus menangani pengiriman ulang.
 - Endpoint publik dan internal harus dipisahkan secara jelas.
@@ -1612,6 +1609,7 @@ Ketentuan:
 Konfigurasi dan praktik wajib:
 
 - Basis data berada pada disk lokal komputer server.
+- Gunakan `node:sqlite` melalui adapter Drizzle `sqlite-proxy`.
 - Aktifkan foreign key.
 - Gunakan WAL mode setelah pengujian kesesuaian.
 - Atur busy timeout.
@@ -2199,10 +2197,8 @@ diam-diam.
                                                   mengunci Windows atau
                                                   Linux tanpa konfirmasi.
 
-  OPEN-002                Identitas login         Pilih username atau
-                                                  email berdasarkan
-                                                  kondisi operasional
-                                                  kafe.
+  OPEN-002                Identitas login         Selesai: login menerima
+                                                  email atau username.
 
   OPEN-003                Zona waktu              Gunakan `Asia/Jakarta`
                                                   untuk pilot di wilayah
@@ -2250,8 +2246,9 @@ diam-diam.
                                                   perlu persetujuan
                                                   pemilik.
 
-  OPEN-012                HTTPS LAN               Tentukan strategi
-                                                  sertifikat lokal
+  OPEN-012                HTTPS LAN               Cookie session Secure
+                                                  dikontrol environment.
+                                                  HTTPS tetap risiko pilot
                                                   sebelum Service Worker
                                                   dan PWA diaktifkan.
 
@@ -2392,7 +2389,7 @@ Setiap perubahan harus:
   Runtime                   Node.js LTS
   Basis data                SQLite
   ORM                       Drizzle ORM
-  Driver                    better-sqlite3
+  Driver                    `node:sqlite`
   Validasi                  Zod
   State antarmuka           Zustand
   Data server               TanStack Query
