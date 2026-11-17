@@ -1,10 +1,11 @@
 # RAVIKA POS - Spesifikasi Fase 4: Frontend Review, Revision, and Approval
 
-**Status:** Audit penuh berlangsung
+**Status:** Audit penuh selesai, menunggu approval product owner
 **Fase:** 4, Frontend Review, Revision, and Approval
 **Tanggal:** 16 November 2026
 **Audit dimulai:** 17 November 2026
 **Baseline audit:** `b4a5d60`
+**Baseline setelah fix:** `2822308`
 **Referensi utama:** `docs/PRD.md`, `docs/ROADMAP.md`, `docs/design/design-brief.md`, `docs/design/design-direction.md`, `docs/design/design-system.md`, `docs/design/ui-ux-guidelines.md`, `docs/specification/phase-2-management-ui.md`, `docs/specification/phase-3-operational-ui.md`
 
 ## Daftar isi
@@ -86,6 +87,7 @@
     - [Data](#data)
   - [23. Riwayat issue awal](#23-riwayat-issue-awal)
 - [23.1 Issue register audit penuh](#231-issue-register-audit-penuh)
+- [23.2 Hasil verifikasi audit penuh](#232-hasil-verifikasi-audit-penuh)
   - [24. Open items dan handoff ke Fase 5](#24-open-items-dan-handoff-ke-fase-5)
     - [Open items](#open-items)
     - [Handoff ke Fase 5](#handoff-ke-fase-5)
@@ -1039,29 +1041,61 @@ Delapan issue awal sudah FIXED sebelum audit penuh.
 
 | ID     | Prioritas | Area      | Masalah                                                                 | Perbaikan                                                                 | Status | Commit |
 | ------ | --------- | --------- | ----------------------------------------------------------------------- | ------------------------------------------------------------------------- | ------ | ------ |
-| P4-009 | P1        | Dashboard | Range `Hari ini` kosong karena tanggal dashboard fixed 16 Nov, order aktif memakai tanggal sekarang | Gunakan range tanggal sekarang dan date key yang konsisten                | OPEN   | -      |
-| P4-010 | P2        | Laporan   | Periode fixed 10-16 Nov, label memakai ISO mentah, input kustom kosong  | Gunakan range sekarang, format tanggal, isi default kustom                | OPEN   | -      |
-| P4-011 | P2        | Pembayaran | Toolbar filter inline membungkus tiga baris dan date input terpisah    | Pakai mode modal filter seperti Pesanan                                   | OPEN   | -      |
-| P4-012 | P2        | Pesanan   | Tabel 1024 sempit, nomor dan outlet membungkus                          | Tampilkan card sampai breakpoint xl                                       | OPEN   | -      |
-| P4-013 | P3        | Global    | Copy `Fase 2` sudah kedaluwarsa di beberapa halaman                     | Ganti dengan copy netral atau fase yang benar                             | OPEN   | -      |
-| P4-014 | P3        | POS/QR    | Chip kategori terpotong di 320 dan 1440                                 | Ganti scroll horizontal dengan wrap                                       | OPEN   | -      |
-| P4-015 | P3        | Customer  | Badge `Data contoh` membungkus dua baris di 320                         | Tambah `shrink-0` pada badge                                              | OPEN   | -      |
-| P4-016 | P3        | KDS       | Hint scroll hilang di 1024 padahal board masih scroll                   | Tampilkan hint sampai breakpoint 2xl                                      | OPEN   | -      |
-| P4-017 | P3        | Drawer    | Drawer kanan menyisakan celah 6px di 390                                | Full width di mobile, `max-w-sm` di desktop                               | OPEN   | -      |
-| P4-018 | P2        | POS       | Table picker terbuka di atas cart drawer                                | Tutup cart atau pindahkan table picker ke luar cart                       | OPEN   | -      |
-| P4-019 | P2        | Tables    | Cetak QR mencetak seluruh halaman                                       | Tambah print stylesheet yang hanya mencetak QR                            | OPEN   | -      |
-| P4-020 | P3        | Tables    | QR memakai localhost tanpa peringatan                                   | Tampilkan peringatan jika origin localhost                                | OPEN   | -      |
-| P4-021 | P3        | Laporan   | Periode tanpa transaksi menampilkan chart kosong dengan label Rupiah pecahan | Tampilkan empty state saat transactionCount 0                             | OPEN   | -      |
+| P4-009 | P1        | Dashboard | Range `Hari ini` kosong karena tanggal dashboard fixed 16 Nov, order aktif memakai tanggal sekarang | Gunakan range tanggal sekarang dan date key yang konsisten                | FIXED  | `c82f293` |
+| P4-010 | P2        | Laporan   | Periode fixed 10-16 Nov, label memakai ISO mentah, input kustom kosong  | Gunakan range sekarang, format tanggal, isi default kustom                | FIXED  | `c82f293` |
+| P4-011 | P2        | Pembayaran | Toolbar filter inline membungkus tiga baris dan date input terpisah    | Pakai mode modal filter seperti Pesanan                                   | FIXED  | `c82f293` |
+| P4-012 | P2        | Pesanan   | Tabel 1024 sempit, nomor dan outlet membungkus                          | Tampilkan card sampai breakpoint xl                                       | FIXED  | `c82f293` |
+| P4-013 | P3        | Global    | Copy `Fase 2` sudah kedaluwarsa di beberapa halaman                     | Ganti dengan copy netral atau fase yang benar                             | FIXED  | `c82f293` |
+| P4-014 | P3        | POS/QR    | Chip kategori terpotong di 320 dan 1440                                 | Ganti scroll horizontal dengan wrap                                       | FIXED  | `c82f293` |
+| P4-015 | P3        | Customer  | Badge `Data contoh` membungkus dua baris di 320                         | Tambah `shrink-0` pada badge                                              | FIXED  | `c82f293` |
+| P4-016 | P3        | KDS       | Hint scroll hilang di 1024 padahal board masih scroll                   | Tampilkan hint sampai breakpoint 2xl                                      | FIXED  | `c82f293` |
+| P4-017 | P3        | Drawer    | Drawer kanan menyisakan celah 6px di 390                                | Full width di mobile, `max-w-sm` di desktop                               | FIXED  | `c82f293` |
+| P4-018 | P2        | POS       | Table picker terbuka di atas cart drawer                                | Tutup cart atau pindahkan table picker ke luar cart                       | FIXED  | `c82f293` |
+| P4-019 | P2        | Tables    | Cetak QR mencetak seluruh halaman                                       | Tambah print stylesheet yang hanya mencetak QR                            | FIXED  | `c82f293` |
+| P4-020 | P3        | Tables    | QR memakai localhost tanpa peringatan                                   | Tampilkan peringatan jika origin localhost                                | FIXED  | `c82f293` |
+| P4-021 | P3        | Laporan   | Periode tanpa transaksi menampilkan chart kosong dengan label Rupiah pecahan | Tampilkan empty state saat transactionCount 0                             | FIXED  | `c82f293` |
+| P4-022 | P3        | Dashboard/Laporan | Label grafik hardcoded Sen sampai Min meski rentang tanggal aktual | Turunkan label dari tanggal aktual | FIXED  | `2822308` |
+
+### 23.2 Hasil verifikasi audit penuh
+
+| Pemeriksaan | Hasil |
+|---|---|
+| `pnpm check` | PASS |
+| `pnpm build` | PASS, 23 route |
+| Route matrix | 144 cek 320, 768, 1024, 1440, light dan dark, tanpa overflow |
+| Operational 390 | POS, KDS, QR menu, status publik, light dan dark |
+| Wide 1920 | Dashboard, tables, orders, POS, KDS |
+| Login | 10 cek 320 sampai 1440, light dan dark, tanpa header/footer |
+| Console error | 0 pada seluruh sweep |
+| Dashboard `Hari ini` | 16 transaksi dan 16 pesanan aktif |
+| Chart labels | Mengikuti tanggal aktual, bukan hardcoded Sen sampai Min |
+| Reports | Periode 11-17 Nov, input kustom terisi, label tanggal terformat |
+| Reports empty | `Belum ada transaksi`, tanpa chart pecahan |
+| Payments filter | Modal `Filter pembayaran`, draft, apply, reset, active count |
+| Orders responsive | Card pada 1024, tabel pada 1280 |
+| Copy audit | Tidak ada `Fase 2` di UI; placeholder mati dihapus |
+| Category chips | Wrap penuh pada 320 dan 1440 |
+| Customer badge | `Data contoh` satu baris pada 320 |
+| KDS scroll hint | Tampil pada 1024 dan 1280, tersembunyi pada 1440 |
+| Right drawer | Full width 390, max-w-sm pada desktop |
+| Table picker flow | Cart tertutup saat picker terbuka, Escape membuka cart kembali |
+| QR print | Hanya QR yang tercetak; halaman non-QR tetap normal |
+| QR localhost warning | Tampil saat host localhost atau 127.0.0.1 |
+| Empty state | Produk, pesanan, dan laporan |
+| Error state | Produk gagal dimuat, retry berhasil |
+| Keyboard | Focus ring terlihat, Escape menutup dialog, focus kembali ke trigger |
+| Kontras | Pasangan utama light dan dark lulus WCAG AA |
+| Impeccable detector | Tidak ada temuan pada file UI yang berubah |
 
 ## 24. Open items dan handoff ke Fase 5
 
 ### Open items
 
-- Audit penuh belum dimulai.
-- Issue P4-009 dan seterusnya belum ada.
-- Known limitation belum disetujui.
-- Sign-off belum dicatat.
-- Baseline final belum ditetapkan.
+- Audit penuh selesai.
+- Issue P4-009 sampai P4-022 sudah FIXED.
+- Known limitation menunggu persetujuan product owner.
+- Sign-off M4 belum dicatat.
+- Baseline setelah fix `2822308`; tag belum dibuat.
 
 ### Handoff ke Fase 5
 
