@@ -51,7 +51,6 @@ export function OrderDetailDrawer({
 }) {
   const { toast } = useToast();
   const { user } = useMockSession();
-  const outlets = useManagementStore((state) => state.outlets);
   const tables = useManagementStore((state) => state.tables);
   const users = useManagementStore((state) => state.users);
   const payments = useManagementStore((state) => state.payments);
@@ -79,8 +78,6 @@ export function OrderDetailDrawer({
     resolver: zodResolver(cancelSchema),
   });
 
-  const outletName = (id: string) =>
-    outlets.find((outlet) => outlet.id === id)?.name ?? "Tidak ada";
   const tableName = (id: string | null) =>
     tables.find((table) => table.id === id)?.name ?? "Tidak ada";
   const userName = (id: string | null) =>
@@ -151,10 +148,6 @@ export function OrderDetailDrawer({
             </div>
 
             <dl className="grid gap-2 text-body">
-              <div className="flex justify-between gap-3">
-                <dt className="text-muted-foreground">Outlet</dt>
-                <dd>{outletName(order.outletId)}</dd>
-              </div>
               <div className="flex justify-between gap-3">
                 <dt className="text-muted-foreground">Meja</dt>
                 <dd>{tableName(order.tableId)}</dd>

@@ -21,13 +21,6 @@ export const permissionGroups: PermissionGroup[] = [
     ],
   },
   {
-    label: "Outlet",
-    permissions: [
-      { code: "outlets.view", label: "Lihat outlet" },
-      { code: "outlets.manage", label: "Kelola outlet" },
-    ],
-  },
-  {
     label: "Pengguna",
     permissions: [
       { code: "users.view", label: "Lihat pengguna" },
@@ -115,7 +108,6 @@ export const ownerPermissionCodes = allPermissionCodes;
 export const cashierPermissionCodes = [
   "dashboard.view",
   "business.view",
-  "outlets.view",
   "categories.view",
   "products.view",
   "tables.view",
@@ -128,7 +120,6 @@ export const cashierPermissionCodes = [
 ];
 
 export const baristaPermissionCodes = [
-  "outlets.view",
   "categories.view",
   "products.view",
   "tables.view",

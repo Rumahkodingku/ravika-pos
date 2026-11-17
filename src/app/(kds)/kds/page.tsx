@@ -7,7 +7,6 @@ import { Badge, StatusBadge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/layout";
 import { OrderTicket } from "@/components/ui/order-ticket";
-import { OutletSwitcher } from "@/components/ui/outlet-switcher";
 import { ServiceFlow } from "@/components/ui/service-flow";
 import { useToast } from "@/components/ui/toast";
 import { useMockSession } from "@/features/auth/mock-session";
@@ -44,53 +43,28 @@ const nextStatus: Partial<
 export default function KdsPage() {
   const { toast } = useToast();
   const { user } = useMockSession();
-  const outlets = useManagementStore((state) => state.outlets);
+  const business = useManagementStore((state) => state.business);
   const orders = useManagementStore((state) => state.orders);
   const tables = useManagementStore((state) => state.tables);
-  const [selectedOutletId, setSelectedOutletId] = useState("");
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const now = useNow();
 
-  const availableOutlets = outlets.filter(
-    (outlet) =>
-      outlet.isActive !== false && Boolean(user?.outletIds.includes(outlet.id)),
-  );
-  const outlet =
-    availableOutlets.find((candidate) => candidate.id === selectedOutletId) ??
-    availableOutlets[0];
-
   const activeOrders = useMemo(
     () =>
-      outlet
-        ? orders
-            .filter(
-              (order) =>
-                order.outletId === outlet.id &&
-                ["NEW", "ACCEPTED", "PREPARING", "READY"].includes(
-                  order.orderStatus,
-                ),
-            )
-            .sort((left, right) =>
-              left.createdAt.localeCompare(right.createdAt),
-            )
-        : [],
-    [orders, outlet],
+      orders
+        .filter((order) =>
+          ["NEW", "ACCEPTED", "PREPARING", "READY"].includes(order.orderStatus),
+        )
+        .sort((left, right) => left.createdAt.localeCompare(right.createdAt)),
+    [orders],
   );
   const completedOrders = useMemo(
     () =>
-      outlet
-        ? orders
-            .filter(
-              (order) =>
-                order.outletId === outlet.id &&
-                order.orderStatus === "COMPLETED",
-            )
-            .sort((left, right) =>
-              right.updatedAt.localeCompare(left.updatedAt),
-            )
-            .slice(0, 10)
-        : [],
-    [orders, outlet],
+      orders
+        .filter((order) => order.orderStatus === "COMPLETED")
+        .sort((left, right) => right.updatedAt.localeCompare(left.updatedAt))
+        .slice(0, 10),
+    [orders],
   );
 
   const readyCount = activeOrders.filter(
@@ -164,15 +138,6 @@ export default function KdsPage() {
     }
   };
 
-  if (!outlet) {
-    return (
-      <EmptyState
-        description="Akun ini tidak memiliki outlet aktif untuk KDS."
-        title="Outlet tidak tersedia"
-      />
-    );
-  }
-
   return (
     <RequirePermission permission="kds.view">
       <div className="flex flex-col gap-5">
@@ -180,15 +145,7 @@ export default function KdsPage() {
           actions={
             <>
               <Badge tone="neutral">Data contoh</Badge>
-              {availableOutlets.length > 1 ? (
-                <OutletSwitcher
-                  onChange={setSelectedOutletId}
-                  outlets={availableOutlets}
-                  value={outlet.id}
-                />
-              ) : (
-                <Badge tone="neutral">{outlet.name}</Badge>
-              )}
+              <Badge tone="neutral">{business.name}</Badge>
             </>
           }
           description="Pantau alur persiapan dan ubah status pesanan aktif."

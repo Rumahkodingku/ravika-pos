@@ -13,7 +13,7 @@ type FilterMode = "inline" | "modal";
 
 export function DataTableToolbar({
   activeFilterCount = 0,
-  filterDescription = "Pilih outlet, status, dan rentang tanggal.",
+  filterDescription = "Pilih filter dan rentang tanggal.",
   filters,
   filterMode = "inline",
   filterTitle = "Filter pesanan",

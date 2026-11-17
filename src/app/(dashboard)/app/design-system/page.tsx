@@ -249,10 +249,10 @@ export default function DesignSystemPage() {
             <Field htmlFor="demo-search" label="Pencarian">
               <SearchInput id="demo-search" placeholder="Cari produk…" />
             </Field>
-            <Field htmlFor="demo-select" label="Outlet">
-              <Select defaultValue="kemang" id="demo-select">
-                <option value="kemang">RAVIKA Kemang</option>
-                <option value="senopati">RAVIKA Senopati</option>
+            <Field htmlFor="demo-select" label="Tipe pesanan">
+              <Select defaultValue="dine-in" id="demo-select">
+                <option value="dine-in">Dine-in</option>
+                <option value="takeaway">Takeaway</option>
               </Select>
             </Field>
             <Field htmlFor="demo-date" label="Tanggal">

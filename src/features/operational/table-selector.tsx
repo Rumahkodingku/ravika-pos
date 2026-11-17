@@ -8,20 +8,15 @@ import { Button } from "@/components/ui/button";
 import { Drawer } from "@/components/ui/drawer";
 import { useManagementStore } from "@/mocks/management/hooks";
 
-function useAvailableTables(outletId: string) {
+function useAvailableTables() {
   const tables = useManagementStore((state) => state.tables);
 
   return useMemo(
     () =>
       tables
-        .filter(
-          (table) =>
-            table.outletId === outletId &&
-            table.isActive &&
-            table.status !== "INACTIVE",
-        )
+        .filter((table) => table.isActive && table.status !== "INACTIVE")
         .sort((left, right) => left.name.localeCompare(right.name)),
-    [outletId, tables],
+    [tables],
   );
 }
 
@@ -29,16 +24,14 @@ export function TablePickerDrawer({
   onChange,
   onOpenChange,
   open,
-  outletId,
   value,
 }: {
   onChange: (tableId: string | null) => void;
   onOpenChange: (open: boolean) => void;
   open: boolean;
-  outletId: string;
   value: string | null;
 }) {
-  const availableTables = useAvailableTables(outletId);
+  const availableTables = useAvailableTables();
   const orders = useManagementStore((state) => state.orders);
 
   return (
@@ -51,7 +44,7 @@ export function TablePickerDrawer({
     >
       {availableTables.length === 0 ? (
         <EmptyState
-          description="Belum ada meja aktif di outlet ini."
+          description="Belum ada meja aktif."
           icon={Armchair}
           title="Meja tidak tersedia"
         />
@@ -103,14 +96,12 @@ export function TablePickerDrawer({
 
 export function TableSelector({
   onChange,
-  outletId,
   value,
 }: {
   onChange: (tableId: string | null) => void;
-  outletId: string;
   value: string | null;
 }) {
-  const availableTables = useAvailableTables(outletId);
+  const availableTables = useAvailableTables();
   const [open, setOpen] = useState(false);
   const selected = availableTables.find((table) => table.id === value) ?? null;
 
@@ -138,7 +129,6 @@ export function TableSelector({
         onChange={onChange}
         onOpenChange={setOpen}
         open={open}
-        outletId={outletId}
         value={value}
       />
     </>

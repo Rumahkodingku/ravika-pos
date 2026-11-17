@@ -202,7 +202,6 @@ export default function MenuPage() {
 
     try {
       const order = await managementService.createOrder({
-        outletId: context.outlet.id,
         orderType: "DINE_IN",
         tableId: context.table.id,
         tableToken: token,
@@ -258,7 +257,7 @@ export default function MenuPage() {
         <div className="flex flex-col gap-0.5">
           <h1 className="text-page-title text-foreground">Menu</h1>
           <p className="text-body text-muted-foreground">
-            {context.outlet.name}, {context.table.name}
+            {context.business.name}, {context.table.name}
           </p>
         </div>
         <Badge tone="neutral">Data contoh</Badge>

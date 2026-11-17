@@ -14,12 +14,10 @@ export function PosPayableOrderDrawer({
   onOpenChange,
   onPay,
   open,
-  outletId,
 }: {
   onOpenChange: (open: boolean) => void;
   onPay: (order: Order) => void;
   open: boolean;
-  outletId: string;
 }) {
   const orders = useManagementStore((state) => state.orders);
   const payments = useManagementStore((state) => state.payments);
@@ -30,13 +28,12 @@ export function PosPayableOrderDrawer({
       orders
         .filter(
           (order) =>
-            order.outletId === outletId &&
             order.orderStatus !== "CANCELLED" &&
             (order.paymentStatus === "UNPAID" ||
               order.paymentStatus === "PARTIALLY_PAID"),
         )
         .sort((left, right) => right.createdAt.localeCompare(left.createdAt)),
-    [orders, outletId],
+    [orders],
   );
 
   const paidFor = (orderId: string) =>
@@ -56,7 +53,7 @@ export function PosPayableOrderDrawer({
     >
       {payableOrders.length === 0 ? (
         <EmptyState
-          description="Belum ada pesanan yang perlu dibayar di outlet ini."
+          description="Belum ada pesanan yang perlu dibayar."
           icon={Wallet}
           title="Tidak ada tagihan"
         />

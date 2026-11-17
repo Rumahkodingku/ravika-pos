@@ -19,17 +19,15 @@ import { useManagementStore } from "@/mocks/management/hooks";
 import type { Product } from "@/types/domain";
 
 export default function PosPage() {
-  const { addLine, outletId } = usePosCart();
+  const { addLine } = usePosCart();
   const { toast } = useToast();
+  const business = useManagementStore((state) => state.business);
   const products = useManagementStore((state) => state.products);
-  const outlets = useManagementStore((state) => state.outlets);
   const categories = useManagementStore((state) => state.categories);
   const addOns = useManagementStore((state) => state.addOns);
   const [category, setCategory] = useState("Semua");
   const [query, setQuery] = useState("");
   const [configProduct, setConfigProduct] = useState<Product | null>(null);
-
-  const outlet = outlets.find((candidate) => candidate.id === outletId);
 
   const activeCategories = useMemo(
     () =>
@@ -100,7 +98,7 @@ export default function PosPage() {
       <PageHeader
         actions={<Badge tone="neutral">Data contoh</Badge>}
         description="Pilih produk, atur pesanan, lalu lanjutkan ke pembayaran."
-        eyebrow={outlet?.name ?? "Outlet"}
+        eyebrow={business.name}
         title="POS"
       />
 

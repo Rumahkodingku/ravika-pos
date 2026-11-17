@@ -26,7 +26,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useMockSession } from "@/features/auth/mock-session";
 import {
   PermissionGate,
   RequirePermission,
@@ -44,21 +43,13 @@ import { useAsyncData, useManagementStore } from "@/mocks/management/hooks";
 import { managementService } from "@/mocks/management/service";
 
 export default function DashboardPage() {
-  const { user } = useMockSession();
-  const allOutlets = useManagementStore((state) => state.outlets);
   const tables = useManagementStore((state) => state.tables);
-  const outlets = allOutlets.filter((outlet) =>
-    user?.outletIds.includes(outlet.id),
-  );
   const [range, setRange] = useState("today");
-  const [outletId, setOutletId] = useState("all");
   const { data, error, isLoading, refresh } = useAsyncData(
-    () => managementService.getDashboard({ outletId, range }),
-    JSON.stringify([outletId, range]),
+    () => managementService.getDashboard({ range }),
+    JSON.stringify([range]),
   );
 
-  const outletName = (id: string) =>
-    outlets.find((outlet) => outlet.id === id)?.name ?? "Tidak ada";
   const tableName = (id: string | null) =>
     tables.find((table) => table.id === id)?.name ?? "meja";
   const totalActive =
@@ -86,7 +77,7 @@ export default function DashboardPage() {
               </PermissionGate>
             </>
           }
-          description="Ringkasan operasional sesuai periode dan outlet."
+          description="Ringkasan operasional sesuai periode."
           eyebrow={formatDate(new Date())}
           title="Dashboard"
         />
@@ -102,19 +93,6 @@ export default function DashboardPage() {
               <option value="today">Hari ini</option>
               <option value="7d">7 hari</option>
               <option value="30d">30 hari</option>
-            </Select>
-            <Select
-              aria-label="Outlet dashboard"
-              className="w-48"
-              onChange={(event) => setOutletId(event.target.value)}
-              value={outletId}
-            >
-              <option value="all">Semua outlet</option>
-              {outlets.map((outlet) => (
-                <option key={outlet.id} value={outlet.id}>
-                  {outlet.name}
-                </option>
-              ))}
             </Select>
             <p className="text-caption text-muted-foreground">
               Angka dihitung dari pesanan dan pembayaran contoh.
@@ -135,7 +113,7 @@ export default function DashboardPage() {
           <ErrorState onRetry={refresh} />
         ) : !data ? null : data.transactionCount === 0 ? (
           <EmptyState
-            description="Belum ada transaksi pada periode dan outlet ini. Ubah filter untuk melihat data lain."
+            description="Belum ada transaksi pada periode ini. Ubah filter untuk melihat data lain."
             icon={ShoppingCart}
             title="Belum ada transaksi"
           />
@@ -239,7 +217,7 @@ export default function DashboardPage() {
                         </p>
                         <p className="max-w-sm text-caption text-muted-foreground">
                           Belum ada pesanan yang perlu disiapkan pada periode
-                          dan outlet ini.
+                          ini.
                         </p>
                       </div>
                     ) : (
@@ -316,7 +294,6 @@ export default function DashboardPage() {
                           <TableRow>
                             <TableHead>Nomor</TableHead>
                             <TableHead>Waktu</TableHead>
-                            <TableHead>Outlet</TableHead>
                             <TableHead className="text-right">Total</TableHead>
                             <TableHead>Pembayaran</TableHead>
                             <TableHead>Persiapan</TableHead>
@@ -330,9 +307,6 @@ export default function DashboardPage() {
                               </TableCell>
                               <TableCell className="whitespace-nowrap text-muted-foreground">
                                 {formatDateTime(order.createdAt)}
-                              </TableCell>
-                              <TableCell>
-                                {outletName(order.outletId)}
                               </TableCell>
                               <TableCell className="text-right tabular-nums">
                                 {formatCurrency(order.grandTotal)}
@@ -369,8 +343,7 @@ export default function DashboardPage() {
                             </span>
                           </div>
                           <span className="text-caption text-muted-foreground">
-                            {formatDateTime(order.createdAt)}.{" "}
-                            {outletName(order.outletId)}
+                            {formatDateTime(order.createdAt)}
                           </span>
                           <div className="flex flex-wrap gap-1.5">
                             <StatusBadge

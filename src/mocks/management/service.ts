@@ -1,7 +1,6 @@
 import { DEFAULT_TIME_ZONE, formatDateKey } from "@/lib/format";
 import { consumeFailure, getLatency } from "@/mocks/management/controls";
 import { getState, setState } from "@/mocks/management/store";
-import type { Outlet } from "@/types/auth";
 import type {
   BackupRecord,
   Category,
@@ -36,7 +35,6 @@ export type BaseListParams = {
   page?: number;
   pageSize?: number;
   search?: string;
-  outletId?: string;
   sortBy?: string;
   sortDir?: "asc" | "desc";
 };
@@ -65,7 +63,6 @@ export type UserListParams = BaseListParams & {
   role?: string;
   active?: string;
 };
-export type OutletListParams = BaseListParams & { active?: string };
 
 export type ProductInput = {
   name: string;
@@ -87,7 +84,6 @@ export type CategoryInput = {
 
 export type TableInput = {
   name: string;
-  outletId: string;
   status: TableStatus;
   isActive: boolean;
 };
@@ -96,7 +92,6 @@ export type UserInput = {
   name: string;
   email: string;
   role: UserRole;
-  outletIds: string[];
   isActive: boolean;
 };
 
@@ -105,14 +100,6 @@ export type RoleInput = {
   code: string;
   description: string;
   permissionCodes: string[];
-};
-
-export type OutletInput = {
-  name: string;
-  code: string;
-  city: string;
-  address: string;
-  isActive: boolean;
 };
 
 export type BusinessInput = {
@@ -131,7 +118,6 @@ export type CreateOrderItemInput = {
 };
 
 export type CreateOrderInput = {
-  outletId: string;
   orderType: "DINE_IN" | "TAKEAWAY";
   tableId: string | null;
   tableToken?: string | null;
@@ -270,24 +256,15 @@ function activeOrdersForTable(tableId: string) {
   );
 }
 
-function nextOrderNumber(outletId: string) {
-  const outlet = getState().outlets.find(
-    (candidate) => candidate.id === outletId,
-  );
-
-  if (!outlet) {
-    throw new Error("Outlet tidak ditemukan.");
-  }
-
+function nextOrderNumber() {
   const highest = getState()
-    .orders.filter((order) => order.outletId === outletId)
-    .map((order) =>
+    .orders.map((order) =>
       Number.parseInt(order.orderNumber.split("-").at(-1) ?? "", 10),
     )
     .filter((value) => Number.isFinite(value))
     .reduce((max, value) => Math.max(max, value), 2000);
 
-  return `${outlet.code}-${highest + 1}`;
+  return `${getState().business.code}-${highest + 1}`;
 }
 
 function makePublicToken() {
@@ -432,18 +409,11 @@ function buildTrend(orders: Order[]) {
   });
 }
 
-function buildDashboard(params: {
-  outletId?: string;
-  range?: string;
-}): DashboardSummary {
+function buildDashboard(params: { range?: string }): DashboardSummary {
   const { from, to } = getRangeKeys(params.range ?? "today");
   const orders = getState().orders.filter(
     (order) =>
-      (!params.outletId ||
-        params.outletId === "all" ||
-        order.outletId === params.outletId) &&
-      order.orderStatus !== "CANCELLED" &&
-      inRange(order.createdAt, from, to),
+      order.orderStatus !== "CANCELLED" && inRange(order.createdAt, from, to),
   );
   const salesTotal = orders.reduce(
     (total, order) => total + order.grandTotal,
@@ -497,7 +467,7 @@ function buildDashboard(params: {
 }
 
 export const managementService = {
-  getDashboard: (params: { outletId?: string; range?: string }) =>
+  getDashboard: (params: { range?: string }) =>
     respond(() => buildDashboard(params)),
 
   listProducts: (params: ProductListParams = {}) =>
@@ -687,9 +657,6 @@ export const managementService = {
         .tables.filter(
           (table) =>
             textMatch(table.name, params.search) &&
-            (!params.outletId ||
-              params.outletId === "all" ||
-              table.outletId === params.outletId) &&
             (!params.status ||
               params.status === "all" ||
               table.status === params.status),
@@ -766,13 +733,7 @@ export const managementService = {
   createOrder: (input: CreateOrderInput) =>
     respond(() => {
       const current = getState();
-      const outlet = current.outlets.find(
-        (candidate) => candidate.id === input.outletId,
-      );
 
-      if (!outlet || outlet.isActive === false) {
-        throw new Error("Outlet tidak ditemukan atau tidak aktif.");
-      }
       if (input.source === "CASHIER" && !input.createdBy) {
         throw new Error("Kasir wajib dikenali untuk pesanan ini.");
       }
@@ -799,9 +760,6 @@ export const managementService = {
         if (!table || table.isActive === false || table.status === "INACTIVE") {
           throw new Error("Meja tidak tersedia.");
         }
-        if (table.outletId !== input.outletId) {
-          throw new Error("Meja bukan milik outlet ini.");
-        }
         if (input.source === "QR" && table.qrToken !== input.tableToken) {
           throw new Error("Token QR sudah tidak berlaku.");
         }
@@ -813,8 +771,7 @@ export const managementService = {
       const order: Order = {
         id: makeId("order"),
         businessId: current.business.id,
-        outletId: input.outletId,
-        orderNumber: nextOrderNumber(input.outletId),
+        orderNumber: nextOrderNumber(),
         orderType: input.orderType,
         source: input.source,
         tableId: input.tableId,
@@ -994,12 +951,11 @@ export const managementService = {
       return { payment, order: updated };
     }),
 
-  listPayableOrders: (outletId: string) =>
+  listPayableOrders: () =>
     respond(() =>
       getState()
         .orders.filter(
           (order) =>
-            order.outletId === outletId &&
             order.orderStatus !== "CANCELLED" &&
             (order.paymentStatus === "UNPAID" ||
               order.paymentStatus === "PARTIALLY_PAID"),
@@ -1029,15 +985,7 @@ export const managementService = {
         return null;
       }
 
-      const outlet = getState().outlets.find(
-        (candidate) => candidate.id === table.outletId,
-      );
-
-      if (!outlet || outlet.isActive === false) {
-        return null;
-      }
-
-      return { table, outlet };
+      return { table, business: getState().business };
     }),
 
   listOrders: (params: OrderListParams = {}) =>
@@ -1045,9 +993,6 @@ export const managementService = {
       let items = getState().orders.filter(
         (order) =>
           textMatch(order.orderNumber, params.search) &&
-          (!params.outletId ||
-            params.outletId === "all" ||
-            order.outletId === params.outletId) &&
           (!params.orderStatus ||
             params.orderStatus === "all" ||
             order.orderStatus === params.orderStatus) &&
@@ -1158,9 +1103,6 @@ export const managementService = {
             (!params.status ||
               params.status === "all" ||
               payment.status === params.status) &&
-            (!params.outletId ||
-              params.outletId === "all" ||
-              order?.outletId === params.outletId) &&
             (!params.dateFrom ||
               formatDateKey(payment.paidAt) >= params.dateFrom) &&
             (!params.dateTo || formatDateKey(payment.paidAt) <= params.dateTo)
@@ -1291,75 +1233,13 @@ export const managementService = {
       }));
     }),
 
-  listOutlets: (params: OutletListParams = {}) =>
-    respond(() => {
-      const items = getState()
-        .outlets.filter(
-          (outlet) =>
-            (textMatch(outlet.name, params.search) ||
-              textMatch(outlet.code, params.search)) &&
-            (!params.active ||
-              params.active === "all" ||
-              String(outlet.isActive) === params.active),
-        )
-        .sort((left, right) => sortText(left.name, right.name));
-      return pageOf(items, params.page, params.pageSize);
-    }),
-
-  createOutlet: (input: OutletInput) =>
-    respond(() => {
-      if (getState().outlets.some((outlet) => outlet.code === input.code)) {
-        throw new Error("Kode outlet sudah dipakai.");
-      }
-      const outlet: Outlet = {
-        ...input,
-        id: makeId("outlet"),
-      };
-      setState((state) => ({ ...state, outlets: [...state.outlets, outlet] }));
-      return outlet;
-    }),
-
-  updateOutlet: (id: string, input: OutletInput) =>
-    respond(() => {
-      if (
-        getState().outlets.some(
-          (outlet) => outlet.id !== id && outlet.code === input.code,
-        )
-      ) {
-        throw new Error("Kode outlet sudah dipakai.");
-      }
-      setState((state) => ({
-        ...state,
-        outlets: state.outlets.map((outlet) =>
-          outlet.id === id ? { ...outlet, ...input } : outlet,
-        ),
-      }));
-    }),
-
-  setOutletActive: (id: string, isActive: boolean) =>
-    respond(() => {
-      setState((state) => ({
-        ...state,
-        outlets: state.outlets.map((outlet) =>
-          outlet.id === id ? { ...outlet, isActive } : outlet,
-        ),
-      }));
-    }),
-
-  getSalesReport: (params: {
-    outletId?: string;
-    dateFrom?: string;
-    dateTo?: string;
-  }) =>
+  getSalesReport: (params: { dateFrom?: string; dateTo?: string }) =>
     respond(() => {
       const dateFrom = params.dateFrom ?? dateKeyOffset(6);
       const dateTo = params.dateTo ?? dateKeyOffset(0);
       const orders = getState().orders.filter(
         (order) =>
           order.orderStatus !== "CANCELLED" &&
-          (!params.outletId ||
-            params.outletId === "all" ||
-            order.outletId === params.outletId) &&
           inRange(order.createdAt, dateFrom, dateTo),
       );
       const salesTotal = orders.reduce(

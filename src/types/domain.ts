@@ -62,7 +62,6 @@ export type TableStatus = "AVAILABLE" | "OCCUPIED" | "INACTIVE";
 
 export type DiningTable = {
   id: string;
-  outletId: string;
   name: string;
   status: TableStatus;
   qrToken: string;
@@ -78,7 +77,6 @@ export type ManagementUser = {
   name: string;
   email: string;
   role: UserRole;
-  outletIds: string[];
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
@@ -126,7 +124,6 @@ export type OrderItem = {
 export type Order = {
   id: string;
   businessId: string;
-  outletId: string;
   orderNumber: string;
   orderType: OrderType;
   source: OrderSource;

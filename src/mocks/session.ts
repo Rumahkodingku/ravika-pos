@@ -13,7 +13,6 @@ export const mockUsers: SessionUser[] = [
     username: "owner",
     role: "OWNER",
     roleLabel: "Pemilik",
-    outletIds: ["outlet-kemang", "outlet-senopati"],
     permissions: ownerPermissionCodes,
   },
   {
@@ -23,7 +22,6 @@ export const mockUsers: SessionUser[] = [
     username: "cashier",
     role: "CASHIER",
     roleLabel: "Kasir",
-    outletIds: ["outlet-kemang"],
     permissions: cashierPermissionCodes,
   },
   {
@@ -33,7 +31,6 @@ export const mockUsers: SessionUser[] = [
     username: "barista",
     role: "BARISTA",
     roleLabel: "Barista",
-    outletIds: ["outlet-kemang"],
     permissions: baristaPermissionCodes,
   },
 ];

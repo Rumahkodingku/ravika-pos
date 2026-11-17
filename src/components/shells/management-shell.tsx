@@ -17,11 +17,9 @@ import {
 import { Container } from "@/components/ui/layout";
 import { MegaMenu } from "@/components/ui/mega-menu";
 import { MobileMenuSheet } from "@/components/ui/mobile-menu-sheet";
-import { OutletSwitcher } from "@/components/ui/outlet-switcher";
 import { useToast } from "@/components/ui/toast";
 import { useMockSession } from "@/features/auth/mock-session";
 import { cn } from "@/lib/cn";
-import { useManagementStore } from "@/mocks/management/hooks";
 import {
   megaMenuGroups,
   quickActions,
@@ -60,9 +58,7 @@ export function ManagementShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const { toast } = useToast();
   const { logout, user } = useMockSession();
-  const outlets = useManagementStore((state) => state.outlets);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
-  const [selectedOutletId, setSelectedOutletId] = useState("");
 
   const permissions = user?.permissions ?? [];
   const can = (permission: string) => permissions.includes(permission);
@@ -88,14 +84,6 @@ export function ManagementShell({ children }: { children: React.ReactNode }) {
   );
   const hasMenu = visibleGroups.length > 0 || visibleQuickActions.length > 0;
   const canViewDashboard = can("dashboard.view");
-  const availableOutlets = outlets.filter(
-    (outlet) =>
-      outlet.isActive !== false &&
-      (!user || user.outletIds.includes(outlet.id)),
-  );
-  const activeOutlet =
-    availableOutlets.find((outlet) => outlet.id === selectedOutletId) ??
-    availableOutlets[0];
 
   if (!user) {
     return null;
@@ -156,13 +144,6 @@ export function ManagementShell({ children }: { children: React.ReactNode }) {
               </nav>
 
               <div className="ml-auto flex items-center gap-2">
-                <div className="hidden md:block">
-                  <OutletSwitcher
-                    onChange={setSelectedOutletId}
-                    outlets={availableOutlets}
-                    value={activeOutlet?.id ?? ""}
-                  />
-                </div>
                 <ThemeToggle />
                 <div className="hidden sm:block">
                   <DropdownMenu
@@ -262,11 +243,8 @@ export function ManagementShell({ children }: { children: React.ReactNode }) {
           activePath={pathname}
           groups={visibleGroups}
           onOpenChange={setMobileNavOpen}
-          onOutletChange={setSelectedOutletId}
           open={mobileNavOpen}
-          outlets={availableOutlets}
           quickActions={visibleQuickActions}
-          selectedOutletId={activeOutlet?.id ?? ""}
         />
       </div>
     </ShellTheme>

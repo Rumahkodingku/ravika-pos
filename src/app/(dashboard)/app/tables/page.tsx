@@ -25,7 +25,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useToast } from "@/components/ui/toast";
-import { useMockSession } from "@/features/auth/mock-session";
 import { ConfirmDialog } from "@/features/management/confirm-dialog";
 import { DataTableToolbar } from "@/features/management/data-table-toolbar";
 import { FormDrawer } from "@/features/management/form-drawer";
@@ -37,13 +36,12 @@ import { ResponsiveList } from "@/features/management/responsive-list";
 import { TablePagination } from "@/features/management/table-pagination";
 import { TableQrCode } from "@/features/management/table-qr-code";
 import { TableSkeleton } from "@/features/management/table-skeleton";
-import { useAsyncData, useManagementStore } from "@/mocks/management/hooks";
+import { useAsyncData } from "@/mocks/management/hooks";
 import { managementService } from "@/mocks/management/service";
 import type { DiningTable, TableStatus } from "@/types/domain";
 
 const tableSchema = z.object({
   name: z.string().min(1, "Nama meja wajib diisi."),
-  outletId: z.string().min(1, "Outlet wajib dipilih."),
   status: z.enum(["AVAILABLE", "OCCUPIED", "INACTIVE"]),
   isActive: z.boolean(),
 });
@@ -64,20 +62,13 @@ const statusTones: Record<TableStatus, "success" | "warning" | "neutral"> = {
 
 const emptyTable: TableValues = {
   name: "",
-  outletId: "",
   status: "AVAILABLE",
   isActive: true,
 };
 
 export default function TablesPage() {
   const { toast } = useToast();
-  const { user } = useMockSession();
-  const allOutlets = useManagementStore((state) => state.outlets);
-  const outlets = allOutlets.filter((outlet) =>
-    user?.outletIds.includes(outlet.id),
-  );
   const [search, setSearch] = useState("");
-  const [outletId, setOutletId] = useState("all");
   const [status, setStatus] = useState("all");
   const [page, setPage] = useState(1);
   const [formOpen, setFormOpen] = useState(false);
@@ -90,12 +81,11 @@ export default function TablesPage() {
     () =>
       managementService.listTables({
         search,
-        outletId,
         status,
         page,
         pageSize: 10,
       }),
-    JSON.stringify([search, outletId, status, page]),
+    JSON.stringify([search, status, page]),
   );
 
   const {
@@ -109,13 +99,9 @@ export default function TablesPage() {
     resolver: zodResolver(tableSchema),
   });
 
-  const outletName = (id: string) =>
-    outlets.find((outlet) => outlet.id === id)?.name ??
-    "Outlet tidak ditemukan";
-
   const openCreate = () => {
     setEditing(null);
-    reset({ ...emptyTable, outletId: outlets[0]?.id ?? "" });
+    reset({ ...emptyTable });
     setFormOpen(true);
   };
 
@@ -123,7 +109,6 @@ export default function TablesPage() {
     setEditing(table);
     reset({
       name: table.name,
-      outletId: table.outletId,
       status: table.status,
       isActive: table.isActive,
     });
@@ -162,7 +147,7 @@ export default function TablesPage() {
               </Button>
             </PermissionGate>
           }
-          description="Kelola meja per outlet dan pratinjau QR. Data simulasi."
+          description="Kelola meja dan pratinjau QR. Data simulasi."
           title="Meja"
         />
 
@@ -170,45 +155,24 @@ export default function TablesPage() {
           <CardContent className="flex flex-col gap-3 p-3 sm:p-4">
             <DataTableToolbar
               filters={
-                <>
-                  <Select
-                    aria-label="Filter outlet"
-                    className="w-48"
-                    onChange={(event) => {
-                      setOutletId(event.target.value);
-                      setPage(1);
-                    }}
-                    value={outletId}
-                  >
-                    <option value="all">Semua outlet</option>
-                    {outlets.map((outlet) => (
-                      <option key={outlet.id} value={outlet.id}>
-                        {outlet.name}
-                      </option>
-                    ))}
-                  </Select>
-                  <Select
-                    aria-label="Filter status meja"
-                    className="w-40"
-                    onChange={(event) => {
-                      setStatus(event.target.value);
-                      setPage(1);
-                    }}
-                    value={status}
-                  >
-                    <option value="all">Semua status</option>
-                    <option value="AVAILABLE">Tersedia</option>
-                    <option value="OCCUPIED">Terisi</option>
-                    <option value="INACTIVE">Nonaktif</option>
-                  </Select>
-                </>
+                <Select
+                  aria-label="Filter status meja"
+                  className="w-40"
+                  onChange={(event) => {
+                    setStatus(event.target.value);
+                    setPage(1);
+                  }}
+                  value={status}
+                >
+                  <option value="all">Semua status</option>
+                  <option value="AVAILABLE">Tersedia</option>
+                  <option value="OCCUPIED">Terisi</option>
+                  <option value="INACTIVE">Nonaktif</option>
+                </Select>
               }
-              hasActiveFilters={
-                search !== "" || outletId !== "all" || status !== "all"
-              }
+              hasActiveFilters={search !== "" || status !== "all"}
               onReset={() => {
                 setSearch("");
-                setOutletId("all");
                 setStatus("all");
                 setPage(1);
               }}
@@ -258,9 +222,6 @@ export default function TablesPage() {
                           </Badge>
                         </span>
                         <span className="text-caption text-muted-foreground">
-                          {outletName(table.outletId)}
-                        </span>
-                        <span className="text-caption text-muted-foreground">
                           {table.isActive ? "Aktif" : "Nonaktif"}
                         </span>
                       </button>
@@ -272,7 +233,6 @@ export default function TablesPage() {
                     <TableHeader>
                       <TableRow>
                         <TableHead>Nama meja</TableHead>
-                        <TableHead>Outlet</TableHead>
                         <TableHead>Status</TableHead>
                         <TableHead>Aktif</TableHead>
                         <TableHead className="text-right">Aksi</TableHead>
@@ -289,9 +249,6 @@ export default function TablesPage() {
                             >
                               {table.name}
                             </button>
-                          </TableCell>
-                          <TableCell className="text-muted-foreground">
-                            {outletName(table.outletId)}
                           </TableCell>
                           <TableCell>
                             <Badge tone={statusTones[table.status]}>
@@ -352,7 +309,7 @@ export default function TablesPage() {
           description={
             editing
               ? "Ubah informasi meja dan status operasional."
-              : "Tambahkan meja baru untuk outlet."
+              : "Tambahkan meja baru untuk operasional."
           }
           formId="table-form"
           isDirty={isDirty}
@@ -369,21 +326,6 @@ export default function TablesPage() {
             required
           >
             <Input id="table-name" {...register("name")} />
-          </Field>
-          <Field
-            error={errors.outletId?.message}
-            htmlFor="table-outlet"
-            label="Outlet"
-            required
-          >
-            <Select id="table-outlet" {...register("outletId")}>
-              <option value="">Pilih outlet</option>
-              {outlets.map((outlet) => (
-                <option key={outlet.id} value={outlet.id}>
-                  {outlet.name}
-                </option>
-              ))}
-            </Select>
           </Field>
           <Field
             error={errors.status?.message}
@@ -427,10 +369,6 @@ export default function TablesPage() {
           {detail ? (
             <div className="flex flex-col gap-4">
               <dl className="grid gap-2 text-body">
-                <div className="flex justify-between gap-3">
-                  <dt className="text-muted-foreground">Outlet</dt>
-                  <dd>{outletName(detail.outletId)}</dd>
-                </div>
                 <div className="flex justify-between gap-3">
                   <dt className="text-muted-foreground">Status</dt>
                   <dd>

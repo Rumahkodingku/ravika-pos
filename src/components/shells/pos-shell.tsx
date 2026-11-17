@@ -16,12 +16,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Drawer } from "@/components/ui/drawer";
 import { Field } from "@/components/ui/field";
-import { OutletSwitcher } from "@/components/ui/outlet-switcher";
 import { QuantityControl } from "@/components/ui/quantity-control";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/toast";
 import { useMockSession } from "@/features/auth/mock-session";
-import { ConfirmDialog } from "@/features/management/confirm-dialog";
 import { OrderConfirmation } from "@/features/operational/order-confirmation";
 import { PosCheckoutDrawer } from "@/features/operational/pos-checkout-drawer";
 import { PosPayableOrderDrawer } from "@/features/operational/pos-payable-order-drawer";
@@ -33,7 +31,7 @@ import {
 import { cn } from "@/lib/cn";
 import { formatCurrency } from "@/lib/format";
 import { useManagementStore } from "@/mocks/management/hooks";
-import type { Outlet, SessionUser } from "@/types/auth";
+import type { SessionUser } from "@/types/auth";
 import type { Order } from "@/types/domain";
 
 function CartHeader() {
@@ -55,11 +53,9 @@ function CartHeader() {
 function CartControls({
   mode,
   onOpenTablePicker,
-  outletId,
 }: {
   mode: "panel" | "drawer";
   onOpenTablePicker: () => void;
-  outletId: string;
 }) {
   const { orderType, setOrderType, setTableId, tableId } = usePosCart();
   const tables = useManagementStore((state) => state.tables);
@@ -113,11 +109,7 @@ function CartControls({
             </span>
           </Button>
         ) : (
-          <TableSelector
-            onChange={setTableId}
-            outletId={outletId}
-            value={tableId}
-          />
+          <TableSelector onChange={setTableId} value={tableId} />
         )
       ) : null}
     </>
@@ -250,13 +242,11 @@ function CartPanel({
   mode,
   onCheckout,
   onOpenTablePicker,
-  outletId,
 }: {
   idPrefix: string;
   mode: "panel" | "drawer";
   onCheckout: () => void;
   onOpenTablePicker: () => void;
-  outletId: string;
 }) {
   return (
     <div
@@ -266,11 +256,7 @@ function CartPanel({
       )}
     >
       {mode === "panel" ? <CartHeader /> : null}
-      <CartControls
-        mode={mode}
-        onOpenTablePicker={onOpenTablePicker}
-        outletId={outletId}
-      />
+      <CartControls mode={mode} onOpenTablePicker={onOpenTablePicker} />
       <CartLines idPrefix={idPrefix} scroll={mode === "panel"} />
       {mode === "panel" ? (
         <div className="mt-auto border-t border-border pt-3">
@@ -282,21 +268,16 @@ function CartPanel({
 }
 
 function PosShellContent({
-  availableOutlets,
   cashier,
   children,
   onLogout,
-  onOutletChange,
-  outlet,
 }: {
-  availableOutlets: Outlet[];
   cashier: SessionUser;
   children: React.ReactNode;
   onLogout: () => void;
-  onOutletChange: (outletId: string) => void;
-  outlet: Outlet;
 }) {
-  const { clearCart, itemCount, setTableId, subtotal, tableId } = usePosCart();
+  const { itemCount, setTableId, subtotal, tableId } = usePosCart();
+  const business = useManagementStore((state) => state.business);
   const orders = useManagementStore((state) => state.orders);
   const [cartOpen, setCartOpen] = useState(false);
   const [tablePickerOpen, setTablePickerOpen] = useState(false);
@@ -305,26 +286,13 @@ function PosShellContent({
   const [confirmationOpen, setConfirmationOpen] = useState(false);
   const [paymentOrder, setPaymentOrder] = useState<Order | null>(null);
   const [payableOpen, setPayableOpen] = useState(false);
-  const [pendingOutletId, setPendingOutletId] = useState<string | null>(null);
 
   const payableCount = orders.filter(
     (order) =>
-      order.outletId === outlet.id &&
       order.orderStatus !== "CANCELLED" &&
       (order.paymentStatus === "UNPAID" ||
         order.paymentStatus === "PARTIALLY_PAID"),
   ).length;
-
-  const requestOutletChange = (outletId: string) => {
-    if (outletId === outlet.id) {
-      return;
-    }
-    if (itemCount > 0) {
-      setPendingOutletId(outletId);
-      return;
-    }
-    onOutletChange(outletId);
-  };
 
   return (
     <div className="flex min-h-dvh flex-col bg-surface-subtle">
@@ -343,18 +311,11 @@ function PosShellContent({
           </Link>
           <div className="hidden min-w-0 flex-col sm:flex">
             <span className="truncate text-label font-medium text-foreground">
-              {outlet.name}
+              {business.name}
             </span>
             <span className="truncate text-caption text-muted-foreground">
               Kasir: {cashier.name}
             </span>
-          </div>
-          <div className="hidden md:block">
-            <OutletSwitcher
-              onChange={requestOutletChange}
-              outlets={availableOutlets}
-              value={outlet.id}
-            />
           </div>
           <div className="ml-auto flex items-center gap-2">
             <div className="sm:hidden">
@@ -408,7 +369,6 @@ function PosShellContent({
               mode="panel"
               onCheckout={() => setCheckoutOpen(true)}
               onOpenTablePicker={() => setTablePickerOpen(true)}
-              outletId={outlet.id}
             />
           </div>
         </aside>
@@ -459,7 +419,6 @@ function PosShellContent({
             setCartOpen(false);
             setTablePickerOpen(true);
           }}
-          outletId={outlet.id}
         />
       </Drawer>
 
@@ -476,7 +435,6 @@ function PosShellContent({
           }
         }}
         open={tablePickerOpen}
-        outletId={outlet.id}
         value={tableId}
       />
 
@@ -500,7 +458,6 @@ function PosShellContent({
         onOpenChange={setPayableOpen}
         onPay={setPaymentOrder}
         open={payableOpen}
-        outletId={outlet.id}
       />
 
       <PosPaymentDrawer
@@ -512,25 +469,6 @@ function PosShellContent({
         open={paymentOrder !== null}
         order={paymentOrder}
       />
-
-      <ConfirmDialog
-        confirmLabel="Ganti outlet"
-        description="Mengganti outlet akan mengosongkan keranjang saat ini."
-        onConfirm={() => {
-          if (pendingOutletId) {
-            clearCart();
-            onOutletChange(pendingOutletId);
-          }
-          setPendingOutletId(null);
-        }}
-        onOpenChange={(open) => {
-          if (!open) {
-            setPendingOutletId(null);
-          }
-        }}
-        open={pendingOutletId !== null}
-        title="Ganti outlet?"
-      />
     </div>
   );
 }
@@ -539,26 +477,15 @@ export function PosShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const { toast } = useToast();
   const { logout, user } = useMockSession();
-  const outlets = useManagementStore((state) => state.outlets);
-  const [selectedOutletId, setSelectedOutletId] = useState("");
-  const availableOutlets = outlets.filter(
-    (candidate) =>
-      candidate.isActive !== false &&
-      Boolean(user?.outletIds.includes(candidate.id)),
-  );
-  const outlet =
-    availableOutlets.find((candidate) => candidate.id === selectedOutletId) ??
-    availableOutlets[0];
 
-  if (!user || !outlet) {
+  if (!user) {
     return null;
   }
 
   return (
     <ShellTheme defaultTheme="light">
-      <PosCartProvider outletId={outlet.id}>
+      <PosCartProvider>
         <PosShellContent
-          availableOutlets={availableOutlets}
           cashier={user}
           onLogout={() => {
             logout();
@@ -569,8 +496,6 @@ export function PosShell({ children }: { children: React.ReactNode }) {
             });
             router.replace("/login");
           }}
-          onOutletChange={setSelectedOutletId}
-          outlet={outlet}
         >
           {children}
         </PosShellContent>

@@ -4,7 +4,6 @@ import {
   ownerPermissionCodes,
 } from "@/mocks/permissions";
 import { mockUsers } from "@/mocks/session";
-import type { Outlet } from "@/types/auth";
 import type {
   AddOn,
   BackupRecord,
@@ -34,25 +33,6 @@ export const seedBusiness: Business = {
   createdAt,
   updatedAt,
 };
-
-export const seedOutlets: Outlet[] = [
-  {
-    id: "outlet-kemang",
-    name: "RAVIKA Kemang",
-    code: "KMG",
-    city: "Jakarta Selatan",
-    address: "Kemang, Jakarta Selatan",
-    isActive: true,
-  },
-  {
-    id: "outlet-senopati",
-    name: "RAVIKA Senopati",
-    code: "SNP",
-    city: "Jakarta Selatan",
-    address: "Senopati, Jakarta Selatan",
-    isActive: true,
-  },
-];
 
 const categoryNames = ["Kopi", "Non-kopi", "Makanan", "Snack", "Manual Brew"];
 
@@ -161,17 +141,12 @@ const seedProducts: Product[] = productSeed.map(
 );
 
 const seedTables: DiningTable[] = [
-  ["Meja 01", "outlet-kemang", "AVAILABLE"],
-  ["Meja 02", "outlet-kemang", "OCCUPIED"],
-  ["Meja 03", "outlet-kemang", "AVAILABLE"],
-  ["Meja 04", "outlet-kemang", "INACTIVE"],
-  ["Meja 01", "outlet-senopati", "AVAILABLE"],
-  ["Meja 02", "outlet-senopati", "OCCUPIED"],
-  ["Meja 03", "outlet-senopati", "AVAILABLE"],
-  ["Meja 04", "outlet-senopati", "AVAILABLE"],
-].map(([name, outletId, status], index) => ({
+  ["Meja 01", "AVAILABLE"],
+  ["Meja 02", "OCCUPIED"],
+  ["Meja 03", "AVAILABLE"],
+  ["Meja 04", "INACTIVE"],
+].map(([name, status], index) => ({
   id: `table-${index + 1}`,
-  outletId: outletId as string,
   name: name as string,
   status: status as DiningTable["status"],
   qrToken: `tbl-${(index + 1).toString(36)}-${(((index + 1) * 2654435761) >>> 0).toString(36)}`,
@@ -186,7 +161,6 @@ const seedUsers: ManagementUser[] = [
     name: user.name,
     email: user.email,
     role: user.role,
-    outletIds: user.outletIds,
     isActive: true,
     createdAt,
     updatedAt,
@@ -196,7 +170,6 @@ const seedUsers: ManagementUser[] = [
     name: "Andi Kasir",
     email: "andi@ravika.id",
     role: "CASHIER",
-    outletIds: ["outlet-senopati"],
     isActive: true,
     createdAt,
     updatedAt,
@@ -206,7 +179,6 @@ const seedUsers: ManagementUser[] = [
     name: "Sari Barista",
     email: "sari@ravika.id",
     role: "BARISTA",
-    outletIds: ["outlet-kemang", "outlet-senopati"],
     isActive: true,
     createdAt,
     updatedAt,
@@ -313,7 +285,6 @@ const paymentStatuses: Order["paymentStatus"][] = [
 ];
 
 const seedOrders: Order[] = Array.from({ length: 24 }, (_, index) => {
-  const outlet = seedOutlets[index % seedOutlets.length];
   const orderStatus = orderStatuses[index % orderStatuses.length];
   const paymentStatus = paymentStatuses[index % paymentStatuses.length];
   const items = makeItems(index, [
@@ -327,19 +298,15 @@ const seedOrders: Order[] = Array.from({ length: 24 }, (_, index) => {
   orderDate.setMinutes(orderDate.getMinutes() - (index % 6) * 8);
   const orderType = index % 3 === 0 ? "TAKEAWAY" : "DINE_IN";
   const source = index % 4 === 0 ? "QR" : "CASHIER";
-  const outletTables = seedTables.filter(
-    (candidate) => candidate.outletId === outlet.id,
-  );
   const table =
-    orderType === "DINE_IN" && outletTables.length > 0
-      ? outletTables[index % outletTables.length]
+    orderType === "DINE_IN" && seedTables.length > 0
+      ? seedTables[index % seedTables.length]
       : null;
 
   return {
     id: `order-${index + 1}`,
     businessId: seedBusiness.id,
-    outletId: outlet.id,
-    orderNumber: `${outlet.code}-${String(2000 + index + 1)}`,
+    orderNumber: `RVK-${String(2000 + index + 1)}`,
     orderType,
     source,
     tableId: table?.id ?? null,
@@ -347,7 +314,7 @@ const seedOrders: Order[] = Array.from({ length: 24 }, (_, index) => {
     paymentStatus,
     publicToken:
       source === "QR"
-        ? `pub-${outlet.code.toLowerCase()}-${(index + 1).toString(36)}-${(((index + 1) * 2654435761) >>> 0).toString(36)}`
+        ? `pub-rvk-${(index + 1).toString(36)}-${(((index + 1) * 2654435761) >>> 0).toString(36)}`
         : null,
     subtotal: grandTotal,
     grandTotal,
@@ -533,7 +500,6 @@ export const seedBackups: BackupRecord[] = [
 export function createInitialState() {
   return {
     business: { ...seedBusiness },
-    outlets: seedOutlets.map((outlet) => ({ ...outlet })),
     categories: seedCategories.map((category) => ({ ...category })),
     addOns: seedAddOns.map((addOn) => ({ ...addOn })),
     products: seedProducts.map((product) => ({
@@ -544,7 +510,6 @@ export function createInitialState() {
     tables: seedTables.map((table) => ({ ...table })),
     users: seedUsers.map((user) => ({
       ...user,
-      outletIds: [...user.outletIds],
     })),
     roles: seedRoles.map((role) => ({
       ...role,

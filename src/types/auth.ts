@@ -7,15 +7,5 @@ export type SessionUser = {
   username: string;
   role: UserRole;
   roleLabel: string;
-  outletIds: string[];
   permissions: string[];
-};
-
-export type Outlet = {
-  id: string;
-  name: string;
-  code: string;
-  city: string;
-  address?: string;
-  isActive?: boolean;
 };

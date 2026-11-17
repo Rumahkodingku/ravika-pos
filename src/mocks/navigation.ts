@@ -12,7 +12,6 @@ import {
   Settings,
   ShieldCheck,
   ShoppingCart,
-  Store,
   Tags,
   Users,
   Wallet,
@@ -96,15 +95,8 @@ export const megaMenuGroups: NavGroup[] = [
   },
   {
     label: "Bisnis",
-    description: "Outlet, pengguna, dan akses",
+    description: "Pengguna dan akses",
     items: [
-      {
-        label: "Outlet",
-        href: "/app/outlets",
-        icon: Store,
-        permission: "outlets.view",
-        description: "Kelola lokasi dan konteks operasional",
-      },
       {
         label: "Pengguna",
         href: "/app/users",

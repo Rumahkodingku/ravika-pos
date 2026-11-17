@@ -19,7 +19,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useMockSession } from "@/features/auth/mock-session";
 import { DataTableToolbar } from "@/features/management/data-table-toolbar";
 import { OrderDetailDrawer } from "@/features/management/order-detail-drawer";
 import { RequirePermission } from "@/features/management/permission-gate";
@@ -28,12 +27,11 @@ import { SortableTableHead } from "@/features/management/sortable-table-head";
 import { TablePagination } from "@/features/management/table-pagination";
 import { TableSkeleton } from "@/features/management/table-skeleton";
 import { formatCurrency, formatDateTime } from "@/lib/format";
-import { useAsyncData, useManagementStore } from "@/mocks/management/hooks";
+import { useAsyncData } from "@/mocks/management/hooks";
 import { managementService } from "@/mocks/management/service";
 import type { Order } from "@/types/domain";
 
 type OrderFilters = {
-  outletId: string;
   orderStatus: string;
   paymentStatus: string;
   dateFrom: string;
@@ -41,7 +39,6 @@ type OrderFilters = {
 };
 
 const defaultOrderFilters: OrderFilters = {
-  outletId: "all",
   orderStatus: "all",
   paymentStatus: "all",
   dateFrom: "",
@@ -49,11 +46,6 @@ const defaultOrderFilters: OrderFilters = {
 };
 
 export default function OrdersPage() {
-  const { user } = useMockSession();
-  const allOutlets = useManagementStore((state) => state.outlets);
-  const outlets = allOutlets.filter((outlet) =>
-    user?.outletIds.includes(outlet.id),
-  );
   const [search, setSearch] = useState("");
   const [filters, setFilters] = useState<OrderFilters>(defaultOrderFilters);
   const [draftFilters, setDraftFilters] =
@@ -66,7 +58,6 @@ export default function OrdersPage() {
     () =>
       managementService.listOrders({
         search,
-        outletId: filters.outletId,
         orderStatus: filters.orderStatus,
         paymentStatus: filters.paymentStatus,
         dateFrom: filters.dateFrom,
@@ -79,11 +70,7 @@ export default function OrdersPage() {
     JSON.stringify([search, filters, sortDir, page]),
   );
 
-  const outletName = (id: string) =>
-    outlets.find((outlet) => outlet.id === id)?.name ?? "Tidak ada";
-
   const activeFilterCount = [
-    filters.outletId !== defaultOrderFilters.outletId,
     filters.orderStatus !== defaultOrderFilters.orderStatus,
     filters.paymentStatus !== defaultOrderFilters.paymentStatus,
     filters.dateFrom !== defaultOrderFilters.dateFrom,
@@ -112,25 +99,6 @@ export default function OrdersPage() {
               filterMode="modal"
               filters={
                 <div className="flex flex-col gap-4">
-                  <Field htmlFor="orders-filter-outlet" label="Outlet">
-                    <Select
-                      id="orders-filter-outlet"
-                      onChange={(event) =>
-                        setDraftFilters((current) => ({
-                          ...current,
-                          outletId: event.target.value,
-                        }))
-                      }
-                      value={draftFilters.outletId}
-                    >
-                      <option value="all">Semua outlet</option>
-                      {outlets.map((outlet) => (
-                        <option key={outlet.id} value={outlet.id}>
-                          {outlet.name}
-                        </option>
-                      ))}
-                    </Select>
-                  </Field>
                   <Field
                     htmlFor="orders-filter-preparation"
                     label="Status persiapan"
@@ -249,7 +217,6 @@ export default function OrdersPage() {
                       </span>
                     </div>
                     <span className="text-caption text-muted-foreground">
-                      {outletName(order.outletId)}.{" "}
                       {order.orderType === "DINE_IN" ? "Dine-in" : "Takeaway"}
                     </span>
                     <div className="flex flex-wrap gap-1.5">
@@ -287,7 +254,6 @@ export default function OrdersPage() {
                           }
                           sortKey="createdAt"
                         />
-                        <TableHead>Outlet</TableHead>
                         <TableHead>Tipe</TableHead>
                         <TableHead className="text-right">Total</TableHead>
                         <TableHead>Pembayaran</TableHead>
@@ -304,7 +270,6 @@ export default function OrdersPage() {
                           <TableCell className="whitespace-nowrap text-muted-foreground">
                             {formatDateTime(order.createdAt)}
                           </TableCell>
-                          <TableCell>{outletName(order.outletId)}</TableCell>
                           <TableCell>
                             <Badge tone="neutral">
                               {order.orderType === "DINE_IN"

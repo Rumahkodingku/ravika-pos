@@ -33,7 +33,7 @@ import {
 import { ResponsiveList } from "@/features/management/responsive-list";
 import { TablePagination } from "@/features/management/table-pagination";
 import { TableSkeleton } from "@/features/management/table-skeleton";
-import { useAsyncData, useManagementStore } from "@/mocks/management/hooks";
+import { useAsyncData } from "@/mocks/management/hooks";
 import { managementService } from "@/mocks/management/service";
 import type { ManagementUser, UserRole } from "@/types/domain";
 
@@ -41,7 +41,6 @@ const userSchema = z.object({
   name: z.string().min(1, "Nama pengguna wajib diisi."),
   email: z.string().email("Format email tidak valid."),
   role: z.enum(["OWNER", "CASHIER", "BARISTA"]),
-  outletIds: z.array(z.string()).min(1, "Pilih minimal satu outlet."),
   isActive: z.boolean(),
   password: z.string().optional(),
 });
@@ -58,14 +57,12 @@ const emptyUser: UserValues = {
   name: "",
   email: "",
   role: "CASHIER",
-  outletIds: [],
   isActive: true,
   password: "",
 };
 
 export default function UsersPage() {
   const { toast } = useToast();
-  const outlets = useManagementStore((state) => state.outlets);
   const [search, setSearch] = useState("");
   const [role, setRole] = useState("all");
   const [active, setActive] = useState("all");
@@ -96,15 +93,9 @@ export default function UsersPage() {
     resolver: zodResolver(userSchema),
   });
 
-  const outletNames = (ids: string[]) =>
-    ids
-      .map((id) => outlets.find((outlet) => outlet.id === id)?.name)
-      .filter(Boolean)
-      .join(", ") || "Tidak ada";
-
   const openCreate = () => {
     setEditing(null);
-    reset({ ...emptyUser, outletIds: [outlets[0]?.id ?? ""].filter(Boolean) });
+    reset({ ...emptyUser });
     setFormOpen(true);
   };
 
@@ -114,7 +105,6 @@ export default function UsersPage() {
       name: user.name,
       email: user.email,
       role: user.role,
-      outletIds: user.outletIds,
       isActive: user.isActive,
       password: "",
     });
@@ -164,7 +154,7 @@ export default function UsersPage() {
               </Button>
             </PermissionGate>
           }
-          description="Atur akses staf dan outlet. Data simulasi."
+          description="Atur akses staf. Data simulasi."
           title="Pengguna"
         />
 
@@ -258,7 +248,7 @@ export default function UsersPage() {
                       </Badge>
                     </div>
                     <span className="text-caption text-muted-foreground">
-                      {roleLabels[user.role]}. {outletNames(user.outletIds)}
+                      {roleLabels[user.role]}
                     </span>
                     <PermissionGate permission="users.manage">
                       <Button
@@ -279,7 +269,6 @@ export default function UsersPage() {
                         <TableHead>Nama</TableHead>
                         <TableHead>Email</TableHead>
                         <TableHead>Role</TableHead>
-                        <TableHead>Outlet</TableHead>
                         <TableHead>Status</TableHead>
                         <TableHead className="text-right">Aksi</TableHead>
                       </TableRow>
@@ -294,9 +283,6 @@ export default function UsersPage() {
                             {user.email}
                           </TableCell>
                           <TableCell>{roleLabels[user.role]}</TableCell>
-                          <TableCell className="max-w-56 truncate text-muted-foreground">
-                            {outletNames(user.outletIds)}
-                          </TableCell>
                           <TableCell>
                             <Badge tone={user.isActive ? "success" : "neutral"}>
                               {user.isActive ? "Aktif" : "Nonaktif"}
@@ -394,33 +380,6 @@ export default function UsersPage() {
               <option value="BARISTA">Barista</option>
             </Select>
           </Field>
-          <fieldset className="flex flex-col gap-2">
-            <legend className="text-label font-medium text-foreground">
-              Outlet
-            </legend>
-            {outlets.map((outlet) => (
-              <label
-                className="flex min-h-11 items-center gap-2 text-body text-foreground"
-                htmlFor={`user-outlet-${outlet.id}`}
-                key={outlet.id}
-              >
-                <Checkbox
-                  id={`user-outlet-${outlet.id}`}
-                  value={outlet.id}
-                  {...register("outletIds")}
-                />
-                {outlet.name}
-              </label>
-            ))}
-            {errors.outletIds?.message ? (
-              <p className="text-caption font-medium text-danger-strong">
-                {errors.outletIds.message}
-              </p>
-            ) : null}
-            <FieldDescription>
-              Pengguna hanya melihat outlet yang dipilih.
-            </FieldDescription>
-          </fieldset>
           <label
             className="flex min-h-11 items-center gap-2 text-body text-foreground"
             htmlFor="user-active"

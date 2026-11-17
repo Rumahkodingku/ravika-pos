@@ -25,15 +25,8 @@ export function PosCheckoutDrawer({
   const { toast } = useToast();
   const { user } = useMockSession();
   const tables = useManagementStore((state) => state.tables);
-  const {
-    clearCart,
-    lines,
-    orderNotes,
-    orderType,
-    outletId,
-    subtotal,
-    tableId,
-  } = usePosCart();
+  const { clearCart, lines, orderNotes, orderType, subtotal, tableId } =
+    usePosCart();
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const table = tables.find((candidate) => candidate.id === tableId);
@@ -58,7 +51,6 @@ export function PosCheckoutDrawer({
 
     try {
       const order = await managementService.createOrder({
-        outletId,
         orderType,
         tableId: orderType === "DINE_IN" ? tableId : null,
         source: "CASHIER",

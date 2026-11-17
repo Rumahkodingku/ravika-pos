@@ -1,15 +1,13 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Store } from "lucide-react";
-import Link from "next/link";
 import { useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { ErrorState } from "@/components/feedback/error-state";
 import { useTheme } from "@/components/theme/theme-provider";
 import { Badge } from "@/components/ui/badge";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Field, FieldDescription } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
@@ -19,7 +17,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/toast";
 import { RequirePermission } from "@/features/management/permission-gate";
-import { useAsyncData, useManagementStore } from "@/mocks/management/hooks";
+import { useAsyncData } from "@/mocks/management/hooks";
 import { managementService } from "@/mocks/management/service";
 
 const settingsSchema = z.object({
@@ -48,7 +46,6 @@ const emptySettings: SettingsValues = {
 export default function SettingsPage() {
   const { toast } = useToast();
   const { setTheme, theme } = useTheme();
-  const outlets = useManagementStore((state) => state.outlets);
   const { data, error, isLoading, refresh } = useAsyncData(
     () => managementService.getBusiness(),
     "business",
@@ -201,42 +198,6 @@ export default function SettingsPage() {
                   <FieldDescription>
                     Pajak, diskon, dan biaya layanan belum tersedia.
                   </FieldDescription>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader
-                  action={<Badge tone="neutral">Data simulasi</Badge>}
-                  description="Ringkasan outlet yang terdaftar."
-                  title="Ringkasan outlet"
-                />
-                <CardContent className="flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-3">
-                    <span className="flex h-10 w-10 items-center justify-center rounded-md border border-border bg-surface-subtle text-muted-foreground">
-                      <Store aria-hidden="true" className="h-5 w-5" />
-                    </span>
-                    <div className="flex flex-col">
-                      <span className="text-card-title tabular-nums text-foreground">
-                        {outlets.length} outlet
-                      </span>
-                      <span className="text-caption text-muted-foreground">
-                        {
-                          outlets.filter((outlet) => outlet.isActive !== false)
-                            .length
-                        }{" "}
-                        aktif
-                      </span>
-                    </div>
-                  </div>
-                  <Link
-                    className={buttonVariants({
-                      variant: "outline",
-                      size: "sm",
-                    })}
-                    href="/app/outlets"
-                  >
-                    Kelola outlet
-                  </Link>
                 </CardContent>
               </Card>
             </div>

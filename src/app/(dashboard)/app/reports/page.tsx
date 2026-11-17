@@ -19,7 +19,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useMockSession } from "@/features/auth/mock-session";
 import { RequirePermission } from "@/features/management/permission-gate";
 import {
   formatCompactCurrency,
@@ -29,7 +28,7 @@ import {
   formatDateTime,
   formatNumber,
 } from "@/lib/format";
-import { useAsyncData, useManagementStore } from "@/mocks/management/hooks";
+import { useAsyncData } from "@/mocks/management/hooks";
 import { managementService } from "@/mocks/management/service";
 
 function rangeDates(period: string, customFrom: string, customTo: string) {
@@ -57,13 +56,7 @@ function rangeDates(period: string, customFrom: string, customTo: string) {
 }
 
 export default function ReportsPage() {
-  const { user } = useMockSession();
-  const allOutlets = useManagementStore((state) => state.outlets);
-  const outlets = allOutlets.filter((outlet) =>
-    user?.outletIds.includes(outlet.id),
-  );
   const [period, setPeriod] = useState("7d");
-  const [outletId, setOutletId] = useState("all");
   const [customFrom, setCustomFrom] = useState(
     () => rangeDates("7d", "", "").from,
   );
@@ -78,15 +71,11 @@ export default function ReportsPage() {
   const { data, error, isLoading, refresh } = useAsyncData(
     () =>
       managementService.getSalesReport({
-        outletId,
         dateFrom: dates.from,
         dateTo: dates.to,
       }),
-    JSON.stringify([outletId, dates.from, dates.to]),
+    JSON.stringify([dates.from, dates.to]),
   );
-
-  const outletName = (id: string) =>
-    outlets.find((outlet) => outlet.id === id)?.name ?? "Tidak ada";
 
   return (
     <RequirePermission permission="reports.view">
@@ -109,19 +98,6 @@ export default function ReportsPage() {
               <option value="7d">7 hari</option>
               <option value="30d">30 hari</option>
               <option value="custom">Kustom</option>
-            </Select>
-            <Select
-              aria-label="Outlet laporan"
-              className="w-48"
-              onChange={(event) => setOutletId(event.target.value)}
-              value={outletId}
-            >
-              <option value="all">Semua outlet</option>
-              {outlets.map((outlet) => (
-                <option key={outlet.id} value={outlet.id}>
-                  {outlet.name}
-                </option>
-              ))}
             </Select>
             {period === "custom" ? (
               <>
@@ -162,7 +138,7 @@ export default function ReportsPage() {
         ) : isCustomRangeInvalid ? null : !data ? null : data.transactionCount ===
           0 ? (
           <EmptyState
-            description="Belum ada transaksi pada periode dan outlet ini. Ubah filter untuk melihat data lain."
+            description="Belum ada transaksi pada periode ini. Ubah filter untuk melihat data lain."
             icon={BarChart3}
             title="Belum ada transaksi"
           />
@@ -258,7 +234,7 @@ export default function ReportsPage() {
 
             <Card>
               <CardHeader
-                description="Pesanan non-cancelled pada periode dan outlet terpilih."
+                description="Pesanan non-cancelled pada periode terpilih."
                 title="Tabel penjualan"
               />
               <CardContent className="p-0">
@@ -268,7 +244,6 @@ export default function ReportsPage() {
                       <TableRow>
                         <TableHead>Nomor</TableHead>
                         <TableHead>Waktu</TableHead>
-                        <TableHead>Outlet</TableHead>
                         <TableHead>Tipe</TableHead>
                         <TableHead className="text-right">Total</TableHead>
                         <TableHead>Pembayaran</TableHead>
@@ -284,7 +259,6 @@ export default function ReportsPage() {
                           <TableCell className="whitespace-nowrap text-muted-foreground">
                             {formatDateTime(order.createdAt)}
                           </TableCell>
-                          <TableCell>{outletName(order.outletId)}</TableCell>
                           <TableCell>
                             {order.orderType === "DINE_IN"
                               ? "Dine-in"
@@ -325,8 +299,7 @@ export default function ReportsPage() {
                         </span>
                       </div>
                       <span className="text-caption text-muted-foreground">
-                        {formatDateTime(order.createdAt)}.{" "}
-                        {outletName(order.outletId)}
+                        {formatDateTime(order.createdAt)}
                       </span>
                       <div className="flex flex-wrap gap-1.5">
                         <StatusBadge

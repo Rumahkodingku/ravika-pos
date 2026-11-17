@@ -6,7 +6,6 @@ import {
   useContext,
   useEffect,
   useMemo,
-  useRef,
   useState,
 } from "react";
 import { useManagementStore } from "@/mocks/management/hooks";
@@ -34,7 +33,6 @@ export type PosCartLine = PosCartDraft & {
 };
 
 type StoredCart = {
-  outletId: string;
   orderType: PosOrderType;
   tableId: string | null;
   orderNotes: string;
@@ -48,7 +46,6 @@ type PosCartContextValue = {
   lines: PosCartLine[];
   orderNotes: string;
   orderType: PosOrderType;
-  outletId: string;
   removeLine: (key: string) => void;
   setOrderNotes: (notes: string) => void;
   setOrderType: (orderType: PosOrderType) => void;
@@ -119,13 +116,7 @@ function resolveLine(
   };
 }
 
-export function PosCartProvider({
-  children,
-  outletId,
-}: {
-  children: ReactNode;
-  outletId: string;
-}) {
+export function PosCartProvider({ children }: { children: ReactNode }) {
   const products = useManagementStore((state) => state.products);
   const addOns = useManagementStore((state) => state.addOns);
   const [items, setItems] = useState<PosCartDraft[]>([]);
@@ -133,7 +124,6 @@ export function PosCartProvider({
   const [tableId, setTableId] = useState<string | null>(null);
   const [orderNotes, setOrderNotes] = useState("");
   const [hydrated, setHydrated] = useState(false);
-  const initialOutletId = useRef(outletId);
 
   useEffect(() => {
     const stored = window.sessionStorage.getItem(STORAGE_KEY);
@@ -142,12 +132,10 @@ export function PosCartProvider({
       try {
         const parsed = JSON.parse(stored) as StoredCart;
 
-        if (parsed.outletId === initialOutletId.current) {
-          setItems(parsed.items);
-          setOrderType(parsed.orderType);
-          setTableId(parsed.tableId);
-          setOrderNotes(parsed.orderNotes);
-        }
+        setItems(parsed.items);
+        setOrderType(parsed.orderType);
+        setTableId(parsed.tableId);
+        setOrderNotes(parsed.orderNotes);
       } catch {
         window.sessionStorage.removeItem(STORAGE_KEY);
       }
@@ -162,14 +150,13 @@ export function PosCartProvider({
     }
 
     const stored: StoredCart = {
-      outletId,
       orderType,
       tableId,
       orderNotes,
       items,
     };
     window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify(stored));
-  }, [hydrated, items, orderNotes, orderType, outletId, tableId]);
+  }, [hydrated, items, orderNotes, orderType, tableId]);
 
   const lines = useMemo(
     () =>
@@ -209,7 +196,6 @@ export function PosCartProvider({
       lines,
       orderNotes,
       orderType,
-      outletId,
       removeLine: (key) => {
         setItems((current) => current.filter((item) => item.key !== key));
       },
@@ -228,7 +214,7 @@ export function PosCartProvider({
       subtotal,
       tableId,
     }),
-    [itemCount, lines, orderNotes, orderType, outletId, subtotal, tableId],
+    [itemCount, lines, orderNotes, orderType, subtotal, tableId],
   );
 
   return (

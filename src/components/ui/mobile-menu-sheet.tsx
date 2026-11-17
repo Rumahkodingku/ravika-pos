@@ -1,31 +1,24 @@
 "use client";
 
-import { Check, X } from "lucide-react";
+import { X } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useId, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/cn";
-import type { Outlet } from "@/types/auth";
 import type { NavGroup, QuickAction } from "@/types/ui";
 
 export function MobileMenuSheet({
   activePath,
   groups,
   onOpenChange,
-  onOutletChange,
   open,
-  outlets,
   quickActions,
-  selectedOutletId,
 }: {
   activePath: string;
   groups: NavGroup[];
   onOpenChange: (open: boolean) => void;
-  onOutletChange: (outletId: string) => void;
   open: boolean;
-  outlets: Outlet[];
   quickActions: QuickAction[];
-  selectedOutletId: string;
 }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const titleId = useId();
@@ -104,39 +97,6 @@ export function MobileMenuSheet({
         <h2 className="sr-only" id={titleId}>
           Menu utama
         </h2>
-
-        <fieldset className="mb-5 flex flex-col gap-1.5">
-          <legend className="text-label font-medium text-foreground">
-            Outlet aktif
-          </legend>
-          <div className="grid gap-1">
-            {outlets.map((outlet) => {
-              const active = outlet.id === selectedOutletId;
-
-              return (
-                <button
-                  aria-pressed={active}
-                  className={`flex min-h-11 items-center justify-between gap-2 rounded-md border px-3 text-left text-label font-medium transition-colors ${
-                    active
-                      ? "border-border bg-surface-subtle text-foreground"
-                      : "border-transparent text-muted-foreground hover:bg-muted hover:text-foreground"
-                  }`}
-                  key={outlet.id}
-                  onClick={() => onOutletChange(outlet.id)}
-                  type="button"
-                >
-                  <span className="truncate">{outlet.name}</span>
-                  {active ? (
-                    <Check
-                      aria-hidden="true"
-                      className="h-4 w-4 shrink-0 text-primary-strong"
-                    />
-                  ) : null}
-                </button>
-              );
-            })}
-          </div>
-        </fieldset>
 
         <section className="flex flex-col gap-2">
           <p className="text-label font-semibold text-foreground">Aksi cepat</p>

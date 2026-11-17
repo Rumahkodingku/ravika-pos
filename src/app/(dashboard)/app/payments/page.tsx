@@ -20,7 +20,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useMockSession } from "@/features/auth/mock-session";
 import { DataTableToolbar } from "@/features/management/data-table-toolbar";
 import { OrderDetailDrawer } from "@/features/management/order-detail-drawer";
 import { RequirePermission } from "@/features/management/permission-gate";
@@ -42,7 +41,6 @@ const methodLabels: Record<PaymentMethod, string> = {
 type PaymentFilters = {
   method: string;
   status: string;
-  outletId: string;
   dateFrom: string;
   dateTo: string;
 };
@@ -50,17 +48,11 @@ type PaymentFilters = {
 const defaultPaymentFilters: PaymentFilters = {
   method: "all",
   status: "all",
-  outletId: "all",
   dateFrom: "",
   dateTo: "",
 };
 
 export default function PaymentsPage() {
-  const { user } = useMockSession();
-  const allOutlets = useManagementStore((state) => state.outlets);
-  const outlets = allOutlets.filter((outlet) =>
-    user?.outletIds.includes(outlet.id),
-  );
   const orders = useManagementStore((state) => state.orders);
   const users = useManagementStore((state) => state.users);
   const [search, setSearch] = useState("");
@@ -78,7 +70,6 @@ export default function PaymentsPage() {
         search,
         method: filters.method,
         status: filters.status,
-        outletId: filters.outletId,
         dateFrom: filters.dateFrom,
         dateTo: filters.dateTo,
         page,
@@ -89,15 +80,12 @@ export default function PaymentsPage() {
 
   const orderFor = (orderId: string) =>
     orders.find((order) => order.id === orderId) ?? null;
-  const outletName = (id: string) =>
-    outlets.find((outlet) => outlet.id === id)?.name ?? "Tidak ada";
   const userName = (id: string) =>
     users.find((user) => user.id === id)?.name ?? "Tidak ada";
 
   const activeFilterCount = [
     filters.method !== defaultPaymentFilters.method,
     filters.status !== defaultPaymentFilters.status,
-    filters.outletId !== defaultPaymentFilters.outletId,
     filters.dateFrom !== defaultPaymentFilters.dateFrom,
     filters.dateTo !== defaultPaymentFilters.dateTo,
   ].filter(Boolean).length;
@@ -121,7 +109,7 @@ export default function PaymentsPage() {
           <CardContent className="flex flex-col gap-3 p-3 sm:p-4">
             <DataTableToolbar
               activeFilterCount={activeFilterCount}
-              filterDescription="Pilih metode, status, outlet, dan rentang tanggal."
+              filterDescription="Pilih metode, status, dan rentang tanggal."
               filterMode="modal"
               filterTitle="Filter pembayaran"
               filters={
@@ -158,25 +146,6 @@ export default function PaymentsPage() {
                       <option value="all">Semua status</option>
                       <option value="RECORDED">Tercatat</option>
                       <option value="REFUNDED">Dikembalikan</option>
-                    </Select>
-                  </Field>
-                  <Field htmlFor="payments-filter-outlet" label="Outlet">
-                    <Select
-                      id="payments-filter-outlet"
-                      onChange={(event) =>
-                        setDraftFilters((current) => ({
-                          ...current,
-                          outletId: event.target.value,
-                        }))
-                      }
-                      value={draftFilters.outletId}
-                    >
-                      <option value="all">Semua outlet</option>
-                      {outlets.map((outlet) => (
-                        <option key={outlet.id} value={outlet.id}>
-                          {outlet.name}
-                        </option>
-                      ))}
                     </Select>
                   </Field>
                   <Field htmlFor="payments-filter-from" label="Tanggal mulai">
@@ -271,7 +240,7 @@ export default function PaymentsPage() {
                         </Badge>
                       </span>
                       <span className="text-caption text-muted-foreground">
-                        {order ? outletName(order.outletId) : "Tidak ada"}
+                        {order ? order.orderNumber : "Tidak ada"}
                       </span>
                     </button>
                   );
@@ -368,14 +337,6 @@ export default function PaymentsPage() {
                   <dt className="text-muted-foreground">Pesanan</dt>
                   <dd>
                     {orderFor(selected.orderId)?.orderNumber ?? "Tidak ada"}
-                  </dd>
-                </div>
-                <div className="flex justify-between gap-3">
-                  <dt className="text-muted-foreground">Outlet</dt>
-                  <dd>
-                    {orderFor(selected.orderId)
-                      ? outletName(orderFor(selected.orderId)?.outletId ?? "")
-                      : "Tidak ada"}
                   </dd>
                 </div>
                 <div className="flex justify-between gap-3">
