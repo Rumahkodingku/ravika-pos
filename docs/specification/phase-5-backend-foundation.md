@@ -118,21 +118,21 @@ frontend dilakukan di Fase 7.
 
 ## 3. Keputusan yang dikunci
 
-| ID | Keputusan | Alasan |
-|---|---|---|
-| P5-01 | Full schema MVP dibuat di Fase 5 | Fase 6 tinggal menambah API, bukan mengubah fondasi |
-| P5-02 | Refund ditunda | OPEN-008 belum final |
-| P5-03 | Driver SQLite `node:sqlite` | Node 26 sudah menyediakannya, tanpa native build |
-| P5-04 | ORM Drizzle | Sesuai PRD dan roadmap |
-| P5-05 | Session database | Logout dan perubahan role dapat langsung mencabut sesi |
-| P5-06 | Password memakai `crypto.scrypt` | Kuat, bawaan Node, tanpa native dependency |
-| P5-07 | Login menerima email atau username | Sesuai UI dan OPEN-002 |
-| P5-08 | Satu user satu role | Sesuai UI dan paling sederhana untuk MVP |
-| P5-09 | Cookie `Secure` configurable | LAN HTTP saat ini belum memakai HTTPS |
-| P5-10 | Error response RFC 9457 | Kontrak error konsisten dan standar |
-| P5-11 | Seed fondasi + Vitest | Test fondasi sebelum modul Fase 6 |
-| P5-12 | Bootstrap owner lewat env produksi | Tidak menambah halaman setup pasca-M4 |
-| P5-13 | UI tetap mock | Integrasi frontend adalah Fase 7 |
+| ID    | Keputusan                          | Alasan                                                 |
+| ----- | ---------------------------------- | ------------------------------------------------------ |
+| P5-01 | Full schema MVP dibuat di Fase 5   | Fase 6 tinggal menambah API, bukan mengubah fondasi    |
+| P5-02 | Refund ditunda                     | OPEN-008 belum final                                   |
+| P5-03 | Driver SQLite `node:sqlite`        | Node 26 sudah menyediakannya, tanpa native build       |
+| P5-04 | ORM Drizzle                        | Sesuai PRD dan roadmap                                 |
+| P5-05 | Session database                   | Logout dan perubahan role dapat langsung mencabut sesi |
+| P5-06 | Password memakai `crypto.scrypt`   | Kuat, bawaan Node, tanpa native dependency             |
+| P5-07 | Login menerima email atau username | Sesuai UI dan OPEN-002                                 |
+| P5-08 | Satu user satu role                | Sesuai UI dan paling sederhana untuk MVP               |
+| P5-09 | Cookie `Secure` configurable       | LAN HTTP saat ini belum memakai HTTPS                  |
+| P5-10 | Error response RFC 9457            | Kontrak error konsisten dan standar                    |
+| P5-11 | Seed fondasi + Vitest              | Test fondasi sebelum modul Fase 6                      |
+| P5-12 | Bootstrap owner lewat env produksi | Tidak menambah halaman setup pasca-M4                  |
+| P5-13 | UI tetap mock                      | Integrasi frontend adalah Fase 7                       |
 
 ### Dampak ke dokumen lain
 
@@ -217,13 +217,13 @@ HTTP Request
 
 ### Aturan lapisan
 
-| Lapisan | Boleh | Tidak boleh |
-|---|---|---|
-| Route Handler | Baca request, validasi, panggil service, bentuk response | Query database, business rule kompleks |
-| Application Service | Orkestrasi, transaksi, aturan use case | Detail HTTP, akses `cookies()` langsung |
-| Repository | Query Drizzle, mapping row ke domain | Response HTTP, validasi request |
-| Domain/Shared | Tipe, error, aturan murni | Akses database, `next/headers` |
-| Infrastructure | Database, migration, seed, crypto | Komponen UI |
+| Lapisan             | Boleh                                                    | Tidak boleh                             |
+| ------------------- | -------------------------------------------------------- | --------------------------------------- |
+| Route Handler       | Baca request, validasi, panggil service, bentuk response | Query database, business rule kompleks  |
+| Application Service | Orkestrasi, transaksi, aturan use case                   | Detail HTTP, akses `cookies()` langsung |
+| Repository          | Query Drizzle, mapping row ke domain                     | Response HTTP, validasi request         |
+| Domain/Shared       | Tipe, error, aturan murni                                | Akses database, `next/headers`          |
+| Infrastructure      | Database, migration, seed, crypto                        | Komponen UI                             |
 
 ### Aturan server-only
 
@@ -341,78 +341,78 @@ vitest.config.ts
 
 #### `business`
 
-| Kolom | Tipe | Aturan |
-|---|---|---|
-| `id` | text | PK |
-| `name` | text | not null |
-| `code` | text | not null, unique |
-| `address` | text | not null, default `""` |
-| `phone` | text | not null, default `""` |
-| `created_at` | integer timestamp_ms | not null |
-| `updated_at` | integer timestamp_ms | not null |
+| Kolom        | Tipe                 | Aturan                 |
+| ------------ | -------------------- | ---------------------- |
+| `id`         | text                 | PK                     |
+| `name`       | text                 | not null               |
+| `code`       | text                 | not null, unique       |
+| `address`    | text                 | not null, default `""` |
+| `phone`      | text                 | not null, default `""` |
+| `created_at` | integer timestamp_ms | not null               |
+| `updated_at` | integer timestamp_ms | not null               |
 
 #### `roles`
 
-| Kolom | Tipe | Aturan |
-|---|---|---|
-| `id` | text | PK |
-| `business_id` | text | FK business, restrict |
-| `name` | text | not null |
-| `code` | text | not null |
-| `description` | text | not null, default `""` |
-| `is_system` | integer boolean | not null, default false |
-| `created_at` | integer timestamp_ms | not null |
-| `updated_at` | integer timestamp_ms | not null |
+| Kolom         | Tipe                 | Aturan                  |
+| ------------- | -------------------- | ----------------------- |
+| `id`          | text                 | PK                      |
+| `business_id` | text                 | FK business, restrict   |
+| `name`        | text                 | not null                |
+| `code`        | text                 | not null                |
+| `description` | text                 | not null, default `""`  |
+| `is_system`   | integer boolean      | not null, default false |
+| `created_at`  | integer timestamp_ms | not null                |
+| `updated_at`  | integer timestamp_ms | not null                |
 
 Unique: `(business_id, code)`.
 
 #### `permissions`
 
-| Kolom | Tipe | Aturan |
-|---|---|---|
-| `id` | text | PK |
-| `code` | text | not null, unique |
-| `label` | text | not null |
-| `group_name` | text | not null |
-| `created_at` | integer timestamp_ms | not null |
+| Kolom        | Tipe                 | Aturan           |
+| ------------ | -------------------- | ---------------- |
+| `id`         | text                 | PK               |
+| `code`       | text                 | not null, unique |
+| `label`      | text                 | not null         |
+| `group_name` | text                 | not null         |
+| `created_at` | integer timestamp_ms | not null         |
 
 #### `role_permissions`
 
-| Kolom | Tipe | Aturan |
-|---|---|---|
-| `role_id` | text | FK roles, cascade |
+| Kolom           | Tipe | Aturan                   |
+| --------------- | ---- | ------------------------ |
+| `role_id`       | text | FK roles, cascade        |
 | `permission_id` | text | FK permissions, restrict |
 
 PK: `(role_id, permission_id)`.
 
 #### `users`
 
-| Kolom | Tipe | Aturan |
-|---|---|---|
-| `id` | text | PK |
-| `business_id` | text | FK business, restrict |
-| `role_id` | text | FK roles, restrict |
-| `name` | text | not null |
-| `email` | text | not null, unique |
-| `username` | text | not null, unique |
-| `password_hash` | text | not null |
-| `is_active` | integer boolean | not null, default true |
-| `created_at` | integer timestamp_ms | not null |
-| `updated_at` | integer timestamp_ms | not null |
+| Kolom           | Tipe                 | Aturan                 |
+| --------------- | -------------------- | ---------------------- |
+| `id`            | text                 | PK                     |
+| `business_id`   | text                 | FK business, restrict  |
+| `role_id`       | text                 | FK roles, restrict     |
+| `name`          | text                 | not null               |
+| `email`         | text                 | not null, unique       |
+| `username`      | text                 | not null, unique       |
+| `password_hash` | text                 | not null               |
+| `is_active`     | integer boolean      | not null, default true |
+| `created_at`    | integer timestamp_ms | not null               |
+| `updated_at`    | integer timestamp_ms | not null               |
 
 Email dan username disimpan lowercase. Unique bersifat global karena satu
 bisnis per instalasi.
 
 #### `sessions`
 
-| Kolom | Tipe | Aturan |
-|---|---|---|
-| `id` | text | PK |
-| `user_id` | text | FK users, cascade |
-| `token_hash` | text | not null, unique |
-| `expires_at` | integer timestamp_ms | not null |
-| `created_at` | integer timestamp_ms | not null |
-| `revoked_at` | integer timestamp_ms | nullable |
+| Kolom        | Tipe                 | Aturan            |
+| ------------ | -------------------- | ----------------- |
+| `id`         | text                 | PK                |
+| `user_id`    | text                 | FK users, cascade |
+| `token_hash` | text                 | not null, unique  |
+| `expires_at` | integer timestamp_ms | not null          |
+| `created_at` | integer timestamp_ms | not null          |
+| `revoked_at` | integer timestamp_ms | nullable          |
 
 Index: `user_id`, `expires_at`.
 
@@ -420,73 +420,73 @@ Index: `user_id`, `expires_at`.
 
 #### `categories`
 
-| Kolom | Tipe | Aturan |
-|---|---|---|
-| `id` | text | PK |
-| `business_id` | text | FK business, restrict |
-| `name` | text | not null |
-| `description` | text | not null, default `""` |
-| `sort_order` | integer | not null, default 0 |
-| `is_active` | integer boolean | not null, default true |
-| `created_at` | integer timestamp_ms | not null |
-| `updated_at` | integer timestamp_ms | not null |
+| Kolom         | Tipe                 | Aturan                 |
+| ------------- | -------------------- | ---------------------- |
+| `id`          | text                 | PK                     |
+| `business_id` | text                 | FK business, restrict  |
+| `name`        | text                 | not null               |
+| `description` | text                 | not null, default `""` |
+| `sort_order`  | integer              | not null, default 0    |
+| `is_active`   | integer boolean      | not null, default true |
+| `created_at`  | integer timestamp_ms | not null               |
+| `updated_at`  | integer timestamp_ms | not null               |
 
 Index: `business_id`, `sort_order`.
 
 #### `products`
 
-| Kolom | Tipe | Aturan |
-|---|---|---|
-| `id` | text | PK |
-| `business_id` | text | FK business, restrict |
-| `category_id` | text | FK categories, restrict |
-| `name` | text | not null |
-| `description` | text | not null, default `""` |
-| `image_path` | text | nullable |
-| `base_price` | integer | not null, CHECK >= 0 |
-| `is_available` | integer boolean | not null, default true |
-| `is_active` | integer boolean | not null, default true |
-| `created_at` | integer timestamp_ms | not null |
-| `updated_at` | integer timestamp_ms | not null |
+| Kolom          | Tipe                 | Aturan                  |
+| -------------- | -------------------- | ----------------------- |
+| `id`           | text                 | PK                      |
+| `business_id`  | text                 | FK business, restrict   |
+| `category_id`  | text                 | FK categories, restrict |
+| `name`         | text                 | not null                |
+| `description`  | text                 | not null, default `""`  |
+| `image_path`   | text                 | nullable                |
+| `base_price`   | integer              | not null, CHECK >= 0    |
+| `is_available` | integer boolean      | not null, default true  |
+| `is_active`    | integer boolean      | not null, default true  |
+| `created_at`   | integer timestamp_ms | not null                |
+| `updated_at`   | integer timestamp_ms | not null                |
 
 Index: `business_id`, `category_id`.
 
 #### `product_variants`
 
-| Kolom | Tipe | Aturan |
-|---|---|---|
-| `id` | text | PK |
-| `product_id` | text | FK products, cascade |
-| `name` | text | not null |
-| `price_adjustment` | integer | not null, default 0 |
-| `is_active` | integer boolean | not null, default true |
+| Kolom              | Tipe            | Aturan                 |
+| ------------------ | --------------- | ---------------------- |
+| `id`               | text            | PK                     |
+| `product_id`       | text            | FK products, cascade   |
+| `name`             | text            | not null               |
+| `price_adjustment` | integer         | not null, default 0    |
+| `is_active`        | integer boolean | not null, default true |
 
 Unique: `(product_id, name)`.
 Index: `product_id`.
 
 #### `add_ons`
 
-| Kolom | Tipe | Aturan |
-|---|---|---|
-| `id` | text | PK |
-| `business_id` | text | FK business, restrict |
-| `name` | text | not null |
-| `price` | integer | not null, CHECK >= 0 |
-| `is_active` | integer boolean | not null, default true |
-| `created_at` | integer timestamp_ms | not null |
-| `updated_at` | integer timestamp_ms | not null |
+| Kolom         | Tipe                 | Aturan                 |
+| ------------- | -------------------- | ---------------------- |
+| `id`          | text                 | PK                     |
+| `business_id` | text                 | FK business, restrict  |
+| `name`        | text                 | not null               |
+| `price`       | integer              | not null, CHECK >= 0   |
+| `is_active`   | integer boolean      | not null, default true |
+| `created_at`  | integer timestamp_ms | not null               |
+| `updated_at`  | integer timestamp_ms | not null               |
 
 Index: `business_id`.
 
 #### `product_add_ons`
 
-| Kolom | Tipe | Aturan |
-|---|---|---|
-| `product_id` | text | FK products, cascade |
-| `add_on_id` | text | FK add_ons, restrict |
-| `is_required` | integer boolean | not null, default false |
-| `min_selection` | integer | not null, default 0 |
-| `max_selection` | integer | not null, default 1 |
+| Kolom           | Tipe            | Aturan                  |
+| --------------- | --------------- | ----------------------- |
+| `product_id`    | text            | FK products, cascade    |
+| `add_on_id`     | text            | FK add_ons, restrict    |
+| `is_required`   | integer boolean | not null, default false |
+| `min_selection` | integer         | not null, default 0     |
+| `max_selection` | integer         | not null, default 1     |
 
 PK: `(product_id, add_on_id)`.
 CHECK: `min_selection >= 0`, `max_selection >= 1`,
@@ -496,107 +496,108 @@ CHECK: `min_selection >= 0`, `max_selection >= 1`,
 
 #### `tables`
 
-| Kolom | Tipe | Aturan |
-|---|---|---|
-| `id` | text | PK |
-| `name` | text | not null, unique |
-| `status` | text enum | `AVAILABLE`, `OCCUPIED`, `INACTIVE` |
-| `qr_token_hash` | text | not null, unique |
-| `is_active` | integer boolean | not null, default true |
-| `created_at` | integer timestamp_ms | not null |
-| `updated_at` | integer timestamp_ms | not null |
+| Kolom           | Tipe                 | Aturan                              |
+| --------------- | -------------------- | ----------------------------------- |
+| `id`            | text                 | PK                                  |
+| `name`          | text                 | not null, unique                    |
+| `status`        | text enum            | `AVAILABLE`, `OCCUPIED`, `INACTIVE` |
+| `qr_token_hash` | text                 | not null, unique                    |
+| `is_active`     | integer boolean      | not null, default true              |
+| `created_at`    | integer timestamp_ms | not null                            |
+| `updated_at`    | integer timestamp_ms | not null                            |
 
 CHECK status.
 
 #### `orders`
 
-| Kolom | Tipe | Aturan |
-|---|---|---|
-| `id` | text | PK |
-| `business_id` | text | FK business, restrict |
-| `order_number` | text | not null, unique |
-| `order_type` | text enum | `DINE_IN`, `TAKEAWAY` |
-| `source` | text enum | `CASHIER`, `QR` |
-| `table_id` | text | FK tables, restrict, nullable |
-| `order_status` | text enum | `NEW`, `ACCEPTED`, `PREPARING`, `READY`, `COMPLETED`, `CANCELLED` |
-| `payment_status` | text enum | `UNPAID`, `PARTIALLY_PAID`, `PAID`, `REFUNDED` |
-| `public_token` | text | unique, nullable |
-| `subtotal` | integer | not null, default 0, CHECK >= 0 |
-| `discount_total` | integer | not null, default 0, CHECK >= 0 |
-| `grand_total` | integer | not null, default 0, CHECK >= 0 |
-| `notes` | text | not null, default `""` |
-| `created_by` | text | FK users, restrict, nullable |
-| `idempotency_key` | text | unique, nullable |
-| `completed_at` | integer timestamp_ms | nullable |
-| `cancelled_at` | integer timestamp_ms | nullable |
-| `created_at` | integer timestamp_ms | not null |
-| `updated_at` | integer timestamp_ms | not null |
+| Kolom             | Tipe                 | Aturan                                                            |
+| ----------------- | -------------------- | ----------------------------------------------------------------- |
+| `id`              | text                 | PK                                                                |
+| `business_id`     | text                 | FK business, restrict                                             |
+| `order_number`    | text                 | not null, unique                                                  |
+| `order_type`      | text enum            | `DINE_IN`, `TAKEAWAY`                                             |
+| `source`          | text enum            | `CASHIER`, `QR`                                                   |
+| `table_id`        | text                 | FK tables, restrict, nullable                                     |
+| `order_status`    | text enum            | `NEW`, `ACCEPTED`, `PREPARING`, `READY`, `COMPLETED`, `CANCELLED` |
+| `payment_status`  | text enum            | `UNPAID`, `PARTIALLY_PAID`, `PAID`, `REFUNDED`                    |
+| `public_token`    | text                 | unique, nullable                                                  |
+| `subtotal`        | integer              | not null, default 0, CHECK >= 0                                   |
+| `discount_total`  | integer              | not null, default 0, CHECK >= 0                                   |
+| `grand_total`     | integer              | not null, default 0, CHECK >= 0                                   |
+| `notes`           | text                 | not null, default `""`                                            |
+| `created_by`      | text                 | FK users, restrict, nullable                                      |
+| `idempotency_key` | text                 | unique, nullable                                                  |
+| `completed_at`    | integer timestamp_ms | nullable                                                          |
+| `cancelled_at`    | integer timestamp_ms | nullable                                                          |
+| `created_at`      | integer timestamp_ms | not null                                                          |
+| `updated_at`      | integer timestamp_ms | not null                                                          |
 
 Index: `business_id`, `created_at`, `order_status`, `payment_status`,
 `table_id`.
 
 CHECK tipe pesanan:
+
 - `DINE_IN` wajib memiliki `table_id`.
 - `TAKEAWAY` tidak boleh memiliki `table_id`.
 
 #### `order_items`
 
-| Kolom | Tipe | Aturan |
-|---|---|---|
-| `id` | text | PK |
-| `order_id` | text | FK orders, cascade |
-| `product_id` | text | FK products, restrict, nullable |
-| `product_name_snapshot` | text | not null |
-| `variant_name_snapshot` | text | nullable |
-| `quantity` | integer | not null, CHECK >= 1 |
-| `unit_price_snapshot` | integer | not null, CHECK >= 0 |
+| Kolom                   | Tipe    | Aturan                          |
+| ----------------------- | ------- | ------------------------------- |
+| `id`                    | text    | PK                              |
+| `order_id`              | text    | FK orders, cascade              |
+| `product_id`            | text    | FK products, restrict, nullable |
+| `product_name_snapshot` | text    | not null                        |
+| `variant_name_snapshot` | text    | nullable                        |
+| `quantity`              | integer | not null, CHECK >= 1            |
+| `unit_price_snapshot`   | integer | not null, CHECK >= 0            |
 | `add_on_total_snapshot` | integer | not null, default 0, CHECK >= 0 |
-| `line_total` | integer | not null, CHECK >= 0 |
-| `notes` | text | not null, default `""` |
+| `line_total`            | integer | not null, CHECK >= 0            |
+| `notes`                 | text    | not null, default `""`          |
 
 Index: `order_id`.
 
 #### `order_item_add_ons`
 
-| Kolom | Tipe | Aturan |
-|---|---|---|
-| `id` | text | PK |
-| `order_item_id` | text | FK order_items, cascade |
-| `add_on_id` | text | FK add_ons, restrict, nullable |
-| `add_on_name_snapshot` | text | not null |
-| `price_snapshot` | integer | not null, CHECK >= 0 |
-| `quantity` | integer | not null, default 1, CHECK >= 1 |
+| Kolom                  | Tipe    | Aturan                          |
+| ---------------------- | ------- | ------------------------------- |
+| `id`                   | text    | PK                              |
+| `order_item_id`        | text    | FK order_items, cascade         |
+| `add_on_id`            | text    | FK add_ons, restrict, nullable  |
+| `add_on_name_snapshot` | text    | not null                        |
+| `price_snapshot`       | integer | not null, CHECK >= 0            |
+| `quantity`             | integer | not null, default 1, CHECK >= 1 |
 
 Index: `order_item_id`.
 
 #### `payments`
 
-| Kolom | Tipe | Aturan |
-|---|---|---|
-| `id` | text | PK |
-| `order_id` | text | FK orders, restrict |
-| `method` | text enum | `CASH`, `QRIS`, `TRANSFER`, `E_WALLET` |
-| `amount` | integer | not null, CHECK > 0 |
-| `status` | text enum | `RECORDED`, `REFUNDED` |
-| `reference` | text | not null, default `""` |
-| `notes` | text | not null, default `""` |
-| `recorded_by` | text | FK users, restrict |
-| `paid_at` | integer timestamp_ms | not null |
-| `created_at` | integer timestamp_ms | not null |
+| Kolom         | Tipe                 | Aturan                                 |
+| ------------- | -------------------- | -------------------------------------- |
+| `id`          | text                 | PK                                     |
+| `order_id`    | text                 | FK orders, restrict                    |
+| `method`      | text enum            | `CASH`, `QRIS`, `TRANSFER`, `E_WALLET` |
+| `amount`      | integer              | not null, CHECK > 0                    |
+| `status`      | text enum            | `RECORDED`, `REFUNDED`                 |
+| `reference`   | text                 | not null, default `""`                 |
+| `notes`       | text                 | not null, default `""`                 |
+| `recorded_by` | text                 | FK users, restrict                     |
+| `paid_at`     | integer timestamp_ms | not null                               |
+| `created_at`  | integer timestamp_ms | not null                               |
 
 Index: `order_id`, `paid_at`.
 
 #### `order_status_history`
 
-| Kolom | Tipe | Aturan |
-|---|---|---|
-| `id` | text | PK |
-| `order_id` | text | FK orders, cascade |
-| `previous_status` | text enum | nullable |
-| `new_status` | text enum | not null |
-| `changed_by` | text | FK users, restrict, nullable |
-| `reason` | text | not null, default `""` |
-| `created_at` | integer timestamp_ms | not null |
+| Kolom             | Tipe                 | Aturan                       |
+| ----------------- | -------------------- | ---------------------------- |
+| `id`              | text                 | PK                           |
+| `order_id`        | text                 | FK orders, cascade           |
+| `previous_status` | text enum            | nullable                     |
+| `new_status`      | text enum            | not null                     |
+| `changed_by`      | text                 | FK users, restrict, nullable |
+| `reason`          | text                 | not null, default `""`       |
+| `created_at`      | integer timestamp_ms | not null                     |
 
 Index: `order_id`, `created_at`.
 
@@ -604,47 +605,47 @@ Index: `order_id`, `created_at`.
 
 #### `audit_logs`
 
-| Kolom | Tipe | Aturan |
-|---|---|---|
-| `id` | text | PK |
-| `business_id` | text | FK business, restrict |
-| `actor_user_id` | text | FK users, restrict, nullable |
-| `action` | text | not null |
-| `resource_type` | text | not null |
-| `resource_id` | text | not null |
-| `metadata` | text JSON | not null, default `{}` |
-| `created_at` | integer timestamp_ms | not null |
+| Kolom           | Tipe                 | Aturan                       |
+| --------------- | -------------------- | ---------------------------- |
+| `id`            | text                 | PK                           |
+| `business_id`   | text                 | FK business, restrict        |
+| `actor_user_id` | text                 | FK users, restrict, nullable |
+| `action`        | text                 | not null                     |
+| `resource_type` | text                 | not null                     |
+| `resource_id`   | text                 | not null                     |
+| `metadata`      | text JSON            | not null, default `{}`       |
+| `created_at`    | integer timestamp_ms | not null                     |
 
 Index: `business_id`, `created_at`, `(resource_type, resource_id)`.
 
 #### `licenses`
 
-| Kolom | Tipe | Aturan |
-|---|---|---|
-| `id` | text | PK |
-| `business_identifier` | text | not null |
-| `installation_id` | text | not null, unique |
-| `license_payload` | text | not null |
-| `issued_at` | integer timestamp_ms | not null |
-| `expires_at` | integer timestamp_ms | nullable |
-| `status` | text enum | `VALID`, `EXPIRING`, `INVALID` |
-| `signature` | text | not null |
-| `public_key_fingerprint` | text | not null |
-| `created_at` | integer timestamp_ms | not null |
-| `updated_at` | integer timestamp_ms | not null |
+| Kolom                    | Tipe                 | Aturan                         |
+| ------------------------ | -------------------- | ------------------------------ |
+| `id`                     | text                 | PK                             |
+| `business_identifier`    | text                 | not null                       |
+| `installation_id`        | text                 | not null, unique               |
+| `license_payload`        | text                 | not null                       |
+| `issued_at`              | integer timestamp_ms | not null                       |
+| `expires_at`             | integer timestamp_ms | nullable                       |
+| `status`                 | text enum            | `VALID`, `EXPIRING`, `INVALID` |
+| `signature`              | text                 | not null                       |
+| `public_key_fingerprint` | text                 | not null                       |
+| `created_at`             | integer timestamp_ms | not null                       |
+| `updated_at`             | integer timestamp_ms | not null                       |
 
 #### `backup_records`
 
-| Kolom | Tipe | Aturan |
-|---|---|---|
-| `id` | text | PK |
-| `file_name` | text | not null |
-| `file_path` | text | not null |
-| `file_size` | integer | not null, CHECK >= 0 |
-| `checksum` | text | not null |
-| `status` | text enum | `READY`, `IN_PROGRESS`, `FAILED` |
-| `created_by` | text | FK users, restrict |
-| `created_at` | integer timestamp_ms | not null |
+| Kolom        | Tipe                 | Aturan                           |
+| ------------ | -------------------- | -------------------------------- |
+| `id`         | text                 | PK                               |
+| `file_name`  | text                 | not null                         |
+| `file_path`  | text                 | not null                         |
+| `file_size`  | integer              | not null, CHECK >= 0             |
+| `checksum`   | text                 | not null                         |
+| `status`     | text enum            | `READY`, `IN_PROGRESS`, `FAILED` |
+| `created_by` | text                 | FK users, restrict               |
+| `created_at` | integer timestamp_ms | not null                         |
 
 Index: `created_at`.
 
@@ -885,11 +886,11 @@ role langsung berlaku tanpa menunggu login ulang.
 
 ### Default role
 
-| Role | Permission |
-|---|---|
-| OWNER | Semua permission |
+| Role    | Permission                                                                                                                                                                                 |
+| ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| OWNER   | Semua permission                                                                                                                                                                           |
 | CASHIER | `dashboard.view`, `business.view`, `categories.view`, `products.view`, `tables.view`, `tables.manage`, `orders.view`, `orders.create`, `orders.cancel`, `payments.view`, `payments.create` |
-| BARISTA | `categories.view`, `products.view`, `tables.view`, `orders.view`, `kds.view`, `kds.update_status` |
+| BARISTA | `categories.view`, `products.view`, `tables.view`, `orders.view`, `kds.view`, `kds.update_status`                                                                                          |
 
 ### Authorization
 
@@ -951,29 +952,29 @@ Gunakan RFC 9457 `application/problem+json`:
 
 Field:
 
-| Field | Wajib | Arti |
-|---|---|---|
-| `type` | Ya | URI masalah |
-| `title` | Ya | Ringkasan singkat |
-| `status` | Ya | HTTP status |
-| `detail` | Ya | Penjelasan aman |
-| `code` | Ya | Kode stabil untuk client |
-| `errors` | Tidak | Detail validasi |
+| Field    | Wajib | Arti                     |
+| -------- | ----- | ------------------------ |
+| `type`   | Ya    | URI masalah              |
+| `title`  | Ya    | Ringkasan singkat        |
+| `status` | Ya    | HTTP status              |
+| `detail` | Ya    | Penjelasan aman          |
+| `code`   | Ya    | Kode stabil untuk client |
+| `errors` | Tidak | Detail validasi          |
 
 ### Status code
 
-| Status | Penggunaan |
-|---|---|
-| 200 | Sukses dengan body |
-| 204 | Sukses tanpa body |
-| 400 | Validasi atau request salah |
-| 401 | Session tidak ada, expired, atau kredensial salah |
-| 403 | Permission atau origin ditolak |
-| 404 | Resource tidak ditemukan |
-| 409 | Konflik data |
-| 429 | Rate limit |
-| 500 | Error internal |
-| 503 | Database tidak siap |
+| Status | Penggunaan                                        |
+| ------ | ------------------------------------------------- |
+| 200    | Sukses dengan body                                |
+| 204    | Sukses tanpa body                                 |
+| 400    | Validasi atau request salah                       |
+| 401    | Session tidak ada, expired, atau kredensial salah |
+| 403    | Permission atau origin ditolak                    |
+| 404    | Resource tidak ditemukan                          |
+| 409    | Konflik data                                      |
+| 429    | Rate limit                                        |
+| 500    | Error internal                                    |
+| 503    | Database tidak siap                               |
 
 ### Header
 
@@ -1211,10 +1212,10 @@ phone: 021-000000
 
 ### User seed development
 
-| ID | Nama | Email | Username | Role | Password |
-|---|---|---|---|---|---|
-| `user-owner` | Rina Pemilik | `owner@ravika.id` | `owner` | OWNER | `demo123` |
-| `user-cashier` | Bagas Kasir | `cashier@ravika.id` | `cashier` | CASHIER | `demo123` |
+| ID             | Nama          | Email               | Username  | Role    | Password  |
+| -------------- | ------------- | ------------------- | --------- | ------- | --------- |
+| `user-owner`   | Rina Pemilik  | `owner@ravika.id`   | `owner`   | OWNER   | `demo123` |
+| `user-cashier` | Bagas Kasir   | `cashier@ravika.id` | `cashier` | CASHIER | `demo123` |
 | `user-barista` | Nadia Barista | `barista@ravika.id` | `barista` | BARISTA | `demo123` |
 
 Password di-hash saat seed. Jangan menyimpan plaintext.
@@ -1238,12 +1239,12 @@ Password di-hash saat seed. Jangan menyimpan plaintext.
 
 ### Repository
 
-| Repository | Tanggung jawab |
-|---|---|
-| `session.repository.ts` | create, find by token hash, revoke, revoke others |
-| `user.repository.ts` | find by identity/id, update password, count owner |
-| `permission.repository.ts` | list permissions by role, upsert registry |
-| `business.repository.ts` | get by id, update |
+| Repository                 | Tanggung jawab                                    |
+| -------------------------- | ------------------------------------------------- |
+| `session.repository.ts`    | create, find by token hash, revoke, revoke others |
+| `user.repository.ts`       | find by identity/id, update password, count owner |
+| `permission.repository.ts` | list permissions by role, upsert registry         |
+| `business.repository.ts`   | get by id, update                                 |
 
 Aturan:
 
@@ -1255,10 +1256,10 @@ Aturan:
 
 ### Application service
 
-| Service | Tanggung jawab |
-|---|---|
-| `auth.service.ts` | login, logout, me, change password, session validation |
-| `business.service.ts` | get dan update business |
+| Service               | Tanggung jawab                                         |
+| --------------------- | ------------------------------------------------------ |
+| `auth.service.ts`     | login, logout, me, change password, session validation |
+| `business.service.ts` | get dan update business                                |
 
 Aturan:
 
@@ -1291,14 +1292,14 @@ Jangan gunakan transaksi panjang untuk request read-only.
 
 ### Test wajib
 
-| File | Kasus |
-|---|---|
-| `tests/integration/database.test.ts` | migration dari kosong, tabel utama ada, foreign key aktif, seed idempotent |
-| `tests/integration/auth.test.ts` | login benar/salah, user nonaktif, session expired/revoked, logout, change password |
-| `tests/integration/rbac.test.ts` | owner/cashier/barista permission, 401/403 |
-| `tests/integration/business.test.ts` | get/update business, validasi, permission |
-| `tests/unit/password.test.ts` | hash dan verify, salt berbeda, format valid |
-| `tests/unit/problem-details.test.ts` | bentuk RFC 9457, status, code, validation errors |
+| File                                 | Kasus                                                                              |
+| ------------------------------------ | ---------------------------------------------------------------------------------- |
+| `tests/integration/database.test.ts` | migration dari kosong, tabel utama ada, foreign key aktif, seed idempotent         |
+| `tests/integration/auth.test.ts`     | login benar/salah, user nonaktif, session expired/revoked, logout, change password |
+| `tests/integration/rbac.test.ts`     | owner/cashier/barista permission, 401/403                                          |
+| `tests/integration/business.test.ts` | get/update business, validasi, permission                                          |
+| `tests/unit/password.test.ts`        | hash dan verify, salt berbeda, format valid                                        |
+| `tests/unit/problem-details.test.ts` | bentuk RFC 9457, status, code, validation errors                                   |
 
 ### Aturan test
 
@@ -1470,17 +1471,17 @@ pnpm db:generate
 
 ## 22. Risiko dan mitigasi
 
-| Risiko | Dampak | Mitigasi |
-|---|---|---|
-| `node:sqlite` atau Drizzle migrator tidak kompatibel | Fase 5 terhenti | Verifikasi Task 1 sebelum schema; fallback `drizzle-kit migrate` CLI |
-| Node 26.9.0 non-LTS | Risiko produksi | Catat di README; uji di mesin pilot |
-| Full schema berubah di Fase 6 | Migration tambahan | Migration additive; jangan edit migration lama |
-| Cookie Secure false di LAN HTTP | Session sniffing | Dokumentasikan; aktifkan HTTPS sebelum pilot |
-| Rate limit in-memory | Reset saat restart | `shortcut:` comment; ganti shared storage jika multi-process |
-| Bootstrap env salah | Owner tidak dibuat | Gagal cepat dengan pesan jelas; test bootstrap |
-| UI masih mock | Backend belum terasa di UI | Diharapkan; integrasi Fase 7 |
-| Refund belum ada | Order refund tidak bisa diproses | Tetap OPEN-008; jangan buat endpoint |
-| WAL dan backup file | Backup tidak konsisten | Tangani di Fase 6/8; dokumentasikan |
+| Risiko                                               | Dampak                           | Mitigasi                                                             |
+| ---------------------------------------------------- | -------------------------------- | -------------------------------------------------------------------- |
+| `node:sqlite` atau Drizzle migrator tidak kompatibel | Fase 5 terhenti                  | Verifikasi Task 1 sebelum schema; fallback `drizzle-kit migrate` CLI |
+| Node 26.9.0 non-LTS                                  | Risiko produksi                  | Catat di README; uji di mesin pilot                                  |
+| Full schema berubah di Fase 6                        | Migration tambahan               | Migration additive; jangan edit migration lama                       |
+| Cookie Secure false di LAN HTTP                      | Session sniffing                 | Dokumentasikan; aktifkan HTTPS sebelum pilot                         |
+| Rate limit in-memory                                 | Reset saat restart               | `shortcut:` comment; ganti shared storage jika multi-process         |
+| Bootstrap env salah                                  | Owner tidak dibuat               | Gagal cepat dengan pesan jelas; test bootstrap                       |
+| UI masih mock                                        | Backend belum terasa di UI       | Diharapkan; integrasi Fase 7                                         |
+| Refund belum ada                                     | Order refund tidak bisa diproses | Tetap OPEN-008; jangan buat endpoint                                 |
+| WAL dan backup file                                  | Backup tidak konsisten           | Tangani di Fase 6/8; dokumentasikan                                  |
 
 ## 23. Urutan implementasi
 
@@ -1669,21 +1670,21 @@ license.view
 
 ## Appendix C: Error code
 
-| Code | Status | Arti |
-|---|---|---|
-| `VALIDATION_FAILED` | 400 | Input tidak valid |
-| `AUTH_INVALID_CREDENTIALS` | 401 | Email/username/password salah |
-| `AUTH_SESSION_REQUIRED` | 401 | Session tidak ada |
-| `AUTH_SESSION_EXPIRED` | 401 | Session kedaluwarsa |
-| `AUTH_SESSION_REVOKED` | 401 | Session dicabut |
-| `AUTH_INVALID_CURRENT_PASSWORD` | 400 | Password saat ini salah |
-| `AUTH_FORBIDDEN` | 403 | Permission tidak cukup |
-| `ORIGIN_FORBIDDEN` | 403 | Origin mutasi tidak valid |
-| `RATE_LIMITED` | 429 | Terlalu banyak percobaan |
-| `BUSINESS_NOT_FOUND` | 404 | Bisnis tidak ditemukan |
-| `BUSINESS_CODE_CONFLICT` | 409 | Kode bisnis bentrok |
-| `DATABASE_UNAVAILABLE` | 503 | Database tidak siap |
-| `INTERNAL_ERROR` | 500 | Error internal |
+| Code                            | Status | Arti                          |
+| ------------------------------- | ------ | ----------------------------- |
+| `VALIDATION_FAILED`             | 400    | Input tidak valid             |
+| `AUTH_INVALID_CREDENTIALS`      | 401    | Email/username/password salah |
+| `AUTH_SESSION_REQUIRED`         | 401    | Session tidak ada             |
+| `AUTH_SESSION_EXPIRED`          | 401    | Session kedaluwarsa           |
+| `AUTH_SESSION_REVOKED`          | 401    | Session dicabut               |
+| `AUTH_INVALID_CURRENT_PASSWORD` | 400    | Password saat ini salah       |
+| `AUTH_FORBIDDEN`                | 403    | Permission tidak cukup        |
+| `ORIGIN_FORBIDDEN`              | 403    | Origin mutasi tidak valid     |
+| `RATE_LIMITED`                  | 429    | Terlalu banyak percobaan      |
+| `BUSINESS_NOT_FOUND`            | 404    | Bisnis tidak ditemukan        |
+| `BUSINESS_CODE_CONFLICT`        | 409    | Kode bisnis bentrok           |
+| `DATABASE_UNAVAILABLE`          | 503    | Database tidak siap           |
+| `INTERNAL_ERROR`                | 500    | Error internal                |
 
 ## Appendix D: Contoh request dan response
 
