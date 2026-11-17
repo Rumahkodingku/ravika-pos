@@ -271,7 +271,7 @@ export default function MenuPage() {
         value={query}
       />
 
-      <div className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1">
+      <div className="flex flex-wrap gap-1.5">
         {["Semua", ...activeCategories.map((item) => item.name)].map((item) => (
           <Button
             aria-pressed={category === item}

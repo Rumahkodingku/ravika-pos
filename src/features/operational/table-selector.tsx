@@ -8,20 +8,10 @@ import { Button } from "@/components/ui/button";
 import { Drawer } from "@/components/ui/drawer";
 import { useManagementStore } from "@/mocks/management/hooks";
 
-export function TableSelector({
-  onChange,
-  outletId,
-  value,
-}: {
-  onChange: (tableId: string | null) => void;
-  outletId: string;
-  value: string | null;
-}) {
+function useAvailableTables(outletId: string) {
   const tables = useManagementStore((state) => state.tables);
-  const orders = useManagementStore((state) => state.orders);
-  const [open, setOpen] = useState(false);
 
-  const availableTables = useMemo(
+  return useMemo(
     () =>
       tables
         .filter(
@@ -33,6 +23,95 @@ export function TableSelector({
         .sort((left, right) => left.name.localeCompare(right.name)),
     [outletId, tables],
   );
+}
+
+export function TablePickerDrawer({
+  onChange,
+  onOpenChange,
+  open,
+  outletId,
+  value,
+}: {
+  onChange: (tableId: string | null) => void;
+  onOpenChange: (open: boolean) => void;
+  open: boolean;
+  outletId: string;
+  value: string | null;
+}) {
+  const availableTables = useAvailableTables(outletId);
+  const orders = useManagementStore((state) => state.orders);
+
+  return (
+    <Drawer
+      description="Meja tersedia dan meja yang masih memiliki pesanan aktif."
+      onOpenChange={onOpenChange}
+      open={open}
+      side="bottom"
+      title="Pilih meja"
+    >
+      {availableTables.length === 0 ? (
+        <EmptyState
+          description="Belum ada meja aktif di outlet ini."
+          icon={Armchair}
+          title="Meja tidak tersedia"
+        />
+      ) : (
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+          {availableTables.map((table) => {
+            const activeCount = orders.filter(
+              (order) =>
+                order.tableId === table.id &&
+                ["NEW", "ACCEPTED", "PREPARING", "READY"].includes(
+                  order.orderStatus,
+                ),
+            ).length;
+
+            return (
+              <button
+                aria-pressed={value === table.id}
+                className="flex min-h-11 items-center justify-between gap-3 rounded-md border border-border bg-surface p-3 text-left transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
+                key={table.id}
+                onClick={() => {
+                  onChange(table.id);
+                  onOpenChange(false);
+                }}
+                type="button"
+              >
+                <span className="flex flex-col">
+                  <span className="text-body font-medium text-foreground">
+                    {table.name}
+                  </span>
+                  <span className="text-caption text-muted-foreground">
+                    {activeCount > 0
+                      ? `${activeCount} pesanan aktif`
+                      : "Belum ada pesanan aktif"}
+                  </span>
+                </span>
+                <Badge
+                  tone={table.status === "OCCUPIED" ? "warning" : "success"}
+                >
+                  {table.status === "OCCUPIED" ? "Terisi" : "Tersedia"}
+                </Badge>
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </Drawer>
+  );
+}
+
+export function TableSelector({
+  onChange,
+  outletId,
+  value,
+}: {
+  onChange: (tableId: string | null) => void;
+  outletId: string;
+  value: string | null;
+}) {
+  const availableTables = useAvailableTables(outletId);
+  const [open, setOpen] = useState(false);
   const selected = availableTables.find((table) => table.id === value) ?? null;
 
   return (
@@ -55,62 +134,13 @@ export function TableSelector({
         </span>
       </Button>
 
-      <Drawer
-        description="Meja tersedia dan meja yang masih memiliki pesanan aktif."
+      <TablePickerDrawer
+        onChange={onChange}
         onOpenChange={setOpen}
         open={open}
-        side="bottom"
-        title="Pilih meja"
-      >
-        {availableTables.length === 0 ? (
-          <EmptyState
-            description="Belum ada meja aktif di outlet ini."
-            icon={Armchair}
-            title="Meja tidak tersedia"
-          />
-        ) : (
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-            {availableTables.map((table) => {
-              const activeCount = orders.filter(
-                (order) =>
-                  order.tableId === table.id &&
-                  ["NEW", "ACCEPTED", "PREPARING", "READY"].includes(
-                    order.orderStatus,
-                  ),
-              ).length;
-
-              return (
-                <button
-                  aria-pressed={value === table.id}
-                  className="flex min-h-11 items-center justify-between gap-3 rounded-md border border-border bg-surface p-3 text-left transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
-                  key={table.id}
-                  onClick={() => {
-                    onChange(table.id);
-                    setOpen(false);
-                  }}
-                  type="button"
-                >
-                  <span className="flex flex-col">
-                    <span className="text-body font-medium text-foreground">
-                      {table.name}
-                    </span>
-                    <span className="text-caption text-muted-foreground">
-                      {activeCount > 0
-                        ? `${activeCount} pesanan aktif`
-                        : "Belum ada pesanan aktif"}
-                    </span>
-                  </span>
-                  <Badge
-                    tone={table.status === "OCCUPIED" ? "warning" : "success"}
-                  >
-                    {table.status === "OCCUPIED" ? "Terisi" : "Tersedia"}
-                  </Badge>
-                </button>
-              );
-            })}
-          </div>
-        )}
-      </Drawer>
+        outletId={outletId}
+        value={value}
+      />
     </>
   );
 }

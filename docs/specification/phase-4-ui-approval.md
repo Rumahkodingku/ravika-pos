@@ -85,6 +85,7 @@
     - [Komponen](#komponen)
     - [Data](#data)
   - [23. Riwayat issue awal](#23-riwayat-issue-awal)
+- [23.1 Issue register audit penuh](#231-issue-register-audit-penuh)
   - [24. Open items dan handoff ke Fase 5](#24-open-items-dan-handoff-ke-fase-5)
     - [Open items](#open-items)
     - [Handoff ke Fase 5](#handoff-ke-fase-5)
@@ -883,6 +884,7 @@ Known limitation berikut dicatat dan tidak dihitung sebagai issue UI:
 - Mock data reset saat reload.
 - BroadcastChannel memakai full-state sync, last-write-wins.
 - Dashboard queue refresh lewat navigasi atau filter, bukan live subscription.
+- Format tampilan input tanggal mengikuti locale browser, bukan locale aplikasi.
 - Issue yang membutuhkan perubahan arsitektur atau keputusan produk.
 - Issue yang membutuhkan backend.
 - Issue yang membutuhkan perubahan data model atau business flow.
@@ -1032,6 +1034,24 @@ Delapan issue awal sudah FIXED sebelum audit penuh.
 | P4-006 | P2        | Stepper   | Hanya status pertama yang berwarna                              | Warna per status, state tetap terbaca                                     | FIXED  | `1f414c7` |
 | P4-007 | P1        | Dashboard | Card Antrean persiapan hanya count, state terbalik, tanpa tiket | Card Antrean pesanan dengan warna status, empat tiket tertua, empty state | FIXED  | `bedb681` |
 | P4-008 | P2        | Drawer    | Bottom sheet terpotong `max-width` bawaan browser               | Tambah `max-w-none` pada side `bottom`                                    | FIXED  | `2077f14` |
+
+### 23.1 Issue register audit penuh
+
+| ID     | Prioritas | Area      | Masalah                                                                 | Perbaikan                                                                 | Status | Commit |
+| ------ | --------- | --------- | ----------------------------------------------------------------------- | ------------------------------------------------------------------------- | ------ | ------ |
+| P4-009 | P1        | Dashboard | Range `Hari ini` kosong karena tanggal dashboard fixed 16 Nov, order aktif memakai tanggal sekarang | Gunakan range tanggal sekarang dan date key yang konsisten                | OPEN   | -      |
+| P4-010 | P2        | Laporan   | Periode fixed 10-16 Nov, label memakai ISO mentah, input kustom kosong  | Gunakan range sekarang, format tanggal, isi default kustom                | OPEN   | -      |
+| P4-011 | P2        | Pembayaran | Toolbar filter inline membungkus tiga baris dan date input terpisah    | Pakai mode modal filter seperti Pesanan                                   | OPEN   | -      |
+| P4-012 | P2        | Pesanan   | Tabel 1024 sempit, nomor dan outlet membungkus                          | Tampilkan card sampai breakpoint xl                                       | OPEN   | -      |
+| P4-013 | P3        | Global    | Copy `Fase 2` sudah kedaluwarsa di beberapa halaman                     | Ganti dengan copy netral atau fase yang benar                             | OPEN   | -      |
+| P4-014 | P3        | POS/QR    | Chip kategori terpotong di 320 dan 1440                                 | Ganti scroll horizontal dengan wrap                                       | OPEN   | -      |
+| P4-015 | P3        | Customer  | Badge `Data contoh` membungkus dua baris di 320                         | Tambah `shrink-0` pada badge                                              | OPEN   | -      |
+| P4-016 | P3        | KDS       | Hint scroll hilang di 1024 padahal board masih scroll                   | Tampilkan hint sampai breakpoint 2xl                                      | OPEN   | -      |
+| P4-017 | P3        | Drawer    | Drawer kanan menyisakan celah 6px di 390                                | Full width di mobile, `max-w-sm` di desktop                               | OPEN   | -      |
+| P4-018 | P2        | POS       | Table picker terbuka di atas cart drawer                                | Tutup cart atau pindahkan table picker ke luar cart                       | OPEN   | -      |
+| P4-019 | P2        | Tables    | Cetak QR mencetak seluruh halaman                                       | Tambah print stylesheet yang hanya mencetak QR                            | OPEN   | -      |
+| P4-020 | P3        | Tables    | QR memakai localhost tanpa peringatan                                   | Tampilkan peringatan jika origin localhost                                | OPEN   | -      |
+| P4-021 | P3        | Laporan   | Periode tanpa transaksi menampilkan chart kosong dengan label Rupiah pecahan | Tampilkan empty state saat transactionCount 0                             | OPEN   | -      |
 
 ## 24. Open items dan handoff ke Fase 5
 

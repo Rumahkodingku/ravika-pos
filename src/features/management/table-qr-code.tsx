@@ -17,10 +17,15 @@ export function TableQrCode({
 }) {
   const { toast } = useToast();
   const [origin, setOrigin] = useState("");
+  const [isLocalhost, setIsLocalhost] = useState(false);
   const [printOpen, setPrintOpen] = useState(false);
 
   useEffect(() => {
     setOrigin(window.location.origin);
+    setIsLocalhost(
+      window.location.hostname === "localhost" ||
+        window.location.hostname === "127.0.0.1",
+    );
   }, []);
 
   const menuUrl = `${origin || ""}/menu/${token}`;
@@ -62,6 +67,12 @@ export function TableQrCode({
           <p className="max-w-xs break-all text-caption text-muted-foreground">
             {menuUrl}
           </p>
+          {isLocalhost ? (
+            <p className="max-w-xs text-caption font-medium text-warning-strong">
+              QR memakai localhost. Buka aplikasi lewat IP LAN agar bisa
+              dipindai dari ponsel.
+            </p>
+          ) : null}
         </div>
       </div>
       <div className="flex flex-wrap gap-2">
@@ -75,7 +86,6 @@ export function TableQrCode({
         </Button>
       </div>
 
-      {/* shortcut: prints the whole page until a print stylesheet exists. */}
       <Dialog
         description="Cetak QR ini dan letakkan di meja pelanggan."
         footer={
@@ -88,7 +98,7 @@ export function TableQrCode({
         open={printOpen}
         title="Pratinjau cetak QR"
       >
-        <div className="flex flex-col items-center gap-3">
+        <div className="print-qr flex flex-col items-center gap-3">
           <div className="rounded-md bg-white p-3">
             <QRCodeSVG
               bgColor="#ffffff"

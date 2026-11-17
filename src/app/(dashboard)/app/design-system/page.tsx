@@ -121,7 +121,7 @@ export default function DesignSystemPage() {
   return (
     <div className="flex flex-col gap-8">
       <PageHeader
-        actions={<Badge tone="info">Fase 2</Badge>}
+        actions={<Badge tone="info">Internal</Badge>}
         description="Pratinjau komponen, token, theme, dan state untuk QA internal."
         eyebrow="Frontend foundation"
         title="Design system"
@@ -447,7 +447,7 @@ export default function DesignSystemPage() {
       </Section>
 
       <Section
-        description="Pola tabel, QR, dan kontrol mock untuk QA Fase 2."
+        description="Pola tabel, QR, dan kontrol mock untuk QA internal."
         title="Pola management"
       >
         <div className="grid gap-4 xl:grid-cols-2">

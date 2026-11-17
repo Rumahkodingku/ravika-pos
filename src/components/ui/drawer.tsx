@@ -8,7 +8,7 @@ import { cn } from "@/lib/cn";
 const sideClasses = {
   left: "inset-y-0 left-0 right-auto m-0 h-dvh max-h-none w-full max-w-sm rounded-none border-y-0 border-l-0",
   right:
-    "inset-y-0 right-0 left-auto m-0 h-dvh max-h-none w-full max-w-sm rounded-none border-y-0 border-r-0",
+    "inset-y-0 right-0 left-auto m-0 h-dvh max-h-none w-full max-w-none rounded-none border-y-0 border-r-0 sm:max-w-sm",
   bottom:
     "inset-x-0 bottom-0 top-auto m-0 w-full max-w-none max-h-[85dvh] rounded-b-none rounded-t-xl border-x-0 border-b-0",
 };

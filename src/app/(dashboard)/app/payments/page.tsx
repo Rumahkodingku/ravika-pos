@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { DatePicker } from "@/components/ui/date-picker";
 import { Drawer } from "@/components/ui/drawer";
+import { Field } from "@/components/ui/field";
 import { PageHeader } from "@/components/ui/layout";
 import { Select } from "@/components/ui/select";
 import {
@@ -38,6 +39,22 @@ const methodLabels: Record<PaymentMethod, string> = {
   E_WALLET: "Dompet digital",
 };
 
+type PaymentFilters = {
+  method: string;
+  status: string;
+  outletId: string;
+  dateFrom: string;
+  dateTo: string;
+};
+
+const defaultPaymentFilters: PaymentFilters = {
+  method: "all",
+  status: "all",
+  outletId: "all",
+  dateFrom: "",
+  dateTo: "",
+};
+
 export default function PaymentsPage() {
   const { user } = useMockSession();
   const allOutlets = useManagementStore((state) => state.outlets);
@@ -47,11 +64,10 @@ export default function PaymentsPage() {
   const orders = useManagementStore((state) => state.orders);
   const users = useManagementStore((state) => state.users);
   const [search, setSearch] = useState("");
-  const [method, setMethod] = useState("all");
-  const [status, setStatus] = useState("all");
-  const [outletId, setOutletId] = useState("all");
-  const [dateFrom, setDateFrom] = useState("");
-  const [dateTo, setDateTo] = useState("");
+  const [filters, setFilters] = useState<PaymentFilters>(defaultPaymentFilters);
+  const [draftFilters, setDraftFilters] = useState<PaymentFilters>(
+    defaultPaymentFilters,
+  );
   const [page, setPage] = useState(1);
   const [selected, setSelected] = useState<Payment | null>(null);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
@@ -60,15 +76,15 @@ export default function PaymentsPage() {
     () =>
       managementService.listPayments({
         search,
-        method,
-        status,
-        outletId,
-        dateFrom,
-        dateTo,
+        method: filters.method,
+        status: filters.status,
+        outletId: filters.outletId,
+        dateFrom: filters.dateFrom,
+        dateTo: filters.dateTo,
         page,
         pageSize: 10,
       }),
-    JSON.stringify([search, method, status, outletId, dateFrom, dateTo, page]),
+    JSON.stringify([search, filters, page]),
   );
 
   const orderFor = (orderId: string) =>
@@ -78,100 +94,125 @@ export default function PaymentsPage() {
   const userName = (id: string) =>
     users.find((user) => user.id === id)?.name ?? "Tidak ada";
 
+  const activeFilterCount = [
+    filters.method !== defaultPaymentFilters.method,
+    filters.status !== defaultPaymentFilters.status,
+    filters.outletId !== defaultPaymentFilters.outletId,
+    filters.dateFrom !== defaultPaymentFilters.dateFrom,
+    filters.dateTo !== defaultPaymentFilters.dateTo,
+  ].filter(Boolean).length;
+
+  const resetFilters = () => {
+    setSearch("");
+    setFilters(defaultPaymentFilters);
+    setDraftFilters(defaultPaymentFilters);
+    setPage(1);
+  };
+
   return (
     <RequirePermission permission="payments.view">
       <div className="flex flex-col gap-6">
         <PageHeader
-          description="Pembayaran bersifat baca saja di Fase 2. Data simulasi."
+          description="Pembayaran bersifat baca saja. Data simulasi."
           title="Pembayaran"
         />
 
         <Card>
           <CardContent className="flex flex-col gap-3 p-3 sm:p-4">
             <DataTableToolbar
+              activeFilterCount={activeFilterCount}
+              filterDescription="Pilih metode, status, outlet, dan rentang tanggal."
+              filterMode="modal"
+              filterTitle="Filter pembayaran"
               filters={
-                <>
-                  <Select
-                    aria-label="Filter metode"
-                    className="w-40"
-                    onChange={(event) => {
-                      setMethod(event.target.value);
-                      setPage(1);
-                    }}
-                    value={method}
-                  >
-                    <option value="all">Semua metode</option>
-                    <option value="CASH">Tunai</option>
-                    <option value="QRIS">QRIS</option>
-                    <option value="TRANSFER">Transfer</option>
-                    <option value="E_WALLET">Dompet digital</option>
-                  </Select>
-                  <Select
-                    aria-label="Filter status pembayaran"
-                    className="w-40"
-                    onChange={(event) => {
-                      setStatus(event.target.value);
-                      setPage(1);
-                    }}
-                    value={status}
-                  >
-                    <option value="all">Semua status</option>
-                    <option value="RECORDED">Tercatat</option>
-                    <option value="REFUNDED">Dikembalikan</option>
-                  </Select>
-                  <Select
-                    aria-label="Filter outlet"
-                    className="w-48"
-                    onChange={(event) => {
-                      setOutletId(event.target.value);
-                      setPage(1);
-                    }}
-                    value={outletId}
-                  >
-                    <option value="all">Semua outlet</option>
-                    {outlets.map((outlet) => (
-                      <option key={outlet.id} value={outlet.id}>
-                        {outlet.name}
-                      </option>
-                    ))}
-                  </Select>
-                  <DatePicker
-                    aria-label="Tanggal mulai"
-                    className="w-40"
-                    onChange={(event) => {
-                      setDateFrom(event.target.value);
-                      setPage(1);
-                    }}
-                    value={dateFrom}
-                  />
-                  <DatePicker
-                    aria-label="Tanggal akhir"
-                    className="w-40"
-                    onChange={(event) => {
-                      setDateTo(event.target.value);
-                      setPage(1);
-                    }}
-                    value={dateTo}
-                  />
-                </>
+                <div className="flex flex-col gap-4">
+                  <Field htmlFor="payments-filter-method" label="Metode">
+                    <Select
+                      id="payments-filter-method"
+                      onChange={(event) =>
+                        setDraftFilters((current) => ({
+                          ...current,
+                          method: event.target.value,
+                        }))
+                      }
+                      value={draftFilters.method}
+                    >
+                      <option value="all">Semua metode</option>
+                      <option value="CASH">Tunai</option>
+                      <option value="QRIS">QRIS</option>
+                      <option value="TRANSFER">Transfer</option>
+                      <option value="E_WALLET">Dompet digital</option>
+                    </Select>
+                  </Field>
+                  <Field htmlFor="payments-filter-status" label="Status">
+                    <Select
+                      id="payments-filter-status"
+                      onChange={(event) =>
+                        setDraftFilters((current) => ({
+                          ...current,
+                          status: event.target.value,
+                        }))
+                      }
+                      value={draftFilters.status}
+                    >
+                      <option value="all">Semua status</option>
+                      <option value="RECORDED">Tercatat</option>
+                      <option value="REFUNDED">Dikembalikan</option>
+                    </Select>
+                  </Field>
+                  <Field htmlFor="payments-filter-outlet" label="Outlet">
+                    <Select
+                      id="payments-filter-outlet"
+                      onChange={(event) =>
+                        setDraftFilters((current) => ({
+                          ...current,
+                          outletId: event.target.value,
+                        }))
+                      }
+                      value={draftFilters.outletId}
+                    >
+                      <option value="all">Semua outlet</option>
+                      {outlets.map((outlet) => (
+                        <option key={outlet.id} value={outlet.id}>
+                          {outlet.name}
+                        </option>
+                      ))}
+                    </Select>
+                  </Field>
+                  <Field htmlFor="payments-filter-from" label="Tanggal mulai">
+                    <DatePicker
+                      id="payments-filter-from"
+                      onChange={(event) =>
+                        setDraftFilters((current) => ({
+                          ...current,
+                          dateFrom: event.target.value,
+                        }))
+                      }
+                      value={draftFilters.dateFrom}
+                    />
+                  </Field>
+                  <Field htmlFor="payments-filter-to" label="Tanggal akhir">
+                    <DatePicker
+                      id="payments-filter-to"
+                      onChange={(event) =>
+                        setDraftFilters((current) => ({
+                          ...current,
+                          dateTo: event.target.value,
+                        }))
+                      }
+                      value={draftFilters.dateTo}
+                    />
+                  </Field>
+                </div>
               }
-              hasActiveFilters={
-                search !== "" ||
-                method !== "all" ||
-                status !== "all" ||
-                outletId !== "all" ||
-                dateFrom !== "" ||
-                dateTo !== ""
-              }
-              onReset={() => {
-                setSearch("");
-                setMethod("all");
-                setStatus("all");
-                setOutletId("all");
-                setDateFrom("");
-                setDateTo("");
+              hasActiveFilters={activeFilterCount > 0}
+              onFilterApply={() => {
+                setFilters(draftFilters);
                 setPage(1);
               }}
+              onFilterOpen={() => setDraftFilters(filters)}
+              onFilterReset={() => setDraftFilters(defaultPaymentFilters)}
+              onReset={resetFilters}
               onSearchChange={(value) => {
                 setSearch(value);
                 setPage(1);
@@ -179,6 +220,7 @@ export default function PaymentsPage() {
               resultCount={data?.total ?? 0}
               search={search}
               searchPlaceholder="Cari nomor pesanan"
+              showResultCount={false}
             />
 
             {isLoading ? (
@@ -391,7 +433,7 @@ export default function PaymentsPage() {
                 Lihat detail pesanan
               </Button>
               <p className="rounded-md border border-border bg-surface-subtle px-3 py-2 text-caption text-muted-foreground">
-                Refund dan pencatatan pembayaran baru belum tersedia di Fase 2.
+                Refund dan pencatatan pembayaran baru belum tersedia.
               </p>
             </div>
           ) : null}

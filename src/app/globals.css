@@ -208,3 +208,29 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+@media print {
+  body:has(.print-qr) * {
+    visibility: hidden;
+  }
+
+  body:has(.print-qr) .print-qr,
+  body:has(.print-qr) .print-qr * {
+    visibility: visible;
+  }
+
+  body:has(.print-qr) .print-qr {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #fff;
+    color: #000;
+    padding: 24px;
+  }
+
+  body:has(.print-qr) dialog::backdrop {
+    display: none;
+  }
+}

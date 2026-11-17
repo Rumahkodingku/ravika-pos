@@ -474,7 +474,7 @@ export default function ProductsPage() {
                 Gambar contoh
               </span>
               <span className="text-caption text-muted-foreground">
-                Unggah gambar belum tersedia di Fase 2.
+                Unggah gambar belum tersedia.
               </span>
             </div>
           </div>

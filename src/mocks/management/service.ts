@@ -1,3 +1,4 @@
+import { formatDateKey } from "@/lib/format";
 import { consumeFailure, getLatency } from "@/mocks/management/controls";
 import { getState, setState } from "@/mocks/management/store";
 import type { Outlet } from "@/types/auth";
@@ -213,23 +214,28 @@ function getOrderPayments(orderId: string) {
   return getState().payments.filter((payment) => payment.orderId === orderId);
 }
 
-function getDateStart(range: string) {
-  const now = new Date("2026-11-16T23:59:59+07:00");
-  const start = new Date(now);
-
-  if (range === "7d") {
-    start.setDate(start.getDate() - 6);
-  } else if (range === "30d") {
-    start.setDate(start.getDate() - 29);
-  }
-
-  start.setHours(0, 0, 0, 0);
-  return start;
+function dateKeyOffset(daysAgo: number) {
+  const date = new Date(`${formatDateKey(new Date())}T12:00:00Z`);
+  date.setUTCDate(date.getUTCDate() - daysAgo);
+  return formatDateKey(date);
 }
 
-function inRange(iso: string, start: Date, end: Date) {
-  const time = new Date(iso).getTime();
-  return time >= start.getTime() && time <= end.getTime();
+function getRangeKeys(range: string) {
+  const to = dateKeyOffset(0);
+
+  if (range === "7d") {
+    return { from: dateKeyOffset(6), to };
+  }
+  if (range === "30d") {
+    return { from: dateKeyOffset(29), to };
+  }
+
+  return { from: to, to };
+}
+
+function inRange(iso: string, from: string, to: string) {
+  const key = formatDateKey(iso);
+  return key !== "" && key >= from && key <= to;
 }
 
 function sumPayments(orderIds: string[]) {
@@ -409,14 +415,14 @@ function buildTopProducts(orders: Order[]) {
 
 function buildTrend(orders: Order[]) {
   const labels = ["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"];
-  const now = new Date("2026-11-16T23:59:59+07:00");
+  const todayKey = formatDateKey(new Date());
 
   return Array.from({ length: 7 }, (_, index) => {
-    const date = new Date(now);
-    date.setDate(date.getDate() - (6 - index));
-    const key = date.toISOString().slice(0, 10);
+    const date = new Date(`${todayKey}T12:00:00Z`);
+    date.setUTCDate(date.getUTCDate() - (6 - index));
+    const key = formatDateKey(date);
     const value = orders
-      .filter((order) => order.createdAt.slice(0, 10) === key)
+      .filter((order) => formatDateKey(order.createdAt) === key)
       .reduce((total, order) => total + order.grandTotal, 0);
 
     return { label: labels[index], value };
@@ -427,15 +433,14 @@ function buildDashboard(params: {
   outletId?: string;
   range?: string;
 }): DashboardSummary {
-  const start = getDateStart(params.range ?? "today");
-  const end = new Date("2026-11-16T23:59:59+07:00");
+  const { from, to } = getRangeKeys(params.range ?? "today");
   const orders = getState().orders.filter(
     (order) =>
       (!params.outletId ||
         params.outletId === "all" ||
         order.outletId === params.outletId) &&
       order.orderStatus !== "CANCELLED" &&
-      inRange(order.createdAt, start, end),
+      inRange(order.createdAt, from, to),
   );
   const salesTotal = orders.reduce(
     (total, order) => total + order.grandTotal,
@@ -778,7 +783,7 @@ export const managementService = {
         throw new Error("Pesanan takeaway tidak memakai meja.");
       }
       if (input.source === "QR" && input.orderType !== "DINE_IN") {
-        throw new Error("Takeaway QR belum tersedia di Fase 3.");
+        throw new Error("Takeaway QR belum tersedia.");
       }
 
       let table: DiningTable | null = null;
@@ -1082,7 +1087,7 @@ export const managementService = {
         getOrderPayments(id).some((payment) => payment.status === "RECORDED")
       ) {
         throw new Error(
-          "Pesanan dengan pembayaran tercatat tidak dapat dibatalkan. Refund belum tersedia di Fase 3.",
+          "Pesanan dengan pembayaran tercatat tidak dapat dibatalkan. Refund belum tersedia.",
         );
       }
       if (!["NEW", "ACCEPTED", "PREPARING"].includes(order.orderStatus)) {
@@ -1344,16 +1349,15 @@ export const managementService = {
     dateTo?: string;
   }) =>
     respond(() => {
-      const dateFrom = params.dateFrom ?? "2026-11-10";
-      const dateTo = params.dateTo ?? "2026-11-16";
+      const dateFrom = params.dateFrom ?? dateKeyOffset(6);
+      const dateTo = params.dateTo ?? dateKeyOffset(0);
       const orders = getState().orders.filter(
         (order) =>
           order.orderStatus !== "CANCELLED" &&
           (!params.outletId ||
             params.outletId === "all" ||
             order.outletId === params.outletId) &&
-          order.createdAt.slice(0, 10) >= dateFrom &&
-          order.createdAt.slice(0, 10) <= dateTo,
+          inRange(order.createdAt, dateFrom, dateTo),
       );
       const salesTotal = orders.reduce(
         (total, order) => total + order.grandTotal,

@@ -145,7 +145,7 @@ export default function LicensePage() {
                   className="h-5 w-5 shrink-0 text-muted-foreground"
                 />
                 <p className="text-caption text-muted-foreground">
-                  Aktivasi dan unggah lisensi belum tersedia di Fase 2.
+                  Aktivasi dan unggah lisensi belum tersedia.
                 </p>
               </div>
             </CardContent>

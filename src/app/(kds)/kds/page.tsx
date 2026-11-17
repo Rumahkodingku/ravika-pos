@@ -220,7 +220,7 @@ export default function KdsPage() {
 
         <ServiceFlow steps={flowSteps} />
 
-        <p className="text-caption text-muted-foreground lg:hidden">
+        <p className="text-caption text-muted-foreground 2xl:hidden">
           Geser ke samping untuk melihat semua status.
         </p>
 
@@ -283,7 +283,7 @@ export default function KdsPage() {
         </div>
 
         <p className="text-caption text-muted-foreground">
-          Sinkronisasi mock antar tab. Tidak ada SSE nyata di Fase 3.
+          Sinkronisasi mock antar tab. Tidak ada SSE nyata.
         </p>
       </div>
     </RequirePermission>

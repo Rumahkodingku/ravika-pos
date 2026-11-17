@@ -24,6 +24,8 @@ import { RequirePermission } from "@/features/management/permission-gate";
 import {
   formatCompactCurrency,
   formatCurrency,
+  formatDate,
+  formatDateKey,
   formatDateTime,
   formatNumber,
 } from "@/lib/format";
@@ -31,18 +33,26 @@ import { useAsyncData, useManagementStore } from "@/mocks/management/hooks";
 import { managementService } from "@/mocks/management/service";
 
 function rangeDates(period: string, customFrom: string, customTo: string) {
+  const today = formatDateKey(new Date());
+  const daysAgo = (days: number) => {
+    const date = new Date(`${today}T12:00:00Z`);
+    date.setUTCDate(date.getUTCDate() - days);
+    return formatDateKey(date);
+  };
+  const fallback = { from: daysAgo(6), to: today };
+
   if (period === "today") {
-    return { from: "2026-11-16", to: "2026-11-16" };
+    return { from: today, to: today };
   }
   if (period === "7d") {
-    return { from: "2026-11-10", to: "2026-11-16" };
+    return fallback;
   }
   if (period === "30d") {
-    return { from: "2026-10-18", to: "2026-11-16" };
+    return { from: daysAgo(29), to: today };
   }
   return {
-    from: customFrom || "2026-11-10",
-    to: customTo || "2026-11-16",
+    from: customFrom || fallback.from,
+    to: customTo || fallback.to,
   };
 }
 
@@ -54,8 +64,10 @@ export default function ReportsPage() {
   );
   const [period, setPeriod] = useState("7d");
   const [outletId, setOutletId] = useState("all");
-  const [customFrom, setCustomFrom] = useState("");
-  const [customTo, setCustomTo] = useState("");
+  const [customFrom, setCustomFrom] = useState(
+    () => rangeDates("7d", "", "").from,
+  );
+  const [customTo, setCustomTo] = useState(() => rangeDates("7d", "", "").to);
   const dates = rangeDates(period, customFrom, customTo);
 
   const { data, error, isLoading, refresh } = useAsyncData(
@@ -123,7 +135,7 @@ export default function ReportsPage() {
               </>
             ) : null}
             <p className="text-caption text-muted-foreground">
-              Periode {dates.from} sampai {dates.to}.
+              Periode {formatDate(dates.from)} sampai {formatDate(dates.to)}.
             </p>
           </CardContent>
         </Card>
@@ -136,7 +148,13 @@ export default function ReportsPage() {
           </div>
         ) : error ? (
           <ErrorState onRetry={refresh} />
-        ) : !data ? null : (
+        ) : !data ? null : data.transactionCount === 0 ? (
+          <EmptyState
+            description="Belum ada transaksi pada periode dan outlet ini. Ubah filter untuk melihat data lain."
+            icon={BarChart3}
+            title="Belum ada transaksi"
+          />
+        ) : (
           <>
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
               <Card variant="stat">

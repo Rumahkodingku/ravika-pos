@@ -135,7 +135,7 @@ export default function PosPage() {
             />
           </div>
 
-          <div className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1 lg:hidden">
+          <div className="flex flex-wrap gap-1.5 lg:hidden">
             {["Semua", ...activeCategories.map((item) => item.name)].map(
               (item) => (
                 <Button

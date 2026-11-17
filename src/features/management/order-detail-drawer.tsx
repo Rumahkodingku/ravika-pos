@@ -320,7 +320,7 @@ export function OrderDetailDrawer({
               ) : (
                 <p className="rounded-md border border-border bg-surface-subtle px-3 py-2 text-caption text-muted-foreground">
                   {hasRecordedPayment
-                    ? "Pembayaran sudah tercatat. Refund belum tersedia di Fase 3."
+                    ? "Pembayaran sudah tercatat. Refund belum tersedia."
                     : "Pesanan dengan status ini tidak dapat dibatalkan dari management."}
                 </p>
               )}

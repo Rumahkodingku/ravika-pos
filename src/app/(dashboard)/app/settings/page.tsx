@@ -199,7 +199,7 @@ export default function SettingsPage() {
                     <Input disabled id="settings-currency" value="IDR" />
                   </Field>
                   <FieldDescription>
-                    Pajak, diskon, dan biaya layanan belum tersedia di Fase 2.
+                    Pajak, diskon, dan biaya layanan belum tersedia.
                   </FieldDescription>
                 </CardContent>
               </Card>

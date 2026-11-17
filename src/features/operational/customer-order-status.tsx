@@ -81,7 +81,9 @@ export function CustomerOrderStatus({ publicToken }: { publicToken: string }) {
             {formatDateTime(order.createdAt)}
           </p>
         </div>
-        <Badge tone="neutral">Data contoh</Badge>
+        <Badge className="shrink-0" tone="neutral">
+          Data contoh
+        </Badge>
       </div>
 
       <Card>

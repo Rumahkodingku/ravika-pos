@@ -1,6 +1,6 @@
 "use client";
 
-import { LogOut, ShoppingCart, Trash2, Wallet } from "lucide-react";
+import { Armchair, LogOut, ShoppingCart, Trash2, Wallet } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -26,7 +26,10 @@ import { OrderConfirmation } from "@/features/operational/order-confirmation";
 import { PosCheckoutDrawer } from "@/features/operational/pos-checkout-drawer";
 import { PosPayableOrderDrawer } from "@/features/operational/pos-payable-order-drawer";
 import { PosPaymentDrawer } from "@/features/operational/pos-payment-drawer";
-import { TableSelector } from "@/features/operational/table-selector";
+import {
+  TablePickerDrawer,
+  TableSelector,
+} from "@/features/operational/table-selector";
 import { cn } from "@/lib/cn";
 import { formatCurrency } from "@/lib/format";
 import { useManagementStore } from "@/mocks/management/hooks";
@@ -49,8 +52,18 @@ function CartHeader() {
   );
 }
 
-function CartControls({ outletId }: { outletId: string }) {
+function CartControls({
+  mode,
+  onOpenTablePicker,
+  outletId,
+}: {
+  mode: "panel" | "drawer";
+  onOpenTablePicker: () => void;
+  outletId: string;
+}) {
   const { orderType, setOrderType, setTableId, tableId } = usePosCart();
+  const tables = useManagementStore((state) => state.tables);
+  const selectedTable = tables.find((table) => table.id === tableId) ?? null;
 
   return (
     <>
@@ -85,11 +98,27 @@ function CartControls({ outletId }: { outletId: string }) {
       </div>
 
       {orderType === "DINE_IN" ? (
-        <TableSelector
-          onChange={setTableId}
-          outletId={outletId}
-          value={tableId}
-        />
+        mode === "drawer" ? (
+          <Button
+            className="w-full justify-between"
+            onClick={onOpenTablePicker}
+            variant="outline"
+          >
+            <span className="flex items-center gap-2">
+              <Armchair aria-hidden="true" className="h-4 w-4" />
+              Pilih meja
+            </span>
+            <span className="text-caption text-muted-foreground">
+              {selectedTable?.name ?? "Dine-in"}
+            </span>
+          </Button>
+        ) : (
+          <TableSelector
+            onChange={setTableId}
+            outletId={outletId}
+            value={tableId}
+          />
+        )
       ) : null}
     </>
   );
@@ -220,11 +249,13 @@ function CartPanel({
   idPrefix,
   mode,
   onCheckout,
+  onOpenTablePicker,
   outletId,
 }: {
   idPrefix: string;
   mode: "panel" | "drawer";
   onCheckout: () => void;
+  onOpenTablePicker: () => void;
   outletId: string;
 }) {
   return (
@@ -235,7 +266,11 @@ function CartPanel({
       )}
     >
       {mode === "panel" ? <CartHeader /> : null}
-      <CartControls outletId={outletId} />
+      <CartControls
+        mode={mode}
+        onOpenTablePicker={onOpenTablePicker}
+        outletId={outletId}
+      />
       <CartLines idPrefix={idPrefix} scroll={mode === "panel"} />
       {mode === "panel" ? (
         <div className="mt-auto border-t border-border pt-3">
@@ -261,9 +296,10 @@ function PosShellContent({
   onOutletChange: (outletId: string) => void;
   outlet: Outlet;
 }) {
-  const { clearCart, itemCount, subtotal } = usePosCart();
+  const { clearCart, itemCount, setTableId, subtotal, tableId } = usePosCart();
   const orders = useManagementStore((state) => state.orders);
   const [cartOpen, setCartOpen] = useState(false);
+  const [tablePickerOpen, setTablePickerOpen] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [createdOrder, setCreatedOrder] = useState<Order | null>(null);
   const [confirmationOpen, setConfirmationOpen] = useState(false);
@@ -371,6 +407,7 @@ function PosShellContent({
               idPrefix="pos-cart-desktop"
               mode="panel"
               onCheckout={() => setCheckoutOpen(true)}
+              onOpenTablePicker={() => setTablePickerOpen(true)}
               outletId={outlet.id}
             />
           </div>
@@ -418,9 +455,30 @@ function PosShellContent({
             setCartOpen(false);
             setCheckoutOpen(true);
           }}
+          onOpenTablePicker={() => {
+            setCartOpen(false);
+            setTablePickerOpen(true);
+          }}
           outletId={outlet.id}
         />
       </Drawer>
+
+      <TablePickerDrawer
+        onChange={(nextTableId) => {
+          setTableId(nextTableId);
+          setTablePickerOpen(false);
+          setCartOpen(true);
+        }}
+        onOpenChange={(open) => {
+          setTablePickerOpen(open);
+          if (!open) {
+            setCartOpen(true);
+          }
+        }}
+        open={tablePickerOpen}
+        outletId={outlet.id}
+        value={tableId}
+      />
 
       <PosCheckoutDrawer
         onCreated={(order) => {

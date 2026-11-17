@@ -92,6 +92,21 @@ export function formatDate(
   }).format(date);
 }
 
+export function formatDateKey(value: string | Date) {
+  const date = value instanceof Date ? value : new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: DEFAULT_TIME_ZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(date);
+}
+
 export function formatElapsed(
   value: string | Date | null | undefined,
   now: Date = new Date(),

@@ -13,8 +13,10 @@ type FilterMode = "inline" | "modal";
 
 export function DataTableToolbar({
   activeFilterCount = 0,
+  filterDescription = "Pilih outlet, status, dan rentang tanggal.",
   filters,
   filterMode = "inline",
+  filterTitle = "Filter pesanan",
   hasActiveFilters = false,
   onFilterApply,
   onFilterOpen,
@@ -27,8 +29,10 @@ export function DataTableToolbar({
   showResultCount = true,
 }: {
   activeFilterCount?: number;
+  filterDescription?: string;
   filters?: React.ReactNode;
   filterMode?: FilterMode;
+  filterTitle?: string;
   hasActiveFilters?: boolean;
   onFilterApply?: () => void;
   onFilterOpen?: () => void;
@@ -137,7 +141,7 @@ export function DataTableToolbar({
 
       {filters && filterMode === "modal" ? (
         <Dialog
-          description="Pilih outlet, status, dan rentang tanggal."
+          description={filterDescription}
           footer={
             <>
               {onFilterReset ? (
@@ -150,7 +154,7 @@ export function DataTableToolbar({
           }
           onOpenChange={setFilterOpen}
           open={filterOpen}
-          title="Filter pesanan"
+          title={filterTitle}
         >
           <div className="flex flex-col gap-4">{filters}</div>
         </Dialog>

@@ -34,6 +34,7 @@ import {
 import {
   formatCompactCurrency,
   formatCurrency,
+  formatDate,
   formatDateTime,
   formatElapsed,
   formatNumber,
@@ -86,7 +87,7 @@ export default function DashboardPage() {
             </>
           }
           description="Ringkasan operasional sesuai periode dan outlet."
-          eyebrow="16 November 2026"
+          eyebrow={formatDate(new Date())}
           title="Dashboard"
         />
 
