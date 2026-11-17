@@ -153,6 +153,7 @@ UI belum terhubung ke API sampai Fase 7. Login UI masih memakai sessionStorage d
 - `docs/specification/phase-4-ui-approval.md` — audit, issue register, dan approval M4
 - `docs/specification/phase-4-5-single-location-mvp.md` — penyelarasan satu lokasi
 - `docs/specification/phase-5-backend-foundation.md` — spec backend foundation Fase 5
+- `docs/specification/phase-6-backend-api-modules.md` — spec API modul Fase 6
 
 Baca PRD dan seluruh dokumen desain sebelum membuat halaman atau komponen baru.
 
