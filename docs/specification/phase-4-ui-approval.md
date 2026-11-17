@@ -5,7 +5,7 @@
 **Tanggal:** 16 November 2026
 **Audit dimulai:** 17 November 2026
 **Baseline audit:** `b4a5d60`
-**Baseline setelah fix:** `2822308`
+**Baseline setelah fix:** `d6c07b5`
 **Referensi utama:** `docs/PRD.md`, `docs/ROADMAP.md`, `docs/design/design-brief.md`, `docs/design/design-direction.md`, `docs/design/design-system.md`, `docs/design/ui-ux-guidelines.md`, `docs/specification/phase-2-management-ui.md`, `docs/specification/phase-3-operational-ui.md`
 
 ## Daftar isi
@@ -1051,10 +1051,16 @@ Delapan issue awal sudah FIXED sebelum audit penuh.
 | P4-016 | P3        | KDS       | Hint scroll hilang di 1024 padahal board masih scroll                   | Tampilkan hint sampai breakpoint 2xl                                      | FIXED  | `c82f293` |
 | P4-017 | P3        | Drawer    | Drawer kanan menyisakan celah 6px di 390                                | Full width di mobile, `max-w-sm` di desktop                               | FIXED  | `c82f293` |
 | P4-018 | P2        | POS       | Table picker terbuka di atas cart drawer                                | Tutup cart atau pindahkan table picker ke luar cart                       | FIXED  | `c82f293` |
-| P4-019 | P2        | Tables    | Cetak QR mencetak seluruh halaman                                       | Tambah print stylesheet yang hanya mencetak QR                            | FIXED  | `c82f293` |
+| P4-019 | P2        | Tables    | Cetak QR mencetak seluruh halaman                                       | Print stylesheet hanya mencetak QR; scope ke dialog terbuka                | FIXED  | `d6c07b5` |
 | P4-020 | P3        | Tables    | QR memakai localhost tanpa peringatan                                   | Tampilkan peringatan jika origin localhost                                | FIXED  | `c82f293` |
 | P4-021 | P3        | Laporan   | Periode tanpa transaksi menampilkan chart kosong dengan label Rupiah pecahan | Tampilkan empty state saat transactionCount 0                             | FIXED  | `c82f293` |
 | P4-022 | P3        | Dashboard/Laporan | Label grafik hardcoded Sen sampai Min meski rentang tanggal aktual | Turunkan label dari tanggal aktual | FIXED  | `2822308` |
+| P4-023 | P1        | Tables    | Aturan print `body:has(.print-qr)` ikut aktif saat dialog QR tertutup, halaman biasa tercetak kosong | Scope aturan ke `body:has(dialog[open] .print-qr)` | FIXED  | `d6c07b5` |
+| P4-024 | P2        | Tables    | Teks QR putih di atas putih saat cetak dari dark theme | Paksa `color: #000` pada isi `.print-qr` | FIXED  | `d6c07b5` |
+| P4-025 | P2        | Pesanan/Pembayaran | Reset modal hanya membersihkan draft; search aktif bertahan dan badge filter 0 | Reset modal memanggil reset penuh termasuk search | FIXED  | `d6c07b5` |
+| P4-026 | P2        | Laporan   | Rentang kustom menerima tanggal mulai setelah tanggal akhir | Validasi inline dan sembunyikan data saat rentang tidak valid | FIXED  | `d6c07b5` |
+| P4-027 | P2        | Pesanan/Pembayaran | Filter tanggal memakai slice UTC, order 00.00-06.59 Jakarta masuk hari sebelumnya | Pakai `formatDateKey` dengan zona waktu bisnis | FIXED  | `d6c07b5` |
+| P4-028 | P3        | Laporan   | Cabang empty state tabel penjualan tidak pernah tercapai | Hapus cabang mati | FIXED  | `d6c07b5` |
 
 ### 23.2 Hasil verifikasi audit penuh
 
@@ -1080,7 +1086,11 @@ Delapan issue awal sudah FIXED sebelum audit penuh.
 | Right drawer | Full width 390, max-w-sm pada desktop |
 | Table picker flow | Cart tertutup saat picker terbuka, Escape membuka cart kembali |
 | QR print | Hanya QR yang tercetak; halaman non-QR tetap normal |
+| QR print dark | Teks QR tetap hitam saat dicetak dari dark theme |
 | QR localhost warning | Tampil saat host localhost atau 127.0.0.1 |
+| Modal reset | Reset pada Pesanan dan Pembayaran membersihkan search dan filter |
+| Custom range invalid | Menampilkan pesan dan tidak merender data |
+| Date filter timezone | Pesanan hari ini tetap muncul pada filter tanggal Jakarta |
 | Empty state | Produk, pesanan, dan laporan |
 | Error state | Produk gagal dimuat, retry berhasil |
 | Keyboard | Focus ring terlihat, Escape menutup dialog, focus kembali ke trigger |
@@ -1092,10 +1102,10 @@ Delapan issue awal sudah FIXED sebelum audit penuh.
 ### Open items
 
 - Audit penuh selesai.
-- Issue P4-009 sampai P4-022 sudah FIXED.
+- Issue P4-009 sampai P4-028 sudah FIXED.
 - Known limitation menunggu persetujuan product owner.
 - Sign-off M4 belum dicatat.
-- Baseline setelah fix `2822308`; tag belum dibuat.
+- Baseline setelah fix `d6c07b5`; tag belum dibuat.
 
 ### Handoff ke Fase 5
 
