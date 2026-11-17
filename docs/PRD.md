@@ -45,10 +45,8 @@ pengembang, penguji, dan AI agent.
   Istilah                             Arti
   ----------------------------------- -----------------------------------
   Bisnis                              Entitas usaha yang menggunakan satu
-                                      lisensi RAVIKA POS.
-
-  Outlet                              Lokasi operasional milik satu
-                                      bisnis.
+                                      lisensi RAVIKA POS dan menjalankan
+                                      satu lokasi operasional.
 
   Kasir                               Pengguna yang membuat pesanan dan
                                       mencatat pembayaran.
@@ -205,7 +203,7 @@ terpisah. PRD ini tidak mengunci detail logo atau aset visual.
     lisensi.
 - Satu lisensi berlaku untuk satu bisnis.
 - Satu lisensi berlaku untuk satu instalasi produksi.
-- Satu bisnis dapat memiliki beberapa outlet.
+- Satu bisnis menjalankan satu lokasi operasional pada MVP.
 - Pelanggan mengelola server dan data pada infrastrukturnya sendiri.
 - Koneksi internet tidak diwajibkan untuk penggunaan operasional
     lokal.
@@ -295,8 +293,6 @@ permission, bukan hanya membandingkan nama role.
 
   Profil bisnis              Kelola   Lihat seperlunya              Tidak
 
-  Outlet                     Kelola Lihat outlet aktif Lihat outlet aktif
-
   Pengguna                   Kelola              Tidak              Tidak
 
   Role dan                   Kelola              Tidak              Tidak
@@ -315,7 +311,7 @@ permission, bukan hanya membandingkan nama role.
 
   Melihat                        Ya                 Ya Sesuai antrean KDS
   seluruh
-  pesanan outlet
+  pesanan
 
   Mencatat                       Ya                 Ya              Tidak
   pembayaran
@@ -359,8 +355,6 @@ Contoh kode permission:
 - `dashboard.view`
 - `business.view`
 - `business.update`
-- `outlets.view`
-- `outlets.manage`
 - `users.view`
 - `users.manage`
 - `roles.manage`
@@ -404,8 +398,8 @@ tindakan memiliki risiko yang berbeda.
                                                   permission, dan
                                                   otorisasi.
 
-  SCOPE-03                Bisnis dan outlet       Profil bisnis dan
-                                                  pengelolaan outlet.
+  SCOPE-03                Bisnis                  Profil bisnis dan
+                                                  preferensi operasional.
 
   SCOPE-04                Katalog                 Kategori, produk,
                                                   varian, add-on, dan
@@ -496,21 +490,19 @@ ditentukan sebelum fitur Service Worker diandalkan.
 ## 5.1 Alur pesanan melalui kasir
 
 1. Kasir login.
-2. Kasir memilih outlet aktif apabila memiliki akses ke lebih dari satu
-    outlet.
-3. Kasir membuka halaman POS.
-4. Kasir memilih tipe pesanan: dine-in atau takeaway.
-5. Untuk dine-in, kasir memilih meja.
-6. Kasir menambahkan produk.
-7. Kasir memilih varian dan add-on jika tersedia.
-8. Kasir memasukkan catatan item atau pesanan bila diperlukan.
-9. Sistem menghitung harga dan total di server.
-10. Kasir mengonfirmasi pesanan.
-11. Sistem membuat nomor pesanan dan menyimpan transaksi.
-12. Pesanan muncul di KDS.
-13. Kasir mencatat pembayaran sesuai metode yang diterima.
-14. Barista memproses pesanan.
-15. Pesanan diperbarui hingga selesai.
+2. Kasir membuka halaman POS.
+3. Kasir memilih tipe pesanan: dine-in atau takeaway.
+4. Untuk dine-in, kasir memilih meja.
+5. Kasir menambahkan produk.
+6. Kasir memilih varian dan add-on jika tersedia.
+7. Kasir memasukkan catatan item atau pesanan bila diperlukan.
+8. Sistem menghitung harga dan total di server.
+9. Kasir mengonfirmasi pesanan.
+10. Sistem membuat nomor pesanan dan menyimpan transaksi.
+11. Pesanan muncul di KDS.
+12. Kasir mencatat pembayaran sesuai metode yang diterima.
+13. Barista memproses pesanan.
+14. Pesanan diperbarui hingga selesai.
 
 ## 5.2 Alur QR ordering
 
@@ -519,7 +511,7 @@ ditentukan sebelum fitur Service Worker diandalkan.
 3. Pelanggan memindai QR Code.
 4. Browser membuka halaman menu publik.
 5. Server memvalidasi token QR.
-6. Sistem menampilkan outlet dan konteks meja.
+6. Sistem menampilkan nama bisnis dan konteks meja.
 7. Pelanggan memilih produk, varian, dan add-on.
 8. Pelanggan meninjau keranjang.
 9. Pelanggan mengirim pesanan.
@@ -565,7 +557,7 @@ pesanan.
 
 1. Barista login.
 2. Barista membuka KDS.
-3. KDS mengambil pesanan aktif dari outlet yang diizinkan.
+3. KDS mengambil seluruh pesanan aktif.
 4. Pesanan baru ditampilkan sebagai `NEW`.
 5. Barista menerima pesanan.
 6. Barista memulai persiapan.
@@ -677,7 +669,7 @@ pesanan.
 - **AC-RBAC-004** --- Customer publik tidak dapat mengakses endpoint
     internal.
 
-## 6.4 Bisnis dan outlet
+## 6.4 Bisnis
 
 ### Kebutuhan
 
@@ -685,26 +677,18 @@ pesanan.
     instalasi.
 - **FR-BIZ-002** --- Pemilik dapat memperbarui nama dan informasi
     dasar bisnis.
-- **FR-BIZ-003** --- Sistem mendukung beberapa outlet dalam satu
-    bisnis.
-- **FR-BIZ-004** --- Pemilik dapat membuat, memperbarui, dan
-    menonaktifkan outlet.
-- **FR-BIZ-005** --- Setiap data operasional yang relevan harus
-    terikat pada outlet.
-- **FR-BIZ-006** --- Pengguna hanya dapat mengakses outlet sesuai
-    penugasan atau permission.
-- **FR-BIZ-007** --- Sistem menyediakan pemilihan outlet aktif untuk
-    pengguna yang memiliki akses ke beberapa outlet.
-- **FR-BIZ-008** --- Operasional awal dapat dimulai dengan satu outlet
-    tanpa memerlukan konfigurasi kompleks.
+- **FR-BIZ-003** --- Bisnis menjalankan satu lokasi operasional pada
+    MVP.
+- **FR-BIZ-004** --- Data operasional terikat pada bisnis.
+- **FR-BIZ-005** --- Operasional dapat dimulai tanpa konfigurasi
+    lokasi tambahan.
 
 ### Kriteria penerimaan
 
-- **AC-BIZ-001** --- Data outlet tidak tercampur ketika pengguna
-    berpindah outlet.
-- **AC-BIZ-002** --- Pesanan selalu memiliki referensi outlet.
-- **AC-BIZ-003** --- Pengguna tidak dapat membaca data outlet yang
-    tidak diizinkan.
+- **AC-BIZ-001** --- Profil bisnis tampil konsisten di seluruh UI.
+- **AC-BIZ-002** --- Pesanan selalu memiliki referensi bisnis.
+- **AC-BIZ-003** --- Pengguna hanya dapat membaca data bisnis tempat
+    ia terdaftar.
 
 ## 6.5 Kategori dan produk
 
@@ -746,14 +730,13 @@ pesanan.
 
 ### Kebutuhan
 
-- **FR-TABLE-001** --- Pemilik dapat membuat meja pada outlet.
+- **FR-TABLE-001** --- Pemilik dapat membuat meja.
 - **FR-TABLE-002** --- Pemilik dapat memperbarui nama atau nomor meja.
 - **FR-TABLE-003** --- Pemilik dapat mengaktifkan atau menonaktifkan
     meja.
 - **FR-TABLE-004** --- Sistem menghasilkan token QR unik dan sulit
     ditebak untuk konteks meja.
-- **FR-TABLE-005** --- Sistem menghubungkan token QR dengan outlet dan
-    meja.
+- **FR-TABLE-005** --- Sistem menghubungkan token QR dengan meja.
 - **FR-TABLE-006** --- Sistem menyediakan QR Code yang dapat
     ditampilkan atau dicetak.
 - **FR-TABLE-007** --- Sistem dapat menonaktifkan atau mengganti token
@@ -768,8 +751,8 @@ pesanan.
 - **AC-TABLE-001** --- QR meja yang valid membuka menu dengan konteks
     meja yang benar.
 - **AC-TABLE-002** --- Token tidak valid atau dinonaktifkan ditolak.
-- **AC-TABLE-003** --- QR satu outlet tidak dapat membuat pesanan pada
-    outlet lain.
+- **AC-TABLE-003** --- QR hanya dapat membuat pesanan pada meja yang
+    terhubung dengan token tersebut.
 - **AC-TABLE-004** --- Penggantian token membuat token lama tidak lagi
     dapat digunakan.
 
@@ -830,8 +813,8 @@ pesanan.
 - **FR-QRO-002** --- Halaman menu dapat dibuka melalui browser tanpa
     instalasi aplikasi.
 - **FR-QRO-003** --- Pelanggan tidak diwajibkan membuat akun.
-- **FR-QRO-004** --- Halaman menampilkan outlet dan meja berdasarkan
-    token QR yang valid.
+- **FR-QRO-004** --- Halaman menampilkan nama bisnis dan meja
+    berdasarkan token QR yang valid.
 - **FR-QRO-005** --- Pelanggan dapat melihat kategori dan produk
     tersedia.
 - **FR-QRO-006** --- Pelanggan dapat memilih varian dan add-on.
@@ -839,7 +822,7 @@ pesanan.
     mengirim pesanan.
 - **FR-QRO-008** --- Pelanggan dapat mengirim pesanan.
 - **FR-QRO-009** --- Server memvalidasi ulang semua item, harga,
-    ketersediaan, outlet, dan meja.
+    ketersediaan, dan meja.
 - **FR-QRO-010** --- Pelanggan menerima nomor pesanan setelah pesanan
     berhasil tersimpan.
 - **FR-QRO-011** --- Sistem menyediakan tampilan status pesanan yang
@@ -933,7 +916,7 @@ pesanan.
 ### Kebutuhan
 
 - **FR-KDS-001** --- Sistem menyediakan tampilan KDS untuk barista.
-- **FR-KDS-002** --- KDS menampilkan pesanan aktif sesuai outlet dan
+- **FR-KDS-002** --- KDS menampilkan pesanan aktif sesuai
     permission.
 - **FR-KDS-003** --- KDS menampilkan nomor pesanan, waktu, tipe
     pesanan, meja jika ada, item, kuantitas, varian, add-on, dan
@@ -994,8 +977,7 @@ pesanan.
     tanggal.
 - **FR-REP-006** --- Sistem menyediakan daftar produk terlaris
     berdasarkan kuantitas terjual.
-- **FR-REP-007** --- Laporan dapat difilter berdasarkan outlet jika
-    pengguna memiliki akses.
+- **FR-REP-007** --- Laporan dapat difilter berdasarkan tanggal.
 - **FR-REP-008** --- Sistem membedakan pesanan dibatalkan dan
     transaksi yang menghasilkan penjualan.
 - **FR-REP-009** --- Definisi angka pendapatan harus konsisten dan
@@ -1012,7 +994,7 @@ pesanan.
 - Penjualan bersih: nilai penjualan setelah diskon dan pengembalian
     yang tercatat, jika mekanisme tersebut tersedia.
 - Produk terlaris: produk dengan kuantitas terjual tertinggi pada
-    rentang waktu dan outlet yang dipilih.
+    rentang waktu yang dipilih.
 
 Rumus akhir harus mengikuti skema transaksi yang diimplementasikan.
 Jangan menghitung pendapatan dari pesanan yang dibatalkan atau
@@ -1023,7 +1005,7 @@ pembayaran yang belum diterima tanpa label yang jelas.
 - **AC-REP-001** --- Ringkasan dashboard sesuai dengan data transaksi
     pada periode yang sama.
 - **AC-REP-002** --- Filter tanggal bekerja sesuai zona waktu bisnis.
-- **AC-REP-003** --- Data antar-outlet tidak tercampur.
+- **AC-REP-003** --- Data hanya berasal dari satu bisnis.
 - **AC-REP-004** --- Pesanan batal tidak dihitung sebagai penjualan
     sah.
 
@@ -1103,9 +1085,10 @@ Aturan berikut berlaku lintas modul.
 
 - **BR-001** --- Satu instalasi produksi hanya melayani satu bisnis
     berdasarkan lisensi.
-- **BR-002** --- Satu bisnis dapat memiliki beberapa outlet.
+- **BR-002** --- Satu bisnis menjalankan satu lokasi operasional pada
+    MVP.
 - **BR-003** --- Setiap transaksi operasional wajib memiliki konteks
-    outlet.
+    bisnis.
 - **BR-004** --- Customer tidak perlu memiliki akun untuk membuat
     pesanan QR.
 - **BR-005** --- Pesanan kasir dan QR menggunakan domain pesanan yang
@@ -1260,13 +1243,6 @@ Menyimpan identitas bisnis.
 Atribut konseptual: - id - name - business_code - address - phone -
 created_at - updated_at
 
-### Outlet
-
-Menyimpan lokasi operasional bisnis.
-
-Atribut konseptual: - id - business_id - name - code - address -
-is_active - created_at - updated_at
-
 ### User
 
 Menyimpan akun pengguna internal.
@@ -1329,12 +1305,12 @@ minimum_selection - maximum_selection
 
 ### DiningTable
 
-Atribut konseptual: - id - outlet_id - name - status - qr_token_hash
-atau referensi token aman - is_active - created_at - updated_at
+Atribut konseptual: - id - name - status - qr_token_hash atau referensi
+token aman - is_active - created_at - updated_at
 
 ### Order
 
-Atribut konseptual: - id - business_id - outlet_id - order_number -
+Atribut konseptual: - id - business_id - order_number -
 order_type - source - table_id nullable - order_status -
 payment_status - subtotal - discount_total - grand_total - notes -
 created_by nullable untuk pesanan publik - idempotency_key nullable -
@@ -1389,8 +1365,7 @@ checksum - status - created_by - created_at
 ## 9.2 Ketentuan integritas data
 
 - Semua relasi harus menggunakan foreign key yang sesuai.
-- Tabel operasional harus memiliki konteks bisnis dan/atau outlet yang
-    relevan.
+- Tabel operasional harus memiliki konteks bisnis yang relevan.
 - Harga disimpan sebagai integer satuan mata uang terkecil yang
     digunakan, misalnya rupiah tanpa pecahan, bukan floating point.
 - Waktu disimpan dalam format konsisten, disarankan UTC pada
@@ -1507,7 +1482,6 @@ Ketentuan:
 - `roles`
 - `permissions`
 - `businesses`
-- `outlets`
 - `categories`
 - `products`
 - `tables`
@@ -1541,7 +1515,6 @@ ravika-pos/
 │   │   ├── roles/
 │   │   ├── permissions/
 │   │   ├── businesses/
-│   │   ├── outlets/
 │   │   ├── categories/
 │   │   ├── products/
 │   │   ├── tables/
@@ -1588,7 +1561,6 @@ Contoh kelompok endpoint:
 /api/roles/*
 /api/permissions/*
 /api/business/*
-/api/outlets/*
 /api/categories/*
 /api/products/*
 /api/tables/*
@@ -1866,15 +1838,11 @@ GET    /api/permissions
 PUT    /api/roles/:id/permissions
 ```
 
-## 13.3 Bisnis dan outlet
+## 13.3 Bisnis
 
 ``` text
 GET    /api/business
 PATCH  /api/business
-GET    /api/outlets
-POST   /api/outlets
-GET    /api/outlets/:id
-PATCH  /api/outlets/:id
 ```
 
 ## 13.4 Katalog
@@ -1978,7 +1946,7 @@ Minimal menguji:
 - Pembayaran bertahap.
 - Pembatalan pesanan.
 - Pembaruan status KDS.
-- Pembatasan akses berdasarkan outlet.
+- Pembatasan akses berdasarkan bisnis.
 - Backup dan restore basis data.
 - Penolakan request tanpa permission.
 
@@ -2055,10 +2023,9 @@ teruji.
 
 **Hasil:** akses internal berjalan berdasarkan permission.
 
-## Fase 2 --- Bisnis, outlet, dan katalog
+## Fase 2 --- Bisnis dan katalog
 
 - Profil bisnis.
-- Outlet.
 - Kategori.
 - Produk.
 - Varian.
@@ -2128,7 +2095,6 @@ beberapa metode.
 - Status pesanan.
 - Produk terlaris.
 - Filter tanggal.
-- Filter outlet.
 
 **Hasil:** pemilik dapat memantau operasional dasar.
 
@@ -2245,8 +2211,8 @@ diam-diam.
 
   OPEN-004                Nomor pesanan           Gunakan nomor yang
                                                   mudah dibaca dan unik
-                                                  per outlet/periode
-                                                  sesuai kebijakan.
+                                                  per periode sesuai
+                                                  kebijakan.
 
   OPEN-005                Diskon                  MVP hanya mendukung
                                                   diskon sederhana jika
@@ -2320,7 +2286,7 @@ MVP dinyatakan selesai apabila seluruh kondisi berikut terpenuhi:
 - [ ] Akun OWNER dapat dibuat pada instalasi pertama.
 - [ ] Login, logout, sesi, dan RBAC berfungsi.
 - [ ] OWNER, CASHIER, dan BARISTA memiliki akses sesuai permission.
-- [ ] Bisnis dan outlet dapat dikelola.
+- [ ] Bisnis dapat dikelola.
 - [ ] Kategori, produk, varian, dan add-on dapat dikelola.
 - [ ] Meja dan QR Code dapat dikelola.
 - [ ] Kasir dapat membuat pesanan dine-in dan takeaway.

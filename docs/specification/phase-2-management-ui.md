@@ -40,7 +40,6 @@ Halaman yang termasuk:
 - Payments
 - Users
 - Roles dan Permissions
-- Outlets
 - Settings
 - Reports
 - License
@@ -99,8 +98,7 @@ Fase 2 tidak membuat POS, KDS, atau QR ordering penuh. Halaman operasional terse
 | Create/edit/detail | Drawer atau sheet |
 | QR meja | Placeholder, belum scannable |
 | Gambar produk | Placeholder netral, belum upload |
-| Settings | Profil bisnis, preferensi tampilan, ringkasan outlet |
-| Outlet CRUD | Halaman Outlets |
+| Settings | Profil bisnis dan preferensi tampilan |
 | Backend | Tidak ada |
 | Database | Tidak ada |
 | API/SSE | Tidak ada |
@@ -168,7 +166,6 @@ Grup permission:
 |---|---|
 | Dashboard | `dashboard.view` |
 | Business | `business.view`, `business.update` |
-| Outlets | `outlets.view`, `outlets.manage` |
 | Users | `users.view`, `users.manage` |
 | Roles | `roles.manage`, `permissions.manage` |
 | Categories | `categories.view`, `categories.manage` |
@@ -194,7 +191,6 @@ Page access:
 | Payments | Lihat | Lihat | Tidak |
 | Users | Kelola | Tidak | Tidak |
 | Roles | Kelola | Tidak | Tidak |
-| Outlets | Kelola | Lihat | Lihat |
 | Settings | Kelola | Tidak | Tidak |
 | Reports | Ya | Tidak | Tidak |
 | License | Lihat | Tidak | Tidak |
@@ -268,7 +264,6 @@ useAsyncData(loader, deps)
 Tipe minimal:
 
 - `Business`
-- `Outlet`
 - `Category`
 - `Product`
 - `ProductVariant`
@@ -320,7 +315,6 @@ type BaseListParams = {
   page?: number;
   pageSize?: number;
   search?: string;
-  outletId?: string;
   sortBy?: string;
   sortDir?: "asc" | "desc";
 };
@@ -369,10 +363,6 @@ managementService.setRolePermissions(id, permissionCodes)
 
 managementService.getBusiness()
 managementService.updateBusiness(input)
-managementService.listOutlets(params)
-managementService.createOutlet(input)
-managementService.updateOutlet(id, input)
-managementService.setOutletActive(id, active)
 
 managementService.getSalesReport(params)
 managementService.getLicense()
@@ -398,7 +388,6 @@ Route yang dipakai:
 | `/app/payments` | Payments |
 | `/app/users` | Users |
 | `/app/roles` | Roles dan Permissions |
-| `/app/outlets` | Outlets |
 | `/app/settings` | Settings |
 | `/app/reports` | Reports |
 | `/app/license` | License |
@@ -461,7 +450,6 @@ Tujuan: ringkasan operasional.
 Filter:
 
 - Periode: Hari ini, 7 hari, 30 hari.
-- Outlet: semua outlet yang diizinkan.
 
 Konten:
 
@@ -476,7 +464,7 @@ Konten:
 
 Data:
 
-- `getDashboard({ outletId, range })`.
+- `getDashboard({ range })`.
 - Angka dihitung dari seed orders dan payments.
 - Order CANCELLED tidak dihitung sebagai penjualan sah.
 - Label "Data simulasi".
@@ -562,7 +550,6 @@ Permission:
 
 List:
 
-- Filter outlet.
 - Filter status.
 - Search nama/nomor meja.
 - Mobile card grid.
@@ -570,7 +557,6 @@ List:
 Create/edit drawer:
 
 - Nama atau nomor meja.
-- Outlet.
 - Status: AVAILABLE, OCCUPIED, INACTIVE.
 - Aktif.
 
@@ -593,18 +579,17 @@ Permission:
 List:
 
 - Search nomor order.
-- Filter outlet.
 - Filter status pesanan.
 - Filter status pembayaran.
 - Filter tanggal.
 - Sort waktu.
 - Pagination.
-- Kolom: nomor, waktu, outlet, tipe, total, pembayaran, persiapan.
+- Kolom: nomor, waktu, tipe, total, pembayaran, persiapan.
 - Mobile card list.
 
 Detail drawer:
 
-- Nomor, waktu, outlet, tipe, meja.
+- Nomor, waktu, tipe, meja.
 - Item snapshot.
 - Varian dan add-on snapshot.
 - Catatan.
@@ -635,7 +620,6 @@ List:
 - Search order number.
 - Filter metode: CASH, QRIS, TRANSFER, E_WALLET.
 - Filter status pembayaran.
-- Filter outlet.
 - Filter tanggal.
 - Pagination.
 - Kolom: order, metode, nominal, status, waktu, dicatat oleh.
@@ -670,7 +654,6 @@ Create/edit drawer:
 - Nama.
 - Email atau username.
 - Role.
-- Outlet.
 - Aktif.
 - Password hanya untuk create, mock.
 
@@ -705,7 +688,7 @@ Create/edit drawer:
 
 Permission matrix:
 
-- Group: Dashboard, Business, Outlets, Users, Roles, Categories, Products, Tables, Orders, Payments, KDS, Reports, Backup, Settings, License.
+- Group: Dashboard, Business, Users, Roles, Categories, Products, Tables, Orders, Payments, KDS, Reports, Backup, Settings, License.
 - Checkbox per permission.
 - Select all per group.
 - Simpan ke mock store.
@@ -717,34 +700,7 @@ Permission:
 - `roles.manage`.
 - `permissions.manage`.
 
-### 7.10 Outlets
-
-List:
-
-- Search nama atau kode.
-- Filter status aktif.
-- Pagination.
-- Mobile card list.
-
-Create/edit drawer:
-
-- Nama.
-- Kode.
-- Alamat.
-- Aktif.
-
-Rules:
-
-- Kode outlet unik.
-- Outlet tidak bisa dihapus jika memiliki order. Gunakan nonaktif.
-- Outlet aktif muncul di outlet switcher.
-- Outlet context di shell memakai store.
-
-Permission:
-
-- `outlets.manage`.
-
-### 7.11 Settings
+### 7.10 Settings
 
 Tujuan: profil bisnis dan preferensi tampilan.
 
@@ -759,9 +715,6 @@ Sections:
    - Theme: light, dark, system.
    - Zona waktu: Asia/Jakarta, label "Nilai pilot, belum final (OPEN-003)".
    - Format mata uang: IDR, read-only.
-3. Ringkasan outlet:
-   - Jumlah outlet.
-   - Link ke `/app/outlets`.
 
 Tidak ada pajak, diskon, biaya layanan, atau field lain yang belum final.
 
@@ -774,7 +727,6 @@ Permission:
 Filter:
 
 - Periode: hari ini, 7 hari, 30 hari, custom.
-- Outlet.
 
 Konten:
 
@@ -959,18 +911,7 @@ const businessSchema = z.object({
 });
 ```
 
-### 9.3 Outlet
-
-```ts
-const outletSchema = z.object({
-  name: z.string().min(1),
-  code: z.string().min(2).max(10),
-  address: z.string().optional(),
-  isActive: z.boolean(),
-});
-```
-
-### 9.4 Category
+### 9.3 Category
 
 ```ts
 const categorySchema = z.object({
@@ -1001,7 +942,6 @@ const productSchema = z.object({
 ```ts
 const tableSchema = z.object({
   name: z.string().min(1),
-  outletId: z.string().min(1),
   status: z.enum(["AVAILABLE", "OCCUPIED", "INACTIVE"]),
   isActive: z.boolean(),
 });
@@ -1014,7 +954,6 @@ const userSchema = z.object({
   name: z.string().min(1),
   email: z.string().email(),
   role: z.enum(["OWNER", "CASHIER", "BARISTA"]),
-  outletIds: z.array(z.string()).min(1),
   isActive: z.boolean(),
 });
 ```
@@ -1063,12 +1002,7 @@ Validasi copy:
 - Alamat: Jakarta Selatan
 - Telepon: nomor contoh
 
-### 10.2 Outlets
-
-- RAVIKA Kemang, KMG, Jakarta Selatan.
-- RAVIKA Senopati, SNP, Jakarta Selatan.
-
-### 10.3 Categories
+### 10.2 Categories
 
 - Kopi
 - Non-kopi
@@ -1117,7 +1051,7 @@ Minimal 24 order:
 - CASHIER dan QR.
 - Status NEW, ACCEPTED, PREPARING, READY, COMPLETED, CANCELLED.
 - Payment UNPAID, PARTIALLY_PAID, PAID, REFUNDED.
-- Tersebar di 2 outlet dan 7 hari.
+- Tersebar di 7 hari.
 - Item snapshot dan add-on snapshot.
 
 ### 10.9 Payments
@@ -1224,7 +1158,6 @@ Contoh:
 | Payments | Lihat pembayaran |
 | Users | Tambah pengguna |
 | Roles | Simpan izin |
-| Outlets | Tambah outlet |
 | Reports | Terapkan filter |
 | Backup | Buat backup |
 | Restore | Pulihkan data |
@@ -1245,7 +1178,6 @@ Contoh:
 | Payments | Ya | Ya | Ya | Ya | Ya | Ya | Ya |
 | Users | Ya | Ya | Ya | Ya | Ya | Ya | Ya |
 | Roles | Ya | Ya | Ya | Ya | Ya | Ya | Ya |
-| Outlets | Ya | Ya | Ya | Ya | Ya | Ya | Ya |
 | Settings | Ya | Ya | Ya | Ya | Ya | Ya | Ya |
 | Reports | Ya | Ya | Ya | Ya | Ya | Ya | Ya |
 | License | Ya | Ya | Ya | Ya | Ya | Ya | Ya |
@@ -1259,7 +1191,7 @@ Fase 2 selesai jika:
 - Login mock, sessionStorage, guard, dan logout berfungsi.
 - Role landing benar.
 - Permission-aware nav dan action berfungsi.
-- Products, Categories, Tables, Users, Roles, Outlets, Business dapat CRUD simulasi.
+- Products, Categories, Tables, Users, Roles, dan Business dapat CRUD simulasi.
 - Orders dan Payments read-only dengan filter dan detail.
 - Orders dapat dibatalkan sesuai aturan mock.
 - Search, filter, sort, dan pagination berfungsi.
@@ -1312,10 +1244,9 @@ Sebelum handoff, laporkan PASS atau FAIL untuk:
 8. P2-07 Payments.
 9. P2-08 Users.
 10. P2-09 Roles dan Permissions.
-11. P2-10 Outlets.
-12. P2-11 Settings.
-13. P2-12 Reports.
-14. P2-13 License.
+11. P2-10 Settings.
+12. P2-11 Reports.
+13. P2-12 License.
 15. P2-14 Backup.
 16. P2-15 QA dan docs.
 
@@ -1367,7 +1298,6 @@ Diubah:
 - `src/app/(dashboard)/app/payments/page.tsx`
 - `src/app/(dashboard)/app/users/page.tsx`
 - `src/app/(dashboard)/app/roles/page.tsx`
-- `src/app/(dashboard)/app/outlets/page.tsx`
 - `src/app/(dashboard)/app/settings/page.tsx`
 - `src/app/(dashboard)/app/reports/page.tsx`
 - `src/app/(dashboard)/app/license/page.tsx`
@@ -1378,7 +1308,6 @@ Diubah:
 - `src/components/shells/kds-shell.tsx`
 - `src/mocks/navigation.ts`
 - `src/mocks/session.ts`
-- `src/mocks/outlets.ts`
 - `src/types/auth.ts`
 - `package.json`
 - `README.md`

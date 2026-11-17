@@ -462,7 +462,7 @@ Use restrained easing. Avoid animation that blocks input or delays transaction c
 ## 8. Data formatting
 
 - Currency: Indonesian Rupiah (`Rp`) using Indonesian locale conventions.
-- Date/time: use the business/outlet timezone configured by the product; do not hardcode a timezone in UI components.
+- Date/time: use the business timezone configured by the product; do not hardcode a timezone in UI components.
 - Quantities: display units consistently.
 - Large values: do not abbreviate monetary amounts if abbreviation could cause transaction ambiguity.
 - Order numbers: preserve exact identifiers returned by the system.

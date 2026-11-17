@@ -283,7 +283,7 @@ Owner.
     - Jumlah transaksi
     - Ringkasan status pesanan
     - Produk terlaris
-    - Filter tanggal dan outlet
+    - Filter tanggal
     - Grafik menggunakan data dummy
 3. **Products**
     - Daftar produk
@@ -311,14 +311,12 @@ Owner.
     - Detail role
     - Matriks permission
     - UI pengelolaan role dan permission dinamis
-8. **Outlets and Business Settings**
+8. **Business Settings**
     - Profil bisnis
-    - Daftar outlet
-    - Detail outlet
     - Pengaturan yang termasuk MVP
 9. **Reports**
     - Ringkasan laporan
-    - Filter periode dan outlet
+    - Filter periode
     - Tabel dan grafik laporan menggunakan data dummy
 10. **License and Backup UI**
     - Status lisensi
@@ -357,7 +355,7 @@ merupakan alur inti penggunaan produk.
 
 ### 3.1 Dedicated Cashier POS
 
-- [ ] Header dan informasi outlet.
+- [ ] Header dan informasi bisnis.
 - [ ] Kategori produk.
 - [ ] Product grid dan pencarian.
 - [ ] Product detail/variant/add-on selection.
@@ -387,7 +385,7 @@ merupakan alur inti penggunaan produk.
 ### 3.3 Customer QR Menu
 
 - [ ] Mobile-first menu.
-- [ ] Informasi bisnis/outlet.
+- [ ] Informasi bisnis.
 - [ ] Kategori dan daftar produk.
 - [ ] Detail produk, varian, dan add-on.
 - [ ] Cart pelanggan.
@@ -515,6 +513,32 @@ implementasi.
 
 ------------------------------------------------------------------------
 
+## Fase 4.5 --- Single-Location MVP
+
+**Status:** Selesai dan terverifikasi
+
+**Tujuan:** Menyelaraskan UI, data model, dan permission dengan model
+MVP satu bisnis dan satu lokasi operasional sebelum Fase 5.
+
+### Hasil
+
+- [x] Hapus modul lokasi tambahan dari UI dan navigasi.
+- [x] Hapus permission pengelolaan lokasi.
+- [x] Hapus field lokasi dari pesanan dan meja.
+- [x] Hapus penugasan lokasi dari pengguna.
+- [x] Gunakan profil bisnis sebagai identitas operasional.
+- [x] Gunakan prefix kode bisnis pada nomor pesanan.
+- [x] Perbarui PRD, dokumen desain, README, dan spec fase sebelumnya.
+- [x] Verifikasi build, route matrix, POS, KDS, QR, dan management.
+
+### Baseline
+
+- Baseline kode: `c33e473`
+- Tag: `phase-4-ui-approved-single-location`
+- Dokumen: `docs/specification/phase-4-5-single-location-mvp.md`
+
+------------------------------------------------------------------------
+
 ## Fase 5 --- Backend Foundation
 
 **Prasyarat:** Fase 4 telah mendapatkan UI approval.
@@ -540,7 +564,7 @@ produk dan UI yang telah disetujui.
 - [ ] Implementasikan RBAC dinamis berbasis database.
 - [ ] Terapkan authorization di server untuk setiap operasi yang
     dilindungi.
-- [ ] Terapkan business/outlet ownership boundary.
+- [ ] Terapkan business ownership boundary.
 - [ ] Siapkan logging dan error handling.
 - [ ] Siapkan transaction strategy dan SQLite operational settings.
 - [ ] Siapkan seed data untuk development dan pengujian.
@@ -582,12 +606,10 @@ bertahap.
 Urutan berikut merupakan urutan dependency yang disarankan. Sesuaikan
 jika hasil finalisasi domain menunjukkan dependency berbeda.
 
-### 6.1 Business and Outlet
+### 6.1 Business
 
 - [ ] Profil business.
-- [ ] Outlet management.
-- [ ] Konteks outlet aktif.
-- [ ] Validasi batas data business/outlet.
+- [ ] Validasi batas data business.
 
 ### 6.2 Users, Roles, and Permissions
 
@@ -613,7 +635,7 @@ jika hasil finalisasi domain menunjukkan dependency berbeda.
 - [ ] Table CRUD.
 - [ ] Table status.
 - [ ] Pembuatan dan validasi token QR yang tidak mudah ditebak.
-- [ ] Validasi konteks outlet dan token saat QR ordering.
+- [ ] Validasi token saat QR ordering.
 
 ### 6.5 Orders
 
@@ -648,7 +670,7 @@ jika hasil finalisasi domain menunjukkan dependency berbeda.
 - [ ] Jumlah transaksi.
 - [ ] Ringkasan status order.
 - [ ] Produk terlaris.
-- [ ] Filter periode dan outlet.
+- [ ] Filter periode.
 - [ ] Validasi konsistensi perhitungan laporan.
 
 ### 6.9 License and Backup
@@ -687,7 +709,7 @@ Lakukan integrasi per modul, bukan mengganti seluruh aplikasi sekaligus.
 Urutan yang disarankan:
 
 1. Authentication dan session.
-2. Business/outlet context.
+2. Business context.
 3. Users, roles, dan permissions.
 4. Categories dan products.
 5. Tables dan QR token.
@@ -743,7 +765,7 @@ lingkungan usaha lokal.
 - [ ] Playwright E2E untuk alur Cashier.
 - [ ] Playwright E2E untuk alur Barista/KDS.
 - [ ] Playwright E2E untuk customer QR ordering.
-- [ ] Pengujian permission dan akses lintas outlet.
+- [ ] Pengujian permission dan akses bisnis.
 - [ ] Pengujian pembayaran parsial dan status pembayaran.
 - [ ] Pengujian pembatalan dan transisi status order.
 - [ ] Pengujian reconnect SSE.

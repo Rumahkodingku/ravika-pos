@@ -159,7 +159,6 @@ Hanya memperbaiki spacing dan warna. Struktur dashboard tetap generik dan masala
 - Quick links masih 6 item dan belum dikelompokkan dengan jelas.
 - Menu dropdown kecil tidak cukup untuk 14 destinasi.
 - Mobile navigation masih drawer kiri sederhana.
-- Outlet switcher masih memakai native select.
 
 ## 6. Token dan warna
 
@@ -336,7 +335,7 @@ Gunakan deskripsi grup:
 | Ringkasan   | Ringkasan operasional hari ini          |
 | Operasional | Alur pesanan, POS, KDS, dan meja        |
 | Katalog     | Menu, kategori, dan ketersediaan produk |
-| Bisnis      | Outlet, pengguna, dan akses             |
+| Bisnis      | Pengguna dan akses                      |
 | Analitik    | Laporan penjualan dan performa produk   |
 | Sistem      | Pengaturan, backup, dan lisensi         |
 
@@ -351,7 +350,6 @@ Gunakan deskripsi grup:
 | Meja         | Kelola meja dan QR ordering                   |
 | Produk       | Atur menu, harga, varian, dan add-on          |
 | Kategori     | Susun kategori untuk menu pelanggan           |
-| Outlet       | Kelola lokasi dan konteks operasional         |
 | Pengguna     | Atur akses staf dan status akun               |
 | Peran & Izin | Tentukan izin untuk setiap peran              |
 | Laporan      | Lihat penjualan dan produk terlaris           |
@@ -366,7 +364,7 @@ Gunakan deskripsi grup:
 Topbar:
 
 ```text
-[RAVIKA POS] [Dashboard] [Pesanan] [POS] [KDS]     [Outlet] [Theme] [User] [Menu]
+[RAVIKA POS] [Dashboard] [Pesanan] [POS] [KDS]     [Theme] [User] [Menu]
 ```
 
 - Quick links maksimal 4.
@@ -383,9 +381,8 @@ Panel:
 | Dashboard              Produk                Laporan             Buat pesanan  |
 |                        Kategori                                 Buka KDS      |
 | Operasional            Bisnis                                  Tambah produk  |
-| Pesanan                Outlet                                   Design system  |
-| POS                    Pengguna                                                 |
-| KDS                    Peran & Izin          Sistem                            |
+| Pesanan                Pengguna                                 Design system  |
+| POS                    Peran & Izin          Sistem                            |
 | Meja                                         Pengaturan                          |
 |                                              Backup                              |
 |                                              Lisensi                             |
@@ -503,20 +500,9 @@ Jika user tidak punya akses ke menu apa pun:
 - Tanpa backdrop blur.
 - Brand kiri: wordmark RAVIKA dan label POS.
 - Quick links tengah.
-- Kanan: outlet switcher, theme toggle, user menu, menu trigger.
+- Kanan: theme toggle, user menu, menu trigger.
 
-### 10.2 Outlet switcher
-
-Ganti native select dengan dropdown:
-
-- Trigger: icon Store, nama outlet, ChevronDown.
-- Menu: daftar outlet yang diizinkan.
-- Item aktif: checkmark dan background muted.
-- `aria-haspopup="menu"` dan `aria-expanded`.
-- Keyboard arrow, Escape, Enter.
-- Jika hanya satu outlet, tetap tampil tetapi tidak membuka menu kosong. Tampilkan label outlet dan status "Hanya satu outlet" di tooltip.
-
-### 10.3 User menu
+### 10.2 User menu
 
 Isi:
 
@@ -580,7 +566,6 @@ Recent orders
 - Badge kecil: "Data simulasi".
 - Primary action: "Buat pesanan" menuju `/app/pos`.
 - Hapus eyebrow uppercase "RAVIKA Kemang".
-- Outlet context sudah ada di topbar.
 
 ### 11.3 Penjualan hari ini
 
@@ -649,7 +634,7 @@ Jangan memakai chart tambahan jika daftar lebih jelas.
 Desktop:
 
 - Table.
-- Kolom: Nomor, Waktu, Outlet, Total, Pembayaran, Persiapan.
+- Kolom: Nomor, Waktu, Total, Pembayaran, Persiapan.
 - Numeric alignment.
 - StatusBadge terpisah.
 - Row hover hanya jika row interactive.
@@ -683,7 +668,6 @@ Mobile:
 ### 12.2 Header
 
 - Wordmark.
-- Outlet.
 - Kasir.
 - Connection indicator.
 - Cart button mobile.
@@ -739,7 +723,6 @@ Mobile:
 
 - Dark solid.
 - Brand.
-- Outlet.
 - Connection indicator.
 - Theme toggle.
 - Exit.
@@ -787,7 +770,6 @@ Horizontal di atas board:
 ### 14.1 Header
 
 - Brand.
-- Outlet.
 - Meja atau tipe pesanan.
 - Link "Lihat pesanan" jika tersedia.
 - Tanpa account.
@@ -918,7 +900,7 @@ Tujuan halaman ini adalah QA internal, bukan produk. Jangan tampilkan di dashboa
 - Hapus eyebrow uppercase.
 - Tambah context line sentence case.
 - Title, description, actions.
-- Context line dapat berisi tanggal atau outlet.
+- Context line dapat berisi tanggal.
 - Actions maksimal dua.
 
 ### 17.5 Table
@@ -978,15 +960,7 @@ Tujuan halaman ini adalah QA internal, bukan produk. Jangan tampilkan di dashboa
 - Body scroll lock.
 - 1 kolom di mobile, 2 kolom di tablet.
 
-### 17.11 OutletSwitcher
-
-- Dropdown.
-- Checkmark item aktif.
-- Keyboard navigable.
-- Accessible name.
-- Satu outlet tetap tampil.
-
-### 17.12 ServiceFlow
+### 17.11 ServiceFlow
 
 - Horizontal dan vertical.
 - State: complete, current, upcoming, cancelled.
@@ -1124,7 +1098,6 @@ Baru:
 
 - `src/components/ui/mega-menu.tsx`
 - `src/components/ui/mobile-menu-sheet.tsx`
-- `src/components/ui/outlet-switcher.tsx`
 - `src/components/ui/service-flow.tsx`
 - `src/components/ui/product-card.tsx`
 - `src/components/ui/order-ticket.tsx`
@@ -1179,7 +1152,6 @@ Diubah:
 - Update types dan mock navigation.
 - Buat MegaMenu.
 - Buat MobileMenuSheet.
-- Buat OutletSwitcher.
 - Refactor ManagementShell.
 - Verifikasi keyboard dan mobile.
 

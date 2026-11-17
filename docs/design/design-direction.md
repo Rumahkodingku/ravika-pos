@@ -163,7 +163,6 @@ Use simple, restrained illustrations only when they help explain why a list is e
 - Topbar-first navigation.
 - Brand at left.
 - Primary navigation grouped by task.
-- Outlet context selector when relevant.
 - Utility actions and user menu at right.
 - Content area uses a consistent max-width strategy; data-heavy pages may use available width.
 - Breadcrumbs only where hierarchy is meaningful.
@@ -171,7 +170,7 @@ Use simple, restrained illustrations only when they help explain why a list is e
 ### 8.2 Dedicated POS
 
 - Separate operational shell.
-- Compact header with business/outlet and cashier context.
+- Compact header with business and cashier context.
 - Product discovery area as the main workspace.
 - Cart/order summary persistently visible on desktop.
 - Checkout action visually prominent.
@@ -190,7 +189,7 @@ Use simple, restrained illustrations only when they help explain why a list is e
 ### 8.4 Customer QR Menu
 
 - Mobile-first page.
-- Business identity and outlet context at top.
+- Business identity at top.
 - Search and category navigation accessible.
 - Product cards prioritize name, price, availability, and add action.
 - Cart summary remains easy to reach.
@@ -236,11 +235,11 @@ Honor reduced-motion preferences.
 
 ### Owner dashboard
 
-Prioritize business overview, outlet/date context, sales, transaction count, order status, top products, and recent transactions. Avoid filling the first viewport with unrelated widgets.
+Prioritize business overview, date context, sales, transaction count, order status, top products, and recent transactions. Avoid filling the first viewport with unrelated widgets.
 
 ### Orders and transaction history
 
-Prioritize order number, date/time, outlet, order type, payment status, order/preparation status, total, and accessible detail action. Keep payment state separate from preparation state.
+Prioritize order number, date/time, order type, payment status, order/preparation status, total, and accessible detail action. Keep payment state separate from preparation state.
 
 ### Product management
 
@@ -256,7 +255,7 @@ Prioritize new orders, order contents, elapsed time, and next available state tr
 
 ### Reports
 
-Prioritize date/outlet filters, metric definitions, currency formatting, and legible charts/tables. Avoid implying precision or metrics not supported by product data.
+Prioritize date filters, metric definitions, currency formatting, and legible charts/tables. Avoid implying precision or metrics not supported by product data.
 
 ### Settings and system
 

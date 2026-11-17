@@ -41,7 +41,6 @@ Dipakai Owner untuk mengelola bisnis.
 Struktur:
 
 - Topbar brand dan primary navigation.
-- Outlet selector jika konteks halaman bergantung pada outlet.
 - User menu dan theme control.
 - Main content.
 - Breadcrumb hanya jika membantu orientasi.
@@ -63,7 +62,7 @@ Dipakai Cashier untuk transaksi.
 
 Struktur desktop:
 
-- Compact header: brand, outlet, cashier context, connection/system indicator, exit action sesuai permission.
+- Compact header: brand, cashier context, connection/system indicator, exit action sesuai permission.
 - Main product discovery region.
 - Persistent cart/order summary region.
 - Checkout action yang jelas.
@@ -82,7 +81,7 @@ Dipakai Barista.
 
 Struktur:
 
-- Header ringkas dengan outlet, koneksi, dan ringkasan pesanan aktif.
+- Header ringkas dengan koneksi dan ringkasan pesanan aktif.
 - Board berdasarkan status.
 - Ticket dengan informasi pesanan dan tindakan status.
 - Secondary/history view bila disediakan sesuai PRD.
@@ -102,7 +101,7 @@ Dipakai pelanggan tanpa akun.
 
 Struktur:
 
-- Business/outlet identity.
+- Business identity.
 - Search dan kategori.
 - Product listing.
 - Product detail/customization.
@@ -128,7 +127,7 @@ Kelompok menu yang disetujui:
 - Overview: Dashboard.
 - Operations: Orders, POS, KDS, Tables.
 - Catalog: Products, Categories.
-- Business: Outlets, Users, Roles & Permissions.
+- Business: Users, Roles & Permissions.
 - Analytics: Reports.
 - System: Settings, Backup, License.
 
@@ -161,7 +160,7 @@ Jangan menampilkan deskripsi panjang pada halaman operasional.
 
 Prioritas:
 
-1. Outlet dan date context.
+1. Date context.
 2. Sales summary.
 3. Transaction count.
 4. Order status counts.

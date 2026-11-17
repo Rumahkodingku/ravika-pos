@@ -80,8 +80,7 @@ src/
 │   └── cn.ts
 ├── mocks/
 │   ├── session.ts
-│   ├── navigation.ts
-│   └── outlets.ts
+│   └── navigation.ts
 ├── styles/
 │   └── tokens.css
 └── types/
@@ -374,14 +373,14 @@ Setiap state memiliki copy Indonesia yang jelas dan action jika relevan.
 
 ### 13.1 Management shell
 
-Topbar-first: brand, primary nav, outlet selector, utility actions, user menu.  
+Topbar-first: brand, primary nav, utility actions, user menu.
 Content area dengan max-width strategy.  
 Navigation permission-aware.  
 Mobile: compact header + drawer.
 
 ### 13.2 POS shell
 
-Compact header dengan business/outlet/cashier context.  
+Compact header dengan business dan cashier context.
 Product discovery area utama.  
 Cart persisten di desktop.  
 Mobile: cart drawer/panel.  
@@ -397,7 +396,7 @@ Prioritas keterbacaan jarak operasional.
 ### 13.4 Customer shell
 
 Mobile-first.  
-Business/outlet identity, search/category, product listing, cart, checkout, confirmation.  
+Business identity, search/category, product listing, cart, checkout, confirmation.
 Tanpa account requirement.
 
 ### 13.5 Auth shell

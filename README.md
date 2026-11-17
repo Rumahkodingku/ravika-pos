@@ -92,7 +92,6 @@ Fase 3 mengisi POS, KDS, QR Menu, status pelanggan, dan alur operasional lain. `
 | `/app/payments` | Pembayaran |
 | `/app/users` | Pengguna |
 | `/app/roles` | Peran dan izin |
-| `/app/outlets` | Outlet |
 | `/app/settings` | Pengaturan |
 | `/app/reports` | Laporan |
 | `/app/license` | Lisensi |
@@ -124,7 +123,8 @@ Baca PRD dan seluruh dokumen desain sebelum membuat halaman atau komponen baru.
 
 ## Aturan pengembangan
 
-- Frontend UI sudah disetujui pada M4 (17 November 2026, baseline `d6c07b5`). Backend operasional dimulai di Fase 5.
+- Frontend UI sudah disetujui pada M4 (17 November 2026, baseline `d6c07b5`). Baseline MVP satu lokasi `c33e473`. Backend operasional dimulai di Fase 5.
+- MVP satu bisnis dan satu lokasi operasional. Modul lokasi tambahan tidak termasuk ruang lingkup.
 - Fase 0–4 memakai mock data terpusat; jangan membuat API atau persistence.
 - Jangan menambah UI library tanpa persetujuan. Komponen dasar dibuat custom dengan HTML native.
 - Gunakan token desain; jangan sebar nilai warna, spacing, atau radius mentah.

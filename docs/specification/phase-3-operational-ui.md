@@ -159,7 +159,7 @@ Fase 3 tidak membuat backend, SSE nyata, atau persistence. Semua transaksi hanya
 | Status meja           | Otomatis `OCCUPIED` saat order dine-in dibuat                                                        |
 | Meja `OCCUPIED`       | Boleh menerima order tambahan                                                                        |
 | KDS                   | Hanya transisi maju, tanpa cancel                                                                    |
-| Nomor order           | Kode outlet plus urutan, contoh `KMG-2025`                                                           |
+| Nomor order           | Kode bisnis plus urutan, contoh `RVK-2025`                                                            |
 | Daftar pesanan POS    | Hanya order `UNPAID` atau `PARTIALLY_PAID` yang belum `CANCELLED`                                    |
 | Cart POS              | `sessionStorage`, bertahan setelah reload, hilang saat tab ditutup                                   |
 | Sinkronisasi          | `BroadcastChannel`, full-state sync, tanpa persistence                                               |
@@ -223,8 +223,8 @@ Contoh:
 ```ts
 const orders = useManagementStore((state) => state.orders);
 const activeOrders = useMemo(
-  () => orders.filter((order) => order.outletId === outletId),
-  [orders, outletId],
+  () => orders.filter((order) => order.orderStatus === "NEW"),
+  [orders],
 );
 ```
 
@@ -272,16 +272,14 @@ Konsekuensi yang diterima:
 - State hilang saat semua tab ditutup.
 - Reload penuh memuat seed baru jika tidak ada tab lain yang membalas snapshot.
 
-### 5.4 Session dan outlet
+### 5.4 Session dan cart
 
 - `sessionStorage` tetap hanya untuk auth dan cart POS.
 - Key auth: `ravika-session-user-id`.
 - Key cart POS: `ravika-pos-cart`.
-- POS memakai outlet aktif dari user yang login.
-- Jika user memiliki lebih dari satu outlet, POS header menampilkan outlet switcher.
-- Ganti outlet saat cart terisi meminta konfirmasi dan mengosongkan cart.
-- KDS memakai outlet aktif yang dipilih di halaman KDS.
-- Customer QR Menu memakai outlet dari token meja.
+- POS memakai konteks bisnis dari store.
+- KDS memakai seluruh order aktif.
+- Customer QR Menu memakai meja dari token.
 
 ### 5.5 Permission
 
@@ -330,7 +328,6 @@ export type CreateOrderItemInput = {
 };
 
 export type CreateOrderInput = {
-  outletId: string;
   orderType: "DINE_IN" | "TAKEAWAY";
   tableId: string | null;
   tableToken?: string | null;
@@ -399,11 +396,10 @@ createOrder(input: CreateOrderInput): Promise<Order>
 
 Validasi:
 
-- Outlet ada dan aktif.
 - `source: "CASHIER"` wajib memiliki `createdBy`.
 - `source: "QR"` wajib `createdBy: null`.
 - `DINE_IN` wajib memiliki meja.
-- Meja harus ada, aktif, dan berada di outlet yang sama.
+- Meja harus ada dan aktif.
 - Meja `INACTIVE` ditolak.
 - Untuk `source: "QR"`, `tableToken` wajib cocok dengan `qrToken` meja.
 - Token QR yang sudah diganti ditolak.
@@ -418,7 +414,7 @@ Validasi:
 - Harga dihitung ulang dari store.
 - Subtotal dan total dihitung dari store.
 - Order kosong ditolak.
-- Nomor order dibuat unik per outlet.
+- Nomor order dibuat unik.
 - Status awal `NEW`.
 - Payment status awal `UNPAID`.
 - `publicToken` dibuat untuk QR.
@@ -489,12 +485,11 @@ Perilaku:
 ### 7.4 `listPayableOrders`
 
 ```ts
-listPayableOrders(outletId: string): Promise<Order[]>
+listPayableOrders(): Promise<Order[]>
 ```
 
 Mengembalikan order:
 
-- Outlet cocok.
 - `paymentStatus` `UNPAID` atau `PARTIALLY_PAID`.
 - `orderStatus` bukan `CANCELLED`.
 - Urut dari `createdAt` terbaru.
@@ -512,7 +507,7 @@ Mengembalikan order dengan `publicToken` yang cocok. Token kosong atau tidak coc
 ```ts
 validateTableToken(token: string): Promise<{
   table: DiningTable;
-  outlet: Outlet;
+  business: Business;
 } | null>
 ```
 
@@ -522,7 +517,6 @@ Validasi:
 - Meja ditemukan lewat `qrToken`.
 - Meja aktif.
 - Meja bukan `INACTIVE`.
-- Outlet meja ada dan aktif.
 
 Meja `AVAILABLE` dan `OCCUPIED` valid. `OCCUPIED` berarti meja boleh menerima order tambahan.
 
@@ -549,7 +543,7 @@ Helper yang disarankan:
 ```ts
 function remainingAmount(order: Order): number
 function recalculatePaymentStatus(orderId: string): PaymentStatus
-function nextOrderNumber(outletId: string): string
+function nextOrderNumber(): string
 function activeOrdersForTable(tableId: string): Order[]
 function syncTableOccupancy(tableId: string): void
 function makePublicToken(): string
@@ -566,7 +560,7 @@ Pesan error:
 Meja masih memiliki pesanan aktif. Selesaikan atau batalkan pesanan terlebih dahulu.
 ```
 
-Perubahan nama, outlet, dan `isActive` tetap boleh selama tidak membuat meja nonaktif dengan order aktif. Jika `isActive` diubah menjadi false, perlakukan sama seperti `INACTIVE`.
+Perubahan nama dan `isActive` tetap boleh selama tidak membuat meja nonaktif dengan order aktif. Jika `isActive` diubah menjadi false, perlakukan sama seperti `INACTIVE`.
 
 ## 8. Aturan bisnis operasional
 
@@ -575,22 +569,22 @@ Perubahan nama, outlet, dan `isActive` tetap boleh selama tidak membuat meja non
 Format:
 
 ```text
-<OUTLET_CODE>-<URUTAN>
+<BUSINESS_CODE>-<URUTAN>
 ```
 
 Contoh:
 
 ```text
-KMG-2025
-SNP-2026
+RVK-2025
+RVK-2026
 ```
 
 Aturan:
 
-- Ambil angka terakhir dari nomor order outlet yang ada.
+- Ambil angka terakhir dari nomor order yang ada.
 - Nomor baru adalah maksimum + 1.
 - Jika belum ada order, mulai dari 2001.
-- Nomor harus unik per outlet.
+- Nomor harus unik.
 - Nomor tidak berubah setelah order dibuat.
 
 ### 8.2 Status meja
@@ -683,7 +677,7 @@ window.location.origin + "/menu/" + token
 
 - Customer tidak login.
 - Customer tidak mengisi nama atau telepon untuk dine-in.
-- Customer melihat outlet dan meja dari token.
+- Customer melihat nama bisnis dan meja dari token.
 - Customer tidak melihat data internal.
 - Customer tidak bisa mengakses order lain.
 - Pembayaran dilakukan di kasir.
@@ -718,7 +712,6 @@ Tujuan: shell kasir yang fokus pada transaksi.
 Header desktop:
 
 - Brand RAVIKA POS.
-- Outlet switcher.
 - Nama kasir.
 - Connection indicator.
 - Theme toggle.
@@ -737,9 +730,6 @@ Header mobile:
 Aturan:
 
 - Jangan tampilkan navigasi dashboard.
-- Outlet switcher hanya muncul jika user punya lebih dari satu outlet.
-- Ganti outlet dengan cart terisi meminta konfirmasi.
-- Konfirmasi ganti outlet mengosongkan cart.
 - Cart tetap dapat diakses di mobile lewat drawer.
 - Jangan mengecilkan dua panel desktop menjadi dua kolom sempit.
 
@@ -828,7 +818,7 @@ Aturan:
 
 Konten:
 
-- Meja aktif di outlet.
+- Meja aktif.
 - Status `AVAILABLE` dan `OCCUPIED`.
 - Jumlah order aktif per meja.
 - Meja `INACTIVE` tidak ditampilkan.
@@ -941,7 +931,6 @@ Aturan:
 Header:
 
 - Brand RAVIKA KDS.
-- Outlet switcher untuk user multi-outlet.
 - Connection indicator.
 - Theme toggle.
 - Tombol keluar.
@@ -988,7 +977,7 @@ State:
 Konten:
 
 - Validasi token.
-- Nama outlet.
+- Nama bisnis.
 - Nama meja.
 - Search.
 - Kategori.
@@ -1163,7 +1152,6 @@ Gunakan produk Phase 2. Jangan membuat produk baru di `mocks/catalog.ts`.
 - Payment partial: toast dan sisa diperbarui.
 - Payment lunas: success dan tutup drawer.
 - Payable list kosong: empty state.
-- Outlet switch dengan cart: confirmation.
 
 ### 14.2 KDS
 
@@ -1303,7 +1291,7 @@ Fase 3 selesai jika:
 - Varian dan add-on dapat dipilih dan divalidasi.
 - Catatan item dan catatan order tersimpan.
 - Total dihitung ulang oleh service.
-- Nomor order unik per outlet.
+- Nomor order unik.
 - Order baru berstatus `NEW` dan `UNPAID`.
 - Order baru muncul di KDS.
 - Meja dine-in menjadi `OCCUPIED`.
@@ -1322,7 +1310,7 @@ Fase 3 selesai jika:
 - KDS menampilkan elapsed time.
 - QR meja scannable.
 - Token invalid ditolak.
-- Customer menu memakai konteks outlet dan meja.
+- Customer menu memakai konteks bisnis dan meja.
 - Customer dapat mengirim order tanpa login.
 - Customer order muncul di KDS dan management Orders.
 - Customer status memakai `publicToken`.
@@ -1389,7 +1377,6 @@ Sebelum handoff, laporkan PASS atau FAIL untuk:
 - Product configurator.
 - Cart line customization.
 - Cart sessionStorage.
-- Outlet context.
 - Verifikasi POS product discovery.
 
 ### Task 3: POS checkout
@@ -1418,7 +1405,6 @@ Sebelum handoff, laporkan PASS atau FAIL untuk:
 ### Task 5: KDS
 
 - Store board.
-- Outlet switcher.
 - Ticket domain.
 - Status actions.
 - Elapsed timer.
@@ -1532,7 +1518,7 @@ Dihapus jika sudah tidak dipakai:
 | ID       | Dampak ke Fase 3             | Perlakuan                                                                                             |
 | -------- | ---------------------------- | ----------------------------------------------------------------------------------------------------- |
 | OPEN-003 | Zona waktu                   | Tetap `Asia/Jakarta` untuk pilot                                                                      |
-| OPEN-004 | Nomor order                  | Mock memakai kode outlet plus urutan                                                                  |
+| OPEN-004 | Nomor order                  | Mock memakai kode bisnis plus urutan                                                                  |
 | OPEN-005 | Diskon                       | Tidak ada field diskon                                                                                |
 | OPEN-006 | Pajak dan biaya layanan      | Tidak ada field pajak                                                                                 |
 | OPEN-007 | Uang kembalian               | Mock mengizinkan tunai lebih dan menghitung kembalian. Payment record menyimpan nilai yang diterapkan |

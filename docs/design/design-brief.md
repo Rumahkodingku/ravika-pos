@@ -14,7 +14,7 @@ Dokumen desain tidak boleh mengubah keputusan produk yang telah ditetapkan dalam
 
 ## 2. Product overview
 
-RAVIKA POS adalah aplikasi Point of Sale self-hosted untuk bisnis yang membutuhkan operasional penjualan melalui jaringan lokal. Satu instalasi melayani satu bisnis, dan satu bisnis dapat memiliki beberapa outlet. Aplikasi berjalan pada komputer server lokal dan diakses perangkat lain melalui LAN/Wi-Fi.
+RAVIKA POS adalah aplikasi Point of Sale self-hosted untuk bisnis yang membutuhkan operasional penjualan melalui jaringan lokal. Satu instalasi melayani satu bisnis dan satu lokasi operasional. Aplikasi berjalan pada komputer server lokal dan diakses perangkat lain melalui LAN/Wi-Fi.
 
 RAVIKA POS bukan SaaS yang bergantung pada cloud, bukan website builder, dan bukan sekadar dashboard analitik. Produk harus mendukung pekerjaan operasional sehari-hari: mengelola katalog, menerima pesanan, memproses pembayaran, menyiapkan pesanan, serta memantau performa bisnis.
 
@@ -62,8 +62,8 @@ PWA dapat menjadi peningkatan setelah core product. Jangan menjadikan service wo
 Kebutuhan utama:
 
 - Melihat ringkasan penjualan dan transaksi.
-- Memilih outlet dan rentang tanggal.
-- Mengelola produk, kategori, meja, outlet, dan pengguna.
+- Memilih rentang tanggal.
+- Mengelola produk, kategori, meja, dan pengguna.
 - Mengelola role serta permission.
 - Melihat laporan dan riwayat transaksi.
 - Mengelola pengaturan, backup, dan status lisensi.
@@ -175,7 +175,6 @@ Keempat pengalaman menggunakan identitas brand dan design tokens yang sama. Namu
 - Products
 - Categories
 - Tables
-- Outlets
 - Users
 - Roles & Permissions
 - Reports
@@ -206,7 +205,7 @@ Keempat pengalaman menggunakan identitas brand dan design tokens yang sama. Namu
 
 ### Customer QR Menu
 
-- Business/outlet identity
+- Business identity
 - Menu categories
 - Product listing and detail
 - Cart

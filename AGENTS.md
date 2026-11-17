@@ -34,6 +34,7 @@ Self-hosted, LAN-first POS for cafes. Phase 1 foundation, Phase 1.5 operational 
 ## Architecture and scope
 
 - Frontend-first strategy: build UI with mock data, review, then backend. Do not implement operational backend until UI is approved.
+- MVP is single-business and single-location. Do not add location management or location switching.
 - Keep data types and service contracts consistent so mock implementations can be swapped for APIs.
 - Modular monolith. No microservices, Redis, PostgreSQL, NestJS, or cloud dependencies without a product/architecture decision.
 - Four separate experiences/shells: Owner management, Dedicated POS, KDS, Customer QR menu. Do not build one universal layout.

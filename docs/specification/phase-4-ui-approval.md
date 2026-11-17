@@ -8,6 +8,8 @@
 **Baseline audit:** `b4a5d60`
 **Baseline setelah fix:** `d6c07b5`
 **Tag:** `phase-4-ui-approved`
+**Baseline MVP satu lokasi:** `c33e473`
+**Tag MVP satu lokasi:** `phase-4-ui-approved-single-location`
 **Referensi utama:** `docs/PRD.md`, `docs/ROADMAP.md`, `docs/design/design-brief.md`, `docs/design/design-direction.md`, `docs/design/design-system.md`, `docs/design/ui-ux-guidelines.md`, `docs/specification/phase-2-management-ui.md`, `docs/specification/phase-3-operational-ui.md`
 
 ## Daftar isi
@@ -223,7 +225,7 @@ Fase 4 bukan redesign dan bukan penambahan fitur. Arah visual sudah ditetapkan. 
 
 | Topik            | Keputusan                                                           |
 | ---------------- | ------------------------------------------------------------------- |
-| Cakupan halaman  | 18 route user-facing direview penuh                                 |
+| Cakupan halaman  | 17 route user-facing direview penuh                                 |
 | Design system    | Regression check, bukan sign-off produk                             |
 | Root redirect    | Smoke test                                                          |
 | Theme            | Light dan dark                                                      |
@@ -253,7 +255,6 @@ Fase 4 bukan redesign dan bukan penambahan fitur. Arah visual sudah ditetapkan. 
 | Management | `/app/payments`        | Penuh            |
 | Management | `/app/users`           | Penuh            |
 | Management | `/app/roles`           | Penuh            |
-| Management | `/app/outlets`         | Penuh            |
 | Management | `/app/settings`        | Penuh            |
 | Management | `/app/reports`         | Penuh            |
 | Management | `/app/license`         | Penuh            |
@@ -346,9 +347,9 @@ Fase 4 bukan redesign dan bukan penambahan fitur. Arah visual sudah ditetapkan. 
 
 | Dimensi            | Cakupan                                                   |
 | ------------------ | --------------------------------------------------------- |
-| Visual light       | 18 route pada 1440                                        |
-| Visual dark        | 18 route pada 1440                                        |
-| Responsive         | 18 route pada 320, 768, 1024, 1440                        |
+| Visual light       | 17 route pada 1440                                        |
+| Visual dark        | 17 route pada 1440                                        |
+| Responsive         | 17 route pada 320, 768, 1024, 1440                        |
 | Mobile operasional | 390 untuk POS, KDS, QR menu, status publik                |
 | Dark mobile        | 320 dan 768 untuk POS, KDS, QR menu, status publik        |
 | Wide               | 1920 spot-check untuk dashboard, tables, orders, POS, KDS |
@@ -370,7 +371,6 @@ Fase 4 bukan redesign dan bukan penambahan fitur. Arah visual sudah ditetapkan. 
 | `/app/payments`        | Ya         | Ya         | Ya         | Ya         | Ya         |
 | `/app/users`           | Ya         | Ya         | Ya         | Ya         | Ya         |
 | `/app/roles`           | Ya         | Ya         | Ya         | Ya         | Ya         |
-| `/app/outlets`         | Ya         | Ya         | Ya         | Ya         | Ya         |
 | `/app/settings`        | Ya         | Ya         | Ya         | Ya         | Ya         |
 | `/app/reports`         | Ya         | Ya         | Ya         | Ya         | Ya         |
 | `/app/license`         | Ya         | Ya         | Ya         | Ya         | Ya         |
@@ -384,22 +384,21 @@ Fase 4 bukan redesign dan bukan penambahan fitur. Arah visual sudah ditetapkan. 
 ### 7.3 Functional flows
 
 - Auth: login owner, cashier, barista, wrong password, redirect guard, logout.
-- Dashboard: range, outlet, summary, queue, recent orders, top products.
+- Dashboard: range, summary, queue, recent orders, top products.
 - Products: create, edit, variant, add-on, search, filter, sort, pagination, availability.
 - Categories: create, edit, reorder, delete guard.
-- Tables: create, edit, QR, regenerate token, status guard, outlet filter.
+- Tables: create, edit, QR, regenerate token, status guard.
 - Orders: filter, detail, cancel guard, status history.
 - Payments: read-only list, filter, detail.
-- Users: create, edit, role, outlet, deactivate guard.
+- Users: create, edit, role, deactivate guard.
 - Roles: permission matrix, read/edit.
-- Outlets: create, edit, deactivate guard.
-- Settings: business profile, display preference, outlet summary.
-- Reports: range, outlet, sales, top products, export if implemented.
+- Settings: business profile, display preference.
+- Reports: range, sales, top products, export if implemented.
 - License: status and installation info.
 - Backup: create and restore confirmation.
 - Design system: component preview and reset mock.
-- POS: product discovery, configurator, cart, table, checkout, KDS sync, payment, split payment, payable orders, outlet switch, cart reload.
-- KDS: five columns, transitions, timer, outlet switch, empty, sync, permission.
+- POS: product discovery, configurator, cart, table, checkout, KDS sync, payment, split payment, payable orders, cart reload.
+- KDS: five columns, transitions, timer, empty, sync, permission.
 - Customer: valid QR, invalid QR, cart, checkout, status publik, invalid public token, regenerate token.
 - Cross-tab: POS ke KDS, KDS ke status publik, reset mock.
 
@@ -442,8 +441,8 @@ Screenshot disimpan di `/tmp/opencode/phase4/` dan tidak masuk repo.
 
 Cakupan:
 
-- 18 route light dan dark pada 1440.
-- 18 route pada 320, 768, 1024, 1440.
+- 17 route light dan dark pada 1440.
+- 17 route pada 320, 768, 1024, 1440.
 - 390 untuk POS, KDS, QR menu, status publik.
 - 1920 spot-check untuk dashboard, tables, orders, POS, KDS.
 - Overflow horizontal.
@@ -720,7 +719,7 @@ Re-review tidak boleh hanya spot-check pada area yang diperbaiki. Audit penuh wa
 
 Fase 4 selesai hanya jika:
 
-- 18 route user-facing tersedia.
+- 17 route user-facing tersedia.
 - Semua alur utama dapat didemonstrasikan dengan data dummy.
 - Tidak ada issue P0, P1, P2, atau P3 UI yang OPEN.
 - Known limitation sudah disetujui product owner.
@@ -781,11 +780,10 @@ Setelah approval:
 | Tables        | CRUD, QR, regenerate, status guard             | Langkah dan screenshot       |
 | Orders        | Filter, detail, cancel guard, history          | Langkah dan screenshot       |
 | Payments      | Read-only, filter, detail                      | Langkah dan screenshot       |
-| Users         | CRUD, role, outlet, deactivate                 | Langkah dan screenshot       |
+| Users         | CRUD, role, deactivate                         | Langkah dan screenshot       |
 | Roles         | Permission matrix                              | Langkah dan screenshot       |
-| Outlets       | CRUD, deactivate guard                         | Langkah dan screenshot       |
-| Settings      | Profile, preference, outlet summary            | Langkah dan screenshot       |
-| Reports       | Range, outlet, sales, top products             | Langkah dan screenshot       |
+| Settings      | Profile, preference                            | Langkah dan screenshot       |
+| Reports       | Range, sales, top products                     | Langkah dan screenshot       |
 | License       | Status dan informasi                           | Langkah dan screenshot       |
 | Backup        | Create dan restore confirmation                | Langkah dan screenshot       |
 | POS           | Product sampai payment                         | Langkah, screenshot, console |
@@ -1046,7 +1044,7 @@ Delapan issue awal sudah FIXED sebelum audit penuh.
 | P4-009 | P1        | Dashboard | Range `Hari ini` kosong karena tanggal dashboard fixed 16 Nov, order aktif memakai tanggal sekarang | Gunakan range tanggal sekarang dan date key yang konsisten                | FIXED  | `c82f293` |
 | P4-010 | P2        | Laporan   | Periode fixed 10-16 Nov, label memakai ISO mentah, input kustom kosong  | Gunakan range sekarang, format tanggal, isi default kustom                | FIXED  | `c82f293` |
 | P4-011 | P2        | Pembayaran | Toolbar filter inline membungkus tiga baris dan date input terpisah    | Pakai mode modal filter seperti Pesanan                                   | FIXED  | `c82f293` |
-| P4-012 | P2        | Pesanan   | Tabel 1024 sempit, nomor dan outlet membungkus                          | Tampilkan card sampai breakpoint xl                                       | FIXED  | `c82f293` |
+| P4-012 | P2        | Pesanan   | Tabel 1024 sempit, nomor membungkus                                     | Tampilkan card sampai breakpoint xl                                       | FIXED  | `c82f293` |
 | P4-013 | P3        | Global    | Copy `Fase 2` sudah kedaluwarsa di beberapa halaman                     | Ganti dengan copy netral atau fase yang benar                             | FIXED  | `c82f293` |
 | P4-014 | P3        | POS/QR    | Chip kategori terpotong di 320 dan 1440                                 | Ganti scroll horizontal dengan wrap                                       | FIXED  | `c82f293` |
 | P4-015 | P3        | Customer  | Badge `Data contoh` membungkus dua baris di 320                         | Tambah `shrink-0` pada badge                                              | FIXED  | `c82f293` |
@@ -1121,6 +1119,33 @@ Setelah M4:
 - API contract harus mengikuti kebutuhan UI yang disetujui.
 - Perubahan UI setelah approval harus dievaluasi dampaknya terhadap API.
 
+## 25. Addendum pasca-M4: MVP satu lokasi
+
+**Tanggal:** 17 November 2026
+**Dokumen perubahan:** `docs/specification/phase-4-5-single-location-mvp.md`
+
+Keputusan product owner:
+
+- MVP hanya melayani satu bisnis dengan satu lokasi operasional.
+- Modul lokasi tambahan dihapus dari UI, permission, data model, service, dan seed.
+- Fitur lokasi tambahan tidak termasuk ruang lingkup MVP.
+
+Dampak baseline:
+
+- Route user-facing berubah dari 18 menjadi 17.
+- Satu route pengelolaan lokasi dihapus.
+- Permission pengelolaan lokasi dihapus.
+- Field lokasi dihapus dari pesanan dan meja.
+- Penugasan lokasi dihapus dari pengguna.
+- Nomor pesanan memakai prefix kode bisnis `RVK`.
+
+Status:
+
+- Baseline M4 lama `d6c07b5` dan tag `phase-4-ui-approved` tetap historis.
+- Baseline baru `c33e473`.
+- Tag baru `phase-4-ui-approved-single-location`.
+- Verifikasi: `pnpm check` PASS, `pnpm build` PASS, 17 route x 5 viewport x light/dark PASS, console error 0.
+
 ## Appendix A: Route checklist
 
 Gunakan checklist ini per route.
@@ -1166,20 +1191,19 @@ Gunakan checklist ini per route.
 
 ### B.2 Management
 
-1. Dashboard: ubah range dan outlet.
+1. Dashboard: ubah range.
 2. Products: create, edit, search, filter, sort, pagination.
 3. Categories: create, edit, reorder, delete guard.
 4. Tables: create, edit, QR, regenerate, status guard.
 5. Orders: filter, detail, cancel guard.
 6. Payments: filter, detail, read-only.
-7. Users: create, edit, role, outlet, deactivate.
+7. Users: create, edit, role, deactivate.
 8. Roles: permission matrix.
-9. Outlets: create, edit, deactivate guard.
-10. Settings: profile dan preference.
-11. Reports: range dan outlet.
-12. License: status.
-13. Backup: create dan restore confirmation.
-14. Design system: reset mock.
+9. Settings: profile dan preference.
+10. Reports: range.
+11. License: status.
+12. Backup: create dan restore confirmation.
+13. Design system: reset mock.
 
 ### B.3 POS
 
@@ -1201,8 +1225,8 @@ Gunakan checklist ini per route.
 16. Split payment.
 17. Pastikan status pembayaran.
 18. Buka payable orders.
-19. Ganti outlet dengan cart berisi.
-20. Pastikan konfirmasi dan cart kosong.
+19. Pastikan daftar tagihan tampil.
+20. Pastikan cart tetap utuh.
 
 ### B.4 KDS
 
@@ -1213,9 +1237,8 @@ Gunakan checklist ini per route.
 5. Tandai siap.
 6. Selesaikan.
 7. Pastikan timer.
-8. Ganti outlet.
-9. Pastikan empty state.
-10. Pastikan status publik ikut berubah.
+8. Pastikan empty state.
+9. Pastikan status publik ikut berubah.
 
 ### B.5 Customer QR
 
@@ -1265,7 +1288,7 @@ Product owner: xRiot45
 Tanggal: 17 November 2026
 Baseline commit: d6c07b5
 Tag: phase-4-ui-approved
-Scope: 18 route user-facing
+Scope: 17 route user-facing
 Known limitation disetujui:
 - Scan QR fisik dari ponsel belum diuji.
 - Screen reader belum diuji.
