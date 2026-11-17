@@ -1,4 +1,4 @@
-import { formatDateKey } from "@/lib/format";
+import { DEFAULT_TIME_ZONE, formatDateKey } from "@/lib/format";
 import { consumeFailure, getLatency } from "@/mocks/management/controls";
 import { getState, setState } from "@/mocks/management/store";
 import type { Outlet } from "@/types/auth";
@@ -414,18 +414,21 @@ function buildTopProducts(orders: Order[]) {
 }
 
 function buildTrend(orders: Order[]) {
-  const labels = ["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"];
   const todayKey = formatDateKey(new Date());
 
   return Array.from({ length: 7 }, (_, index) => {
     const date = new Date(`${todayKey}T12:00:00Z`);
     date.setUTCDate(date.getUTCDate() - (6 - index));
     const key = formatDateKey(date);
+    const label = new Intl.DateTimeFormat("id-ID", {
+      weekday: "short",
+      timeZone: DEFAULT_TIME_ZONE,
+    }).format(date);
     const value = orders
       .filter((order) => formatDateKey(order.createdAt) === key)
       .reduce((total, order) => total + order.grandTotal, 0);
 
-    return { label: labels[index], value };
+    return { label, value };
   });
 }
 
