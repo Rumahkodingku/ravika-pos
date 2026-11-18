@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Drawer } from "@/components/ui/drawer";
-import { Field, FieldDescription } from "@/components/ui/field";
+import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/layout";
 import { ProductImage } from "@/components/ui/product-image";
@@ -644,67 +644,72 @@ export default function ProductsPage() {
             </div>
           </div>
 
-          <Field
-            error={errors.name?.message}
-            htmlFor="product-name"
-            label="Nama produk"
-            required
-          >
-            <Input id="product-name" {...register("name")} />
-          </Field>
-          <Field
-            error={errors.description?.message}
-            htmlFor="product-description"
-            label="Deskripsi"
-          >
-            <Textarea id="product-description" {...register("description")} />
-          </Field>
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="flex flex-col gap-3 border-t border-border pt-4">
+            <p className="text-label font-medium text-foreground">
+              Informasi dasar
+            </p>
             <Field
-              error={errors.categoryId?.message}
-              htmlFor="product-category"
-              label="Kategori"
+              error={errors.name?.message}
+              htmlFor="product-name"
+              label="Nama produk"
               required
             >
-              <Select id="product-category" {...register("categoryId")}>
-                <option value="">Pilih kategori</option>
-                {categories.map((category) => (
-                  <option key={category.id} value={category.id}>
-                    {category.name}
-                  </option>
-                ))}
-              </Select>
+              <Input id="product-name" {...register("name")} />
             </Field>
             <Field
-              error={errors.basePrice?.message}
-              htmlFor="product-price"
-              label="Harga dasar"
-              required
+              error={errors.description?.message}
+              htmlFor="product-description"
+              label="Deskripsi"
             >
-              <Input
-                id="product-price"
-                min={0}
-                step={1}
-                type="number"
-                {...register("basePrice", { valueAsNumber: true })}
-              />
+              <Textarea id="product-description" {...register("description")} />
             </Field>
-          </div>
-          <div className="flex flex-col gap-2">
-            <label
-              className="flex min-h-11 items-center gap-2 text-body text-foreground"
-              htmlFor="product-available"
-            >
-              <Checkbox id="product-available" {...register("isAvailable")} />
-              Tersedia untuk dijual
-            </label>
-            <label
-              className="flex min-h-11 items-center gap-2 text-body text-foreground"
-              htmlFor="product-active"
-            >
-              <Checkbox id="product-active" {...register("isActive")} />
-              Produk aktif
-            </label>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Field
+                error={errors.categoryId?.message}
+                htmlFor="product-category"
+                label="Kategori"
+                required
+              >
+                <Select id="product-category" {...register("categoryId")}>
+                  <option value="">Pilih kategori</option>
+                  {categories.map((category) => (
+                    <option key={category.id} value={category.id}>
+                      {category.name}
+                    </option>
+                  ))}
+                </Select>
+              </Field>
+              <Field
+                error={errors.basePrice?.message}
+                htmlFor="product-price"
+                label="Harga dasar"
+                required
+              >
+                <Input
+                  id="product-price"
+                  min={0}
+                  step={1}
+                  type="number"
+                  {...register("basePrice", { valueAsNumber: true })}
+                />
+              </Field>
+            </div>
+            <div className="flex flex-col gap-2">
+              <label
+                className="flex min-h-11 items-center gap-2 text-body text-foreground"
+                htmlFor="product-available"
+              >
+                <Checkbox id="product-available" {...register("isAvailable")} />
+                Tersedia untuk dijual
+              </label>
+              <label
+                className="flex min-h-11 items-center gap-2 text-body text-foreground"
+                htmlFor="product-active"
+              >
+                <Checkbox id="product-active" {...register("isActive")} />
+                Produk aktif
+              </label>
+            </div>
           </div>
 
           <div className="flex flex-col gap-2 border-t border-border pt-4">
@@ -881,9 +886,6 @@ export default function ProductsPage() {
                 </div>
               </div>
             ))}
-            <FieldDescription>
-              Add-on mengikuti data katalog contoh yang tersedia.
-            </FieldDescription>
           </div>
 
           {errors.root?.message ? (
