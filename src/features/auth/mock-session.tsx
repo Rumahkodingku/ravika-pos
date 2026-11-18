@@ -10,7 +10,7 @@ import {
 } from "react";
 import { useManagementStore } from "@/mocks/management/hooks";
 import { mockUsers } from "@/mocks/session";
-import type { SessionUser, UserRole } from "@/types/auth";
+import type { SessionUser } from "@/types/auth";
 
 const SESSION_KEY = "ravika-session-user-id";
 const DEMO_PASSWORD = "demo123";
@@ -24,7 +24,7 @@ type MockSessionContextValue = {
 
 const MockSessionContext = createContext<MockSessionContextValue | null>(null);
 
-export function landingPathForRole(role: UserRole) {
+export function landingPathForRole(role: string) {
   if (role === "CASHIER") {
     return "/app/pos";
   }

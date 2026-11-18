@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { PermissionDeniedState } from "@/components/feedback/permission-denied-state";
 import { buttonVariants } from "@/components/ui/button";
-import { useMockSession } from "@/features/auth/mock-session";
+import { useSession } from "@/features/auth/session-provider";
 
 export function PermissionGate({
   children,
@@ -14,9 +14,9 @@ export function PermissionGate({
   fallback?: React.ReactNode;
   permission: string;
 }) {
-  const { user } = useMockSession();
+  const { user } = useSession();
 
-  if (!user?.permissions.includes(permission)) {
+  if (!user.permissions.includes(permission)) {
     return fallback;
   }
 
@@ -30,9 +30,9 @@ export function RequirePermission({
   children: React.ReactNode;
   permission: string;
 }) {
-  const { user } = useMockSession();
+  const { user } = useSession();
 
-  if (!user?.permissions.includes(permission)) {
+  if (!user.permissions.includes(permission)) {
     return (
       <PermissionDeniedState
         action={

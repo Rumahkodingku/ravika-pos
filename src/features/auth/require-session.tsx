@@ -7,7 +7,6 @@ import {
   landingPathForRole,
   useMockSession,
 } from "@/features/auth/mock-session";
-import type { UserRole } from "@/types/auth";
 
 export function RequireSession({
   children,
@@ -16,7 +15,7 @@ export function RequireSession({
 }: {
   children: React.ReactNode;
   redirectTo?: string;
-  roles?: UserRole[];
+  roles?: string[];
 }) {
   const { isReady, user } = useMockSession();
   const router = useRouter();

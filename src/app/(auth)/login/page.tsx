@@ -2,7 +2,6 @@
 
 import { HardDrive, Monitor, Wifi } from "lucide-react";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
-import { Badge } from "@/components/ui/badge";
 import { LoginForm } from "@/features/auth/login-form";
 
 const productFacts = [
@@ -56,7 +55,7 @@ export default function LoginPage() {
           </ul>
         </div>
         <p className="text-caption text-inverse-foreground/60">
-          Mode UI dengan data simulasi.
+          Sistem operasional kafe dalam satu tempat.
         </p>
       </aside>
 
@@ -76,22 +75,15 @@ export default function LoginPage() {
           </div>
 
           <div className="flex flex-col gap-1">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <h1 className="text-section-title text-foreground">
-                Masuk ke RAVIKA POS
-              </h1>
-              <Badge tone="neutral">Mode UI</Badge>
-            </div>
+            <h1 className="text-section-title text-foreground">
+              Masuk ke RAVIKA POS
+            </h1>
             <p className="text-body text-muted-foreground">
               Masuk untuk mengelola operasional bisnis.
             </p>
           </div>
 
           <LoginForm />
-
-          <p className="text-caption text-muted-foreground lg:hidden">
-            Mode UI dengan data simulasi.
-          </p>
         </div>
       </section>
     </div>

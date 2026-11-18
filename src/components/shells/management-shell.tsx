@@ -17,8 +17,8 @@ import {
 import { Container } from "@/components/ui/layout";
 import { MegaMenu } from "@/components/ui/mega-menu";
 import { MobileMenuSheet } from "@/components/ui/mobile-menu-sheet";
-import { useToast } from "@/components/ui/toast";
-import { useMockSession } from "@/features/auth/mock-session";
+import { useLogoutMutation } from "@/features/auth/api";
+import { useSession } from "@/features/auth/session-provider";
 import { cn } from "@/lib/cn";
 import {
   megaMenuGroups,
@@ -56,8 +56,8 @@ function QuickNavLink({ item, pathname }: { item: NavItem; pathname: string }) {
 export function ManagementShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { toast } = useToast();
-  const { logout, user } = useMockSession();
+  const { user } = useSession();
+  const { mutate: logout } = useLogoutMutation();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   const permissions = user?.permissions ?? [];
@@ -85,10 +85,6 @@ export function ManagementShell({ children }: { children: React.ReactNode }) {
   const hasMenu = visibleGroups.length > 0 || visibleQuickActions.length > 0;
   const canViewDashboard = can("dashboard.view");
 
-  if (!user) {
-    return null;
-  }
-
   const initials = user.name
     .split(" ")
     .map((part) => part[0])
@@ -97,12 +93,6 @@ export function ManagementShell({ children }: { children: React.ReactNode }) {
 
   const handleLogout = () => {
     logout();
-    toast({
-      title: "Sesi demo berakhir",
-      description: "Anda kembali ke halaman masuk.",
-      tone: "info",
-    });
-    router.replace("/login");
   };
 
   return (

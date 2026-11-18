@@ -1,10 +1,23 @@
+import { redirect } from "next/navigation";
 import { KdsShell } from "@/components/shells/kds-shell";
-import { RequireSession } from "@/features/auth/require-session";
+import { landingPathForPermissions } from "@/features/auth/landing";
+import { requireLayoutSession } from "@/features/auth/server-session";
+import { SessionProvider } from "@/features/auth/session-provider";
 
-export default function KdsLayout({ children }: { children: React.ReactNode }) {
+export default async function KdsLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const user = await requireLayoutSession();
+
+  if (!user.permissions.includes("kds.view")) {
+    redirect(landingPathForPermissions(user.permissions));
+  }
+
   return (
-    <RequireSession roles={["OWNER", "BARISTA"]} redirectTo="/app">
+    <SessionProvider user={user}>
       <KdsShell>{children}</KdsShell>
-    </RequireSession>
+    </SessionProvider>
   );
 }

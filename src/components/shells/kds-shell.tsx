@@ -2,16 +2,14 @@
 
 import { ChefHat, LogOut } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { ConnectionIndicator } from "@/components/feedback/connection-indicator";
 import { ShellTheme } from "@/components/shells/shell-theme";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { Button } from "@/components/ui/button";
-import { useMockSession } from "@/features/auth/mock-session";
+import { useLogoutMutation } from "@/features/auth/api";
 
 export function KdsShell({ children }: { children: React.ReactNode }) {
-  const router = useRouter();
-  const { logout } = useMockSession();
+  const { mutate: logout } = useLogoutMutation();
 
   return (
     <ShellTheme defaultTheme="dark">
@@ -40,7 +38,6 @@ export function KdsShell({ children }: { children: React.ReactNode }) {
               aria-label="Keluar KDS"
               onClick={() => {
                 logout();
-                router.replace("/login");
               }}
               variant="outline"
             >

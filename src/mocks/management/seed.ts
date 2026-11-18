@@ -160,7 +160,7 @@ const seedUsers: ManagementUser[] = [
     id: user.id,
     name: user.name,
     email: user.email,
-    role: user.role,
+    role: user.role as ManagementUser["role"],
     isActive: true,
     createdAt,
     updatedAt,

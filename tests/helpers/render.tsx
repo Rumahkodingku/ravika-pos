@@ -3,6 +3,8 @@ import { cleanup, type RenderResult, render } from "@testing-library/react";
 import type { ReactElement } from "react";
 import { afterEach } from "vitest";
 import { ToastProvider } from "@/components/ui/toast";
+import { SessionProvider } from "@/features/auth/session-provider";
+import type { SessionUser } from "@/types/auth";
 
 afterEach(cleanup);
 
@@ -15,12 +17,21 @@ export function createTestQueryClient() {
   });
 }
 
-export function renderWithProviders(ui: ReactElement): RenderResult {
+export function renderWithProviders(
+  ui: ReactElement,
+  options: { user?: SessionUser } = {},
+): RenderResult {
   const queryClient = createTestQueryClient();
 
   return render(
     <QueryClientProvider client={queryClient}>
-      <ToastProvider>{ui}</ToastProvider>
+      <ToastProvider>
+        {options.user ? (
+          <SessionProvider user={options.user}>{ui}</SessionProvider>
+        ) : (
+          ui
+        )}
+      </ToastProvider>
     </QueryClientProvider>,
   );
 }

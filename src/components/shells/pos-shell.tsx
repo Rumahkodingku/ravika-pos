@@ -2,7 +2,6 @@
 
 import { Armchair, LogOut, ShoppingCart, Trash2, Wallet } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ConnectionIndicator } from "@/components/feedback/connection-indicator";
 import { EmptyState } from "@/components/feedback/empty-state";
@@ -18,8 +17,8 @@ import { Drawer } from "@/components/ui/drawer";
 import { Field } from "@/components/ui/field";
 import { QuantityControl } from "@/components/ui/quantity-control";
 import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/components/ui/toast";
-import { useMockSession } from "@/features/auth/mock-session";
+import { useLogoutMutation } from "@/features/auth/api";
+import { useSession } from "@/features/auth/session-provider";
 import { OrderConfirmation } from "@/features/operational/order-confirmation";
 import { PosCheckoutDrawer } from "@/features/operational/pos-checkout-drawer";
 import { PosPayableOrderDrawer } from "@/features/operational/pos-payable-order-drawer";
@@ -474,13 +473,8 @@ function PosShellContent({
 }
 
 export function PosShell({ children }: { children: React.ReactNode }) {
-  const router = useRouter();
-  const { toast } = useToast();
-  const { logout, user } = useMockSession();
-
-  if (!user) {
-    return null;
-  }
+  const { user } = useSession();
+  const { mutate: logout } = useLogoutMutation();
 
   return (
     <ShellTheme defaultTheme="light">
@@ -489,12 +483,6 @@ export function PosShell({ children }: { children: React.ReactNode }) {
           cashier={user}
           onLogout={() => {
             logout();
-            toast({
-              title: "Sesi demo berakhir",
-              description: "Anda kembali ke halaman masuk.",
-              tone: "info",
-            });
-            router.replace("/login");
           }}
         >
           {children}
