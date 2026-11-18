@@ -44,7 +44,12 @@ afterEach(() => {
 describe("LoginForm", () => {
   it("redirects a cashier to the POS after login", async () => {
     const user = userEvent.setup();
-    fetchMock.mockResolvedValue(jsonResponse(cashier));
+    fetchMock.mockImplementation(async (input: RequestInfo | URL) => {
+      if (String(input).includes("/setup/status")) {
+        return jsonResponse({ setupRequired: false });
+      }
+      return jsonResponse(cashier);
+    });
 
     renderWithProviders(<LoginForm />);
 
@@ -66,8 +71,11 @@ describe("LoginForm", () => {
 
   it("shows a generic error when the credentials are rejected", async () => {
     const user = userEvent.setup();
-    fetchMock.mockResolvedValue(
-      new Response(
+    fetchMock.mockImplementation(async (input: RequestInfo | URL) => {
+      if (String(input).includes("/setup/status")) {
+        return jsonResponse({ setupRequired: false });
+      }
+      return new Response(
         JSON.stringify({
           status: 401,
           detail: "Email atau kata sandi salah.",
@@ -77,8 +85,8 @@ describe("LoginForm", () => {
           headers: { "content-type": "application/problem+json" },
           status: 401,
         },
-      ),
-    );
+      );
+    });
 
     renderWithProviders(<LoginForm />);
 

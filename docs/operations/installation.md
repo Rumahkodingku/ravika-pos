@@ -1,5 +1,18 @@
 # Instalasi Ubuntu LTS
 
+## First-run wizard
+
+1. Jalankan aplikasi dengan database kosong.
+2. Buka `/` atau `/login`; aplikasi akan mengarahkan ke `/setup` bila belum ada owner.
+3. Isi profil bisnis dan akun owner.
+4. Wizard membuat QR key dan menulisnya ke `.env`.
+5. Setelah selesai, layar restart muncul.
+6. Restart service.
+7. Login dengan owner baru.
+8. Buat table QR setelah restart.
+
+Env bootstrap owner tetap tersedia sebagai fallback.
+
 Target: satu komputer server Ubuntu LTS di LAN. Aplikasi tidak boleh diekspos langsung ke internet publik.
 
 ## Prasyarat

@@ -4,7 +4,7 @@
 
 POS self-hosted untuk kafe dan UMKM. Satu instalasi melayani satu bisnis, berjalan di komputer server lokal, dan diakses lewat LAN/Wi-Fi tanpa mewajibkan internet untuk transaksi.
 
-**Status:** Fase 1 sampai Fase 8 selesai sebagai release candidate `1.0.0-rc.1`. UI memakai API backend nyata: TanStack Query untuk server state, session cookie HttpOnly, guard berbasis permission, dan data SQLite melalui Drizzle. Mock data, mock auth, dan `/app/design-system` sudah dihapus. Backend menyediakan katalog, meja dan QR, order, pembayaran, refund penuh, KDS dengan SSE, laporan, lisensi, serta backup dan restore. Playwright E2E lokal dan dokumentasi operasional Ubuntu tersedia. Pilot dan hardware target belum dijalankan.
+**Status:** Fase 1 sampai Fase 9 selesai sebagai release candidate `1.0.0-rc.1`. UI memakai API backend nyata: TanStack Query untuk server state, session cookie HttpOnly, guard berbasis permission, dan data SQLite melalui Drizzle. Mock data, mock auth, dan `/app/design-system` sudah dihapus. Backend menyediakan katalog, meja dan QR, order, pembayaran, refund penuh, KDS dengan SSE, laporan, lisensi, serta backup dan restore. Playwright E2E lokal dan dokumentasi operasional Ubuntu tersedia. Pilot dan hardware target belum dijalankan.
 
 ## Stack
 
@@ -34,6 +34,8 @@ Direncanakan, belum dipasang:
 Tidak dipakai: Zustand.
 
 ## Menjalankan
+
+Instalasi pertama dapat dilakukan lewat browser di `/setup`. Production seed tidak lagi mewajibkan env owner; jika env owner ada, ia tetap menjadi fallback.
 
 ```bash
 pnpm install
