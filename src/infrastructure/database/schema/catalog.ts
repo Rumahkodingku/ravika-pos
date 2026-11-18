@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
 import {
+  blob,
   check,
   index,
   integer,
@@ -55,6 +56,29 @@ export const products = sqliteTable(
     index("products_business_id_idx").on(table.businessId),
     index("products_category_id_idx").on(table.categoryId),
     check("products_base_price_check", sql`${table.basePrice} >= 0`),
+  ],
+);
+
+export const productImages = sqliteTable(
+  "product_images",
+  {
+    productId: text("product_id")
+      .primaryKey()
+      .references(() => products.id, { onDelete: "cascade" }),
+    mimeType: text("mime_type", {
+      enum: ["image/jpeg", "image/png", "image/webp"],
+    }).notNull(),
+    data: blob("data", { mode: "buffer" }).notNull(),
+    fileSize: integer("file_size").notNull(),
+    checksum: text("checksum").notNull(),
+    createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
+    updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
+  },
+  (table) => [
+    check(
+      "product_images_file_size_check",
+      sql`${table.fileSize} > 0 AND ${table.fileSize} <= 5242880`,
+    ),
   ],
 );
 

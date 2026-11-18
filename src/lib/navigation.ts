@@ -90,6 +90,13 @@ export const megaMenuGroups: NavGroup[] = [
         permission: "categories.view",
         description: "Susun kategori untuk menu pelanggan",
       },
+      {
+        label: "Add-on",
+        href: "/app/add-ons",
+        icon: Tags,
+        permission: "products.view",
+        description: "Kelola add-on atau topping",
+      },
     ],
   },
   {

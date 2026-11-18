@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Package, Pencil, Plus, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
 import { EmptyState } from "@/components/feedback/empty-state";
@@ -12,9 +12,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Drawer } from "@/components/ui/drawer";
-import { Field, FieldDescription } from "@/components/ui/field";
+import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/layout";
+import { ProductImage } from "@/components/ui/product-image";
 import { Select } from "@/components/ui/select";
 import {
   Table,
@@ -31,9 +32,11 @@ import {
   useAddOnsQuery,
   useCategoriesQuery,
   useCreateProductMutation,
+  useDeleteProductImageMutation,
   useProductsQuery,
   useSetProductFlagsMutation,
   useUpdateProductMutation,
+  useUploadProductImageMutation,
 } from "@/features/management/api/catalog";
 import { DataTableToolbar } from "@/features/management/data-table-toolbar";
 import { FormDrawer } from "@/features/management/form-drawer";
@@ -46,6 +49,7 @@ import { SortableTableHead } from "@/features/management/sortable-table-head";
 import { TablePagination } from "@/features/management/table-pagination";
 import { TableSkeleton } from "@/features/management/table-skeleton";
 import { formatCurrency } from "@/lib/format";
+import { compressProductImage, PRODUCT_IMAGE_ACCEPT } from "@/lib/image";
 import type { Product } from "@/types/domain";
 
 const variantSchema = z.object({
@@ -111,6 +115,10 @@ export default function ProductsPage() {
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<Product | null>(null);
   const [detail, setDetail] = useState<Product | null>(null);
+  const [imageBlob, setImageBlob] = useState<Blob | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [removeImage, setRemoveImage] = useState(false);
+  const [isImageProcessing, setIsImageProcessing] = useState(false);
 
   const { data, error, isLoading, refetch } = useProductsQuery({
     search,
@@ -127,8 +135,11 @@ export default function ProductsPage() {
   const createProduct = useCreateProductMutation();
   const updateProduct = useUpdateProductMutation();
   const setProductFlags = useSetProductFlagsMutation();
+  const uploadProductImage = useUploadProductImageMutation();
+  const deleteProductImage = useDeleteProductImageMutation();
   const categories = categoryData?.items ?? [];
   const addOns = addOnData;
+  const activeAddOns = addOns.filter((addOn) => addOn.isActive);
 
   const {
     control,
@@ -144,17 +155,53 @@ export default function ProductsPage() {
   const variantFields = useFieldArray({ control, name: "variants" });
   const addOnFields = useFieldArray({ control, name: "addOns" });
 
+  useEffect(() => {
+    return () => {
+      if (imagePreview?.startsWith("blob:")) {
+        URL.revokeObjectURL(imagePreview);
+      }
+    };
+  }, [imagePreview]);
+
   const openCreate = () => {
     setEditing(null);
+    setImageBlob(null);
+    setImagePreview(null);
+    setRemoveImage(false);
     reset({ ...emptyProduct, categoryId: categories[0]?.id ?? "" });
     setFormOpen(true);
   };
 
   const openEdit = (product: Product) => {
     setEditing(product);
+    setImageBlob(null);
+    setImagePreview(product.imageUrl);
+    setRemoveImage(false);
     reset(toValues(product));
     setDetail(null);
     setFormOpen(true);
+  };
+
+  const onImageChange = async (file: File | undefined) => {
+    if (!file) {
+      return;
+    }
+
+    setIsImageProcessing(true);
+
+    try {
+      const blob = await compressProductImage(file);
+      setImageBlob(blob);
+      setImagePreview(URL.createObjectURL(blob));
+      setRemoveImage(false);
+    } catch (reason) {
+      setError("root", {
+        message:
+          reason instanceof Error ? reason.message : "Gambar gagal diproses.",
+      });
+    } finally {
+      setIsImageProcessing(false);
+    }
   };
 
   const onSubmit = handleSubmit(async (values) => {
@@ -169,13 +216,34 @@ export default function ProductsPage() {
     };
 
     try {
-      if (editing) {
-        await updateProduct.mutateAsync({ id: editing.id, input });
-        toast({ title: "Produk diperbarui", tone: "success" });
-      } else {
-        await createProduct.mutateAsync(input);
-        toast({ title: "Produk ditambahkan", tone: "success" });
+      const saved = editing
+        ? await updateProduct.mutateAsync({ id: editing.id, input })
+        : await createProduct.mutateAsync(input);
+      let imageWarning: string | null = null;
+
+      if (imageBlob) {
+        try {
+          await uploadProductImage.mutateAsync({
+            id: saved.id,
+            image: imageBlob,
+          });
+        } catch {
+          imageWarning =
+            "Produk tersimpan tanpa gambar. Buka edit untuk mencoba lagi.";
+        }
+      } else if (editing && removeImage) {
+        try {
+          await deleteProductImage.mutateAsync(editing.id);
+        } catch {
+          imageWarning = "Produk tersimpan, tetapi gambar lama gagal dihapus.";
+        }
       }
+
+      toast({
+        title: editing ? "Produk diperbarui" : "Produk ditambahkan",
+        description: imageWarning ?? undefined,
+        tone: imageWarning ? "warning" : "success",
+      });
       setFormOpen(false);
     } catch (reason) {
       setError("root", {
@@ -386,13 +454,22 @@ export default function ProductsPage() {
                       {data.items.map((product) => (
                         <TableRow key={product.id}>
                           <TableCell>
-                            <button
-                              className="min-h-11 text-left font-medium text-foreground underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
-                              onClick={() => setDetail(product)}
-                              type="button"
-                            >
-                              {product.name}
-                            </button>
+                            <div className="flex items-center gap-2">
+                              <span className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-md border border-border bg-surface-subtle">
+                                <ProductImage
+                                  iconClassName="h-5 w-5"
+                                  name={product.name}
+                                  src={product.imageUrl}
+                                />
+                              </span>
+                              <button
+                                className="min-h-11 text-left font-medium text-foreground underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
+                                onClick={() => setDetail(product)}
+                                type="button"
+                              >
+                                {product.name}
+                              </button>
+                            </div>
                           </TableCell>
                           <TableCell className="text-muted-foreground">
                             {categoryName(product.categoryId)}
@@ -498,87 +575,142 @@ export default function ProductsPage() {
           }
           formId="product-form"
           isDirty={isDirty}
-          isSubmitting={isSubmitting}
-          onOpenChange={setFormOpen}
+          isSubmitting={isSubmitting || isImageProcessing}
+          onOpenChange={(open) => {
+            setFormOpen(open);
+            if (!open) {
+              setImageBlob(null);
+              setImagePreview(null);
+              setRemoveImage(false);
+            }
+          }}
           onSubmit={onSubmit}
           open={formOpen}
           title={editing ? "Ubah produk" : "Tambah produk"}
         >
-          <div className="flex items-center gap-3 rounded-md border border-border bg-surface-subtle p-3">
-            <span className="flex h-14 w-14 items-center justify-center rounded-md border border-border bg-surface text-muted-foreground">
-              <Package aria-hidden="true" className="h-6 w-6" />
-            </span>
-            <div className="flex flex-col">
-              <span className="text-label font-medium text-foreground">
-                Gambar contoh
+          <div className="flex flex-col gap-3 rounded-md border border-border bg-surface-subtle p-3">
+            <div className="flex items-center gap-3">
+              <span className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-md border border-border bg-surface text-muted-foreground">
+                <ProductImage
+                  iconClassName="h-7 w-7"
+                  name={editing?.name ?? "Produk"}
+                  src={imagePreview}
+                />
               </span>
-              <span className="text-caption text-muted-foreground">
-                Unggah gambar belum tersedia.
-              </span>
+              <div className="flex flex-col gap-1">
+                <span className="text-label font-medium text-foreground">
+                  Gambar produk
+                </span>
+                <span className="text-caption text-muted-foreground">
+                  JPEG, PNG, atau WebP. Otomatis dikompres, maksimal 5 MB.
+                </span>
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <label
+                className="inline-flex min-h-9 cursor-pointer items-center rounded-md border border-border bg-surface px-3 text-label font-medium text-foreground hover:bg-muted focus-within:ring-2 focus-within:ring-focus-ring"
+                htmlFor="product-image"
+              >
+                {imagePreview ? "Ganti gambar" : "Pilih gambar"}
+              </label>
+              <input
+                accept={PRODUCT_IMAGE_ACCEPT}
+                className="sr-only"
+                id="product-image"
+                onChange={(event) => {
+                  void onImageChange(event.target.files?.[0]);
+                  event.target.value = "";
+                }}
+                type="file"
+              />
+              {imagePreview ? (
+                <Button
+                  onClick={() => {
+                    setImageBlob(null);
+                    setImagePreview(null);
+                    setRemoveImage(Boolean(editing?.imageUrl));
+                  }}
+                  size="sm"
+                  type="button"
+                  variant="outline"
+                >
+                  Hapus gambar
+                </Button>
+              ) : null}
+              {isImageProcessing ? (
+                <span className="self-center text-caption text-muted-foreground">
+                  Memproses gambar...
+                </span>
+              ) : null}
             </div>
           </div>
 
-          <Field
-            error={errors.name?.message}
-            htmlFor="product-name"
-            label="Nama produk"
-            required
-          >
-            <Input id="product-name" {...register("name")} />
-          </Field>
-          <Field
-            error={errors.description?.message}
-            htmlFor="product-description"
-            label="Deskripsi"
-          >
-            <Textarea id="product-description" {...register("description")} />
-          </Field>
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="flex flex-col gap-3 border-t border-border pt-4">
+            <p className="text-label font-medium text-foreground">
+              Informasi dasar
+            </p>
             <Field
-              error={errors.categoryId?.message}
-              htmlFor="product-category"
-              label="Kategori"
+              error={errors.name?.message}
+              htmlFor="product-name"
+              label="Nama produk"
               required
             >
-              <Select id="product-category" {...register("categoryId")}>
-                <option value="">Pilih kategori</option>
-                {categories.map((category) => (
-                  <option key={category.id} value={category.id}>
-                    {category.name}
-                  </option>
-                ))}
-              </Select>
+              <Input id="product-name" {...register("name")} />
             </Field>
             <Field
-              error={errors.basePrice?.message}
-              htmlFor="product-price"
-              label="Harga dasar"
-              required
+              error={errors.description?.message}
+              htmlFor="product-description"
+              label="Deskripsi"
             >
-              <Input
-                id="product-price"
-                min={0}
-                step={1}
-                type="number"
-                {...register("basePrice", { valueAsNumber: true })}
-              />
+              <Textarea id="product-description" {...register("description")} />
             </Field>
-          </div>
-          <div className="flex flex-col gap-2">
-            <label
-              className="flex min-h-11 items-center gap-2 text-body text-foreground"
-              htmlFor="product-available"
-            >
-              <Checkbox id="product-available" {...register("isAvailable")} />
-              Tersedia untuk dijual
-            </label>
-            <label
-              className="flex min-h-11 items-center gap-2 text-body text-foreground"
-              htmlFor="product-active"
-            >
-              <Checkbox id="product-active" {...register("isActive")} />
-              Produk aktif
-            </label>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Field
+                error={errors.categoryId?.message}
+                htmlFor="product-category"
+                label="Kategori"
+                required
+              >
+                <Select id="product-category" {...register("categoryId")}>
+                  <option value="">Pilih kategori</option>
+                  {categories.map((category) => (
+                    <option key={category.id} value={category.id}>
+                      {category.name}
+                    </option>
+                  ))}
+                </Select>
+              </Field>
+              <Field
+                error={errors.basePrice?.message}
+                htmlFor="product-price"
+                label="Harga dasar"
+                required
+              >
+                <Input
+                  id="product-price"
+                  min={0}
+                  step={1}
+                  type="number"
+                  {...register("basePrice", { valueAsNumber: true })}
+                />
+              </Field>
+            </div>
+            <div className="flex flex-col gap-2">
+              <label
+                className="flex min-h-11 items-center gap-2 text-body text-foreground"
+                htmlFor="product-available"
+              >
+                <Checkbox id="product-available" {...register("isAvailable")} />
+                Tersedia untuk dijual
+              </label>
+              <label
+                className="flex min-h-11 items-center gap-2 text-body text-foreground"
+                htmlFor="product-active"
+              >
+                <Checkbox id="product-active" {...register("isActive")} />
+                Produk aktif
+              </label>
+            </div>
           </div>
 
           <div className="flex flex-col gap-2 border-t border-border pt-4">
@@ -698,7 +830,7 @@ export default function ProductsPage() {
                     id={`addon-select-${field.id}`}
                     {...register(`addOns.${index}.addOnId`)}
                   >
-                    {addOns.map((addOn) => (
+                    {activeAddOns.map((addOn) => (
                       <option key={addOn.id} value={addOn.id}>
                         {addOn.name} ({formatCurrency(addOn.price)})
                       </option>
@@ -755,9 +887,6 @@ export default function ProductsPage() {
                 </div>
               </div>
             ))}
-            <FieldDescription>
-              Add-on mengikuti data katalog contoh yang tersedia.
-            </FieldDescription>
           </div>
 
           {errors.root?.message ? (
@@ -783,8 +912,12 @@ export default function ProductsPage() {
           {detail ? (
             <div className="flex flex-col gap-4">
               <div className="flex items-center gap-3">
-                <span className="flex h-16 w-16 items-center justify-center rounded-md border border-border bg-surface-subtle text-muted-foreground">
-                  <Package aria-hidden="true" className="h-7 w-7" />
+                <span className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-md border border-border bg-surface-subtle text-muted-foreground">
+                  <ProductImage
+                    iconClassName="h-7 w-7"
+                    name={detail.name}
+                    src={detail.imageUrl}
+                  />
                 </span>
                 <div className="flex flex-col gap-1">
                   <p className="text-card-title text-foreground">

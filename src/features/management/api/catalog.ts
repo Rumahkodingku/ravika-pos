@@ -3,6 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiFetch } from "@/lib/api/client";
 import { queryKeys } from "@/lib/api/keys";
+import type { AddOnInput } from "@/modules/catalog/catalog.schemas";
 import type {
   CategoryListParams,
   Paginated,
@@ -106,6 +107,45 @@ export function useAddOnsQuery() {
   });
 }
 
+export function useCreateAddOnMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (input: AddOnInput) =>
+      apiFetch<AddOn>("/add-ons", { body: input, method: "POST" }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.addOns });
+    },
+  });
+}
+
+export function useUpdateAddOnMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, input }: { id: string; input: AddOnInput }) =>
+      apiFetch<AddOn>(`/add-ons/${id}`, { body: input, method: "PATCH" }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.addOns });
+    },
+  });
+}
+
+export function useSetAddOnActiveMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ addOn, isActive }: { addOn: AddOn; isActive: boolean }) =>
+      apiFetch<AddOn>(`/add-ons/${addOn.id}`, {
+        body: { isActive, name: addOn.name, price: addOn.price },
+        method: "PATCH",
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.addOns });
+    },
+  });
+}
+
 export function useCreateCategoryMutation() {
   const onSuccess = useCatalogInvalidation();
 
@@ -183,6 +223,57 @@ export function useUpdateProductMutation() {
       queryClient.setQueryData(queryKeys.product(product.id), product);
       queryClient.invalidateQueries({ queryKey: ["products"] });
       queryClient.invalidateQueries({ queryKey: ["categories"] });
+    },
+  });
+}
+
+export function useUploadProductImageMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, image }: { id: string; image: Blob }) => {
+      const body = new FormData();
+      body.append("image", image, "product.webp");
+
+      return apiFetch<{ imageUrl: string }>(`/products/${id}/image`, {
+        body,
+        method: "PUT",
+      });
+    },
+    onSuccess: ({ imageUrl }, { id }) => {
+      const product = queryClient.getQueryData<Product>(queryKeys.product(id));
+
+      if (product) {
+        queryClient.setQueryData(queryKeys.product(id), {
+          ...product,
+          imageUrl,
+        });
+      }
+
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+      queryClient.invalidateQueries({ queryKey: ["public"] });
+    },
+  });
+}
+
+export function useDeleteProductImageMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) =>
+      apiFetch<void>(`/products/${id}/image`, { method: "DELETE" }),
+    onSuccess: (_data, id) => {
+      const product = queryClient.getQueryData<Product>(queryKeys.product(id));
+
+      if (product) {
+        queryClient.setQueryData(queryKeys.product(id), {
+          ...product,
+          imageUrl: null,
+        });
+      }
+
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+      queryClient.invalidateQueries({ queryKey: ["public"] });
     },
   });
 }

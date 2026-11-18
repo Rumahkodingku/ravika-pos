@@ -49,6 +49,7 @@ export type Product = {
   categoryId: string;
   name: string;
   description: string;
+  imageUrl: string | null;
   basePrice: number;
   isAvailable: boolean;
   isActive: boolean;

@@ -14,9 +14,11 @@ export async function apiFetch<T>(
   const requestHeaders = new Headers(headers);
   requestHeaders.set("accept", "application/json");
 
-  let requestBody: string | undefined;
+  let requestBody: BodyInit | undefined;
 
-  if (body !== undefined) {
+  if (body instanceof FormData || body instanceof Blob) {
+    requestBody = body;
+  } else if (body !== undefined) {
     requestHeaders.set("content-type", "application/json");
     requestBody = JSON.stringify(body);
   }

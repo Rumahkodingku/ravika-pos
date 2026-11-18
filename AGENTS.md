@@ -53,6 +53,7 @@ Self-hosted, LAN-first POS for cafes. Phases 1 through 7 are implemented. The UI
 - Management navigation uses quick links plus `MegaMenu` on desktop and `MobileMenuSheet` below `1024px`. Keep permission filtering.
 - There is no `/app/design-system` route or mock-control surface. Phase 7 removed both.
 - Product behavior and business rules live in `docs/PRD.md`. Read PRD plus `docs/design/*` before new pages or shared components.
+- Add-on adalah katalog master. Owner dapat membuat, mengubah, dan menonaktifkan add-on. Harga add-on dapat diubah; riwayat transaksi tetap memakai snapshot.
 - Do not invent business rules, fields, states, or permissions.
 - The UI reads and writes the SQLite/Drizzle backend through Route Handlers. Session state is an HttpOnly cookie issued by the backend; the browser never reads the token.
 - Layouts call `requireLayoutSession()`; pages use `PermissionGate`/`RequirePermission` with permission codes. Never guard on a role code.
@@ -62,7 +63,9 @@ Self-hosted, LAN-first POS for cafes. Phases 1 through 7 are implemented. The UI
 - Dine-in tables become `OCCUPIED` automatically and return to `AVAILABLE` when no active order remains.
 - Cancel is blocked when a recorded payment exists. Full-order refund is available from order detail for `PAID` orders with `payments.refund`.
 - POS cart uses sessionStorage key `ravika-pos-cart`. QR table tokens and order public tokens are separate.
-- QR table codes are scannable. Product images remain neutral placeholders with no upload.
+- QR table codes are scannable. Product images are optional; products without one use a neutral placeholder.
+- Product images are optional and stored as BLOB in `product_images` (one per product), never as files in `public/` or `data/uploads/`. Uploads use `PUT /api/products/:id/image`, deletes use `DELETE`, and public reads use versioned `GET /api/product-images/:productId`.
+- Product image upload allows JPEG/PNG/WebP, max 5 MB after client compression. The client resizes to 1600px and encodes WebP 0.82 with JPEG fallback. SVG/GIF are rejected.
 - Public menu uses top-level `addOns` from the public menu response. Public order status polls every 10 seconds through TanStack Query.
 - Public order status uses `publicToken` and must never show internal user data or other orders.
 

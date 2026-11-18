@@ -152,6 +152,8 @@ Token desain ada di `src/styles/tokens.css`. Theme, shell, dan komponen dasar te
 | GET/POST | `/api/products` | `products.view` / `products.manage` |
 | GET/PATCH | `/api/products/:id` | `products.view` / `products.manage` |
 | GET | `/api/add-ons` | `products.view` |
+| POST | `/api/add-ons` | `products.manage` |
+| PATCH | `/api/add-ons/:id` | `products.manage` |
 | GET/POST | `/api/tables` | `tables.view` / `tables.manage` |
 | GET/PATCH | `/api/tables/:id` | `tables.view` / `tables.manage` |
 | POST | `/api/tables/:id/regenerate-qr` | `tables.manage` |
@@ -173,6 +175,8 @@ Token desain ada di `src/styles/tokens.css`. Theme, shell, dan komponen dasar te
 | GET | `/api/licensing/status` | `license.view` |
 | GET/POST | `/api/backup` | `backup.create` |
 | POST | `/api/backup/restore` | `backup.restore` |
+| GET | `/api/product-images/:productId` | Publik, versioned image |
+| PUT/DELETE | `/api/products/:id/image` | `products.manage` |
 | GET | `/api/public/menu/:token` | Publik, rate limited |
 | POST | `/api/public/orders` | Publik, rate limited |
 | GET | `/api/public/orders/:publicToken` | Publik, rate limited |

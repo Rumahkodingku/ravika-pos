@@ -231,6 +231,7 @@ export async function getPublicMenu(db: AppDatabase, token: string) {
   const activeAddOns = (await listAddOns(db, business.id)).filter(
     (addOn) => addOn.isActive && referencedAddOnIds.has(addOn.id),
   );
+  const activeAddOnIds = new Set(activeAddOns.map((addOn) => addOn.id));
 
   return {
     business: {
@@ -250,9 +251,12 @@ export async function getPublicMenu(db: AppDatabase, token: string) {
       categoryId: product.categoryId,
       name: product.name,
       description: product.description,
+      imageUrl: product.imageUrl,
       basePrice: product.basePrice,
       variants: product.variants.filter((variant) => variant.isActive),
-      addOns: product.addOns,
+      addOns: product.addOns.filter((relation) =>
+        activeAddOnIds.has(relation.addOnId),
+      ),
     })),
     addOns: activeAddOns,
   };

@@ -17,6 +17,13 @@ import type { SessionUser } from "@/types/auth";
 import type { AddOn, Category, Product } from "@/types/domain";
 import { renderWithProviders } from "../helpers/render";
 
+vi.mock("@/lib/image", () => ({
+  PRODUCT_IMAGE_ACCEPT: "image/jpeg,image/png,image/webp",
+  compressProductImage: vi.fn(
+    async () => new Blob([new Uint8Array([1, 2, 3])], { type: "image/webp" }),
+  ),
+}));
+
 const fetchMock = vi.fn();
 
 const owner: SessionUser = {
@@ -51,6 +58,7 @@ const espresso: Product = {
   categoryId: "category-kopi",
   name: "Espresso",
   description: "",
+  imageUrl: null,
   basePrice: 22000,
   isAvailable: true,
   isActive: true,
@@ -131,6 +139,8 @@ function mockApi(
 }
 
 beforeAll(() => {
+  URL.createObjectURL = vi.fn(() => "blob:preview");
+  URL.revokeObjectURL = vi.fn();
   HTMLDialogElement.prototype.showModal = function showModal() {
     this.open = true;
   };
@@ -318,5 +328,56 @@ describe("ProductsPage", () => {
     expect(body).not.toHaveProperty("businessId");
     expect(body).not.toHaveProperty("createdAt");
     expect(body).not.toHaveProperty("updatedAt");
+  });
+  it("uploads a compressed image after creating the product", async () => {
+    const user = userEvent.setup();
+    mockApi((url, init) => {
+      if (url === "/api/products" && init?.method === "POST") {
+        return jsonResponse({ ...espresso, id: "product-new" }, 201);
+      }
+      if (url === "/api/products/product-new/image" && init?.method === "PUT") {
+        return jsonResponse({
+          imageUrl: "/api/product-images/product-new?v=1",
+        });
+      }
+      return null;
+    });
+    renderWithProviders(<ProductsPage />, { user: owner });
+
+    await screen.findAllByText("Espresso");
+    await user.click(
+      await screen.findByRole("button", { name: "Tambah produk" }),
+    );
+    await user.type(screen.getByLabelText(/^Nama produk/), "Kopi Susu");
+    await user.selectOptions(
+      screen.getByLabelText(/^Kategori/),
+      "category-kopi",
+    );
+    await user.upload(
+      screen.getByLabelText("Pilih gambar"),
+      new File([new Uint8Array([1, 2, 3])], "latte.png", {
+        type: "image/png",
+      }),
+    );
+    await user.click(screen.getByRole("button", { name: "Simpan" }));
+
+    await waitFor(() => {
+      expect(
+        fetchMock.mock.calls.filter(
+          ([url, init]) =>
+            url === "/api/products/product-new/image" && init?.method === "PUT",
+        ),
+      ).toHaveLength(1);
+    });
+
+    const call = fetchMock.mock.calls.find(
+      ([url, init]) =>
+        url === "/api/products/product-new/image" && init?.method === "PUT",
+    );
+    const body = (call?.[1] as RequestInit).body as FormData;
+
+    expect(body).toBeInstanceOf(FormData);
+    expect(body.get("image")).toBeInstanceOf(Blob);
+    expect((body.get("image") as Blob).type).toBe("image/webp");
   });
 });

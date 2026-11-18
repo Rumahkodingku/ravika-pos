@@ -75,6 +75,7 @@ export type PublicMenuResponse = {
     categoryId: string;
     name: string;
     description: string;
+    imageUrl: string | null;
     basePrice: number;
     variants: ProductVariant[];
     addOns: ProductAddOn[];
