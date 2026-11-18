@@ -53,6 +53,7 @@ Self-hosted, LAN-first POS for cafes. Phases 1 through 7 are implemented. The UI
 - Management navigation uses quick links plus `MegaMenu` on desktop and `MobileMenuSheet` below `1024px`. Keep permission filtering.
 - There is no `/app/design-system` route or mock-control surface. Phase 7 removed both.
 - Product behavior and business rules live in `docs/PRD.md`. Read PRD plus `docs/design/*` before new pages or shared components.
+- Add-on adalah katalog master. Owner dapat membuat, mengubah, dan menonaktifkan add-on. Harga add-on dapat diubah; riwayat transaksi tetap memakai snapshot.
 - Do not invent business rules, fields, states, or permissions.
 - The UI reads and writes the SQLite/Drizzle backend through Route Handlers. Session state is an HttpOnly cookie issued by the backend; the browser never reads the token.
 - Layouts call `requireLayoutSession()`; pages use `PermissionGate`/`RequirePermission` with permission codes. Never guard on a role code.

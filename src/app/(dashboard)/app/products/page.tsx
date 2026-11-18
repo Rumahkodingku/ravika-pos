@@ -139,6 +139,7 @@ export default function ProductsPage() {
   const deleteProductImage = useDeleteProductImageMutation();
   const categories = categoryData?.items ?? [];
   const addOns = addOnData;
+  const activeAddOns = addOns.filter((addOn) => addOn.isActive);
 
   const {
     control,
@@ -829,7 +830,7 @@ export default function ProductsPage() {
                     id={`addon-select-${field.id}`}
                     {...register(`addOns.${index}.addOnId`)}
                   >
-                    {addOns.map((addOn) => (
+                    {activeAddOns.map((addOn) => (
                       <option key={addOn.id} value={addOn.id}>
                         {addOn.name} ({formatCurrency(addOn.price)})
                       </option>

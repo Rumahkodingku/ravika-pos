@@ -16,8 +16,10 @@ import {
   deleteProductAddOns,
   deleteVariants,
   findAddOn,
+  findAddOnByName,
   findCategory,
   findProduct,
+  insertAddOn,
   insertCategory,
   insertProduct,
   insertProductAddOns,
@@ -27,10 +29,15 @@ import {
   listProductAddOnRows,
   listProductRows,
   listVariantRows,
+  updateAddOnRow,
   updateCategoryRow,
   updateProductRow,
 } from "./catalog.repository";
-import type { CategoryInput, ProductInput } from "./catalog.schemas";
+import type {
+  AddOnInput,
+  CategoryInput,
+  ProductInput,
+} from "./catalog.schemas";
 import { listProductImages } from "./product-image.repository";
 import { productImageUrl } from "./product-image.service";
 
@@ -306,6 +313,11 @@ async function validateRelations(
         { path: "addOns", message: "Add-on tidak ditemukan." },
       ]);
     }
+    if (!addOn.isActive) {
+      throw AppError.validation([
+        { path: "addOns", message: "Add-on tidak aktif." },
+      ]);
+    }
   }
 
   const names = input.variants.map((variant) => variant.name.toLowerCase());
@@ -395,6 +407,71 @@ export async function updateProduct(
   });
 
   return getProduct(db, businessId, id);
+}
+
+export async function createAddOn(
+  db: AppDatabase,
+  businessId: string,
+  input: AddOnInput,
+) {
+  if (await findAddOnByName(db, businessId, input.name)) {
+    throw AppError.conflict(
+      "ADDON_NAME_CONFLICT",
+      "Nama add-on sudah dipakai.",
+    );
+  }
+
+  const timestamp = now();
+  const id = newId();
+
+  await insertAddOn(db, {
+    id,
+    businessId,
+    name: input.name,
+    price: input.price,
+    isActive: input.isActive,
+    createdAt: timestamp,
+    updatedAt: timestamp,
+  });
+
+  return (await listAddOnRows(db, businessId))
+    .filter((row) => row.id === id)
+    .map(toAddOn)[0];
+}
+
+export async function updateAddOn(
+  db: AppDatabase,
+  businessId: string,
+  id: string,
+  input: AddOnInput,
+) {
+  const existing = await findAddOn(db, businessId, id);
+
+  if (!existing) {
+    throw AppError.notFound("ADDON_NOT_FOUND", "Add-on tidak ditemukan.");
+  }
+
+  if (await findAddOnByName(db, businessId, input.name, id)) {
+    throw AppError.conflict(
+      "ADDON_NAME_CONFLICT",
+      "Nama add-on sudah dipakai.",
+    );
+  }
+
+  await updateAddOnRow(db, id, {
+    name: input.name,
+    price: input.price,
+    isActive: input.isActive,
+    updatedAt: now(),
+  });
+
+  const updated = await findAddOn(db, businessId, id);
+
+  if (!updated) {
+    throw AppError.internal();
+  }
+
+  return toAddOn(updated);
 }
 
 export async function listAddOns(db: AppDatabase, businessId: string) {

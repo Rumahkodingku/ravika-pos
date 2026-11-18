@@ -3,6 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiFetch } from "@/lib/api/client";
 import { queryKeys } from "@/lib/api/keys";
+import type { AddOnInput } from "@/modules/catalog/catalog.schemas";
 import type {
   CategoryListParams,
   Paginated,
@@ -103,6 +104,45 @@ export function useAddOnsQuery() {
   return useQuery({
     queryFn: () => apiFetch<AddOn[]>("/add-ons"),
     queryKey: queryKeys.addOns,
+  });
+}
+
+export function useCreateAddOnMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (input: AddOnInput) =>
+      apiFetch<AddOn>("/add-ons", { body: input, method: "POST" }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.addOns });
+    },
+  });
+}
+
+export function useUpdateAddOnMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, input }: { id: string; input: AddOnInput }) =>
+      apiFetch<AddOn>(`/add-ons/${id}`, { body: input, method: "PATCH" }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.addOns });
+    },
+  });
+}
+
+export function useSetAddOnActiveMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ addOn, isActive }: { addOn: AddOn; isActive: boolean }) =>
+      apiFetch<AddOn>(`/add-ons/${addOn.id}`, {
+        body: { isActive, name: addOn.name, price: addOn.price },
+        method: "PATCH",
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.addOns });
+    },
   });
 }
 

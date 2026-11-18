@@ -48,5 +48,14 @@ export const productSchema = z
   })
   .strict();
 
+export const addOnSchema = z
+  .object({
+    name: z.string().trim().min(1, "Nama add-on wajib diisi.").max(80),
+    price: z.number().int().min(0, "Harga minimal 0."),
+    isActive: z.boolean(),
+  })
+  .strict();
+
 export type CategoryInput = z.infer<typeof categorySchema>;
 export type ProductInput = z.infer<typeof productSchema>;
+export type AddOnInput = z.infer<typeof addOnSchema>;

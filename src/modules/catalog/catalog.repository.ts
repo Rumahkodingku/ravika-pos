@@ -107,6 +107,41 @@ export async function findAddOn(
   return rows[0] ?? null;
 }
 
+export async function findAddOnByName(
+  db: DbExecutor,
+  businessId: string,
+  name: string,
+  exceptId?: string,
+) {
+  const rows = await db
+    .select()
+    .from(addOns)
+    .where(eq(addOns.businessId, businessId));
+
+  return (
+    rows.find(
+      (row) =>
+        row.name.toLowerCase() === name.toLowerCase() &&
+        (!exceptId || row.id !== exceptId),
+    ) ?? null
+  );
+}
+
+export async function insertAddOn(
+  db: DbExecutor,
+  input: typeof addOns.$inferInsert,
+) {
+  await db.insert(addOns).values(input);
+}
+
+export async function updateAddOnRow(
+  db: DbExecutor,
+  id: string,
+  input: Partial<typeof addOns.$inferInsert>,
+) {
+  await db.update(addOns).set(input).where(eq(addOns.id, id));
+}
+
 export async function insertProduct(
   db: DbExecutor,
   input: typeof products.$inferInsert,
