@@ -17,7 +17,11 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useToast } from "@/components/ui/toast";
-import { useMockSession } from "@/features/auth/mock-session";
+import {
+  useBackupsQuery,
+  useCreateBackupMutation,
+  useRestoreBackupMutation,
+} from "@/features/management/api/system";
 import { ConfirmDialog } from "@/features/management/confirm-dialog";
 import {
   PermissionGate,
@@ -25,8 +29,6 @@ import {
 } from "@/features/management/permission-gate";
 import { ResponsiveList } from "@/features/management/responsive-list";
 import { formatDateTime } from "@/lib/format";
-import { useAsyncData } from "@/mocks/management/hooks";
-import { managementService } from "@/mocks/management/service";
 import type { BackupRecord } from "@/types/domain";
 
 function formatSize(bytes: number) {
@@ -38,36 +40,25 @@ function formatSize(bytes: number) {
 
 export default function BackupPage() {
   const { toast } = useToast();
-  const { user } = useMockSession();
-  const [isCreating, setIsCreating] = useState(false);
   const [restoreTarget, setRestoreTarget] = useState<BackupRecord | null>(null);
-  const [isRestoring, setIsRestoring] = useState(false);
-  const { data, error, isLoading, refresh } = useAsyncData(
-    () => managementService.listBackups(),
-    "backups",
-  );
+  const { data, error, isLoading, refetch } = useBackupsQuery();
+  const createBackup = useCreateBackupMutation();
+  const restoreBackup = useRestoreBackupMutation();
 
-  const createBackup = async () => {
-    if (!user) {
-      return;
-    }
-    setIsCreating(true);
+  const handleCreateBackup = async () => {
     try {
-      await managementService.createBackup(user.id);
+      await createBackup.mutateAsync();
       toast({
         title: "Backup dibuat",
-        description: "Simulasi, tidak ada file nyata yang dibuat.",
+        description: "File backup tersimpan di server.",
         tone: "success",
       });
-      refresh();
     } catch (reason) {
       toast({
         title: "Backup gagal dibuat",
         description: reason instanceof Error ? reason.message : "Coba lagi.",
         tone: "danger",
       });
-    } finally {
-      setIsCreating(false);
     }
   };
 
@@ -77,13 +68,16 @@ export default function BackupPage() {
         <PageHeader
           actions={
             <PermissionGate permission="backup.create">
-              <Button isLoading={isCreating} onClick={createBackup}>
+              <Button
+                isLoading={createBackup.isPending}
+                onClick={handleCreateBackup}
+              >
                 <DatabaseBackup aria-hidden="true" className="h-4 w-4" />
                 Buat backup
               </Button>
             </PermissionGate>
           }
-          description="Cadangkan dan pulihkan data lokal. Semua aksi masih simulasi."
+          description="Cadangkan dan pulihkan data lokal."
           title="Backup"
         />
 
@@ -95,15 +89,10 @@ export default function BackupPage() {
         {isLoading ? (
           <Skeleton className="h-72" />
         ) : error ? (
-          <ErrorState onRetry={refresh} />
+          <ErrorState onRetry={() => void refetch()} />
         ) : data ? (
           <Card>
             <CardHeader
-              action={
-                <Badge tone="warning">
-                  Simulasi, bukan restore database nyata
-                </Badge>
-              }
               description={
                 data[0]
                   ? `Backup terakhir ${formatDateTime(data[0].createdAt)}.`
@@ -234,26 +223,19 @@ export default function BackupPage() {
 
         <ConfirmDialog
           confirmLabel="Pulihkan data"
-          consequence="Data mock saat ini akan diganti dengan isi backup pada simulasi. Tidak ada database nyata yang berubah."
+          consequence="Database saat ini akan diganti dengan isi backup. Server harus dimulai ulang setelah restore."
           description={
             restoreTarget
               ? `Pulihkan ${restoreTarget.fileName} dari ${formatDateTime(restoreTarget.createdAt)}?`
               : ""
           }
-          isLoading={isRestoring}
+          isLoading={restoreBackup.isPending}
           onConfirm={async () => {
             if (!restoreTarget) {
               return;
             }
-            setIsRestoring(true);
             try {
-              await managementService.restoreBackup(restoreTarget.id);
-              toast({
-                title: "Restore disimulasikan",
-                description: "Tidak ada data nyata yang diubah.",
-                tone: "success",
-              });
-              setRestoreTarget(null);
+              await restoreBackup.mutateAsync(restoreTarget.id);
             } catch (reason) {
               toast({
                 title: "Restore gagal",
@@ -261,8 +243,6 @@ export default function BackupPage() {
                   reason instanceof Error ? reason.message : "Coba lagi.",
                 tone: "danger",
               });
-            } finally {
-              setIsRestoring(false);
             }
           }}
           onOpenChange={(open) => {

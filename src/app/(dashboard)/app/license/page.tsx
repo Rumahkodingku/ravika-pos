@@ -1,18 +1,16 @@
 "use client";
 
 import { BadgeCheck, RefreshCw } from "lucide-react";
-import { useState } from "react";
 import { ErrorState } from "@/components/feedback/error-state";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/layout";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useToast } from "@/components/ui/toast";
+import { useBusinessQuery } from "@/features/management/api/business";
+import { useLicenseQuery } from "@/features/management/api/system";
 import { RequirePermission } from "@/features/management/permission-gate";
 import { formatDate } from "@/lib/format";
-import { useAsyncData, useManagementStore } from "@/mocks/management/hooks";
-import { managementService } from "@/mocks/management/service";
 import type { LicenseStatus } from "@/types/domain";
 
 const statusLabels: Record<LicenseStatus, string> = {
@@ -28,34 +26,8 @@ const statusTones: Record<LicenseStatus, "success" | "warning" | "danger"> = {
 };
 
 export default function LicensePage() {
-  const { toast } = useToast();
-  const business = useManagementStore((state) => state.business);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const { data, error, isLoading, refresh } = useAsyncData(
-    () => managementService.getLicense(),
-    "license",
-  );
-
-  const refreshStatus = async () => {
-    setIsRefreshing(true);
-    try {
-      await managementService.getLicense();
-      refresh();
-      toast({
-        title: "Status lisensi diperbarui",
-        description: "Validasi lokal nyata ada di Fase 6.",
-        tone: "success",
-      });
-    } catch (reason) {
-      toast({
-        title: "Status gagal diperbarui",
-        description: reason instanceof Error ? reason.message : "Coba lagi.",
-        tone: "danger",
-      });
-    } finally {
-      setIsRefreshing(false);
-    }
-  };
+  const business = useBusinessQuery();
+  const { data, error, isLoading, isFetching, refetch } = useLicenseQuery();
 
   return (
     <RequirePermission permission="license.view">
@@ -63,22 +35,22 @@ export default function LicensePage() {
         <PageHeader
           actions={
             <Button
-              isLoading={isRefreshing}
-              onClick={refreshStatus}
+              isLoading={isFetching}
+              onClick={() => void refetch()}
               variant="outline"
             >
               <RefreshCw aria-hidden="true" className="h-4 w-4" />
               Perbarui status
             </Button>
           }
-          description="Status lisensi instalasi. Data simulasi."
+          description="Status lisensi instalasi."
           title="Lisensi"
         />
 
         {isLoading ? (
           <Skeleton className="h-80" />
         ) : error ? (
-          <ErrorState onRetry={refresh} />
+          <ErrorState onRetry={() => void refetch()} />
         ) : data ? (
           <Card>
             <CardHeader
@@ -87,7 +59,7 @@ export default function LicensePage() {
                   {statusLabels[data.status]}
                 </Badge>
               }
-              description="Validasi lokal nyata ada di Fase 6."
+              description="Validasi lokal terhadap file lisensi instalasi."
               title="Lisensi RAVIKA POS"
             />
             <CardContent className="grid gap-5 sm:grid-cols-2">
@@ -96,7 +68,7 @@ export default function LicensePage() {
                   Nama bisnis
                 </span>
                 <span className="text-body font-medium text-foreground">
-                  {business.name}
+                  {business.data?.name ?? "Tidak ada"}
                 </span>
               </div>
               <div className="flex flex-col gap-1">
@@ -139,6 +111,17 @@ export default function LicensePage() {
                   {formatDate(data.expiresAt)}
                 </span>
               </div>
+              {data.validationMessage ? (
+                <div className="flex items-center gap-2 rounded-md border border-border bg-surface-subtle p-3 sm:col-span-2">
+                  <BadgeCheck
+                    aria-hidden="true"
+                    className="h-5 w-5 shrink-0 text-muted-foreground"
+                  />
+                  <p className="text-caption text-muted-foreground">
+                    {data.validationMessage}
+                  </p>
+                </div>
+              ) : null}
               <div className="flex items-center gap-2 rounded-md border border-border bg-surface-subtle p-3 sm:col-span-2">
                 <BadgeCheck
                   aria-hidden="true"

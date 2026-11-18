@@ -7,6 +7,7 @@ import {
 } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { type ReactNode, useEffect, useState } from "react";
+import { RestartRequiredProvider } from "@/features/system/restart-required";
 
 export function createQueryClient() {
   return new QueryClient({
@@ -55,7 +56,7 @@ export function Providers({ children }: { children: ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       <UnauthorizedListener />
-      {children}
+      <RestartRequiredProvider>{children}</RestartRequiredProvider>
     </QueryClientProvider>
   );
 }
