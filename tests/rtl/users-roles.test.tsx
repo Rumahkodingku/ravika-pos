@@ -11,8 +11,9 @@ import {
   it,
   vi,
 } from "vitest";
+import RolesPage from "@/app/(dashboard)/app/roles/page";
 import UsersPage from "@/app/(dashboard)/app/users/page";
-import type { ManagementUser } from "@/types/domain";
+import type { ManagementUser, Permission, Role } from "@/types/domain";
 import { renderWithProviders } from "../helpers/render";
 
 const { refreshMock } = vi.hoisted(() => ({ refreshMock: vi.fn() }));
@@ -30,7 +31,12 @@ const owner = {
   username: "owner",
   role: "OWNER",
   roleLabel: "Pemilik",
-  permissions: ["users.view", "users.manage", "roles.manage"],
+  permissions: [
+    "users.view",
+    "users.manage",
+    "roles.manage",
+    "permissions.manage",
+  ],
 };
 
 const cashierUser: ManagementUser = {
@@ -227,5 +233,148 @@ describe("UsersPage", () => {
     await user.click(screen.getByRole("button", { name: "Simpan" }));
 
     expect(await screen.findByText("Email sudah dipakai.")).toBeDefined();
+  });
+});
+
+const ownerRole: Role = {
+  id: "role-owner",
+  name: "Pemilik",
+  code: "OWNER",
+  description: "Akses penuh.",
+  isSystem: true,
+  permissionCodes: ["users.view", "users.manage"],
+};
+
+const cashierRole: Role = {
+  id: "role-cashier",
+  name: "Kasir",
+  code: "CASHIER",
+  description: "Membuat pesanan.",
+  isSystem: true,
+  permissionCodes: ["users.view"],
+};
+
+const permissions: Permission[] = [
+  { code: "users.view", label: "Lihat pengguna uji", group: "Grup uji" },
+  { code: "users.manage", label: "Kelola pengguna uji", group: "Grup uji" },
+  { code: "roles.manage", label: "Kelola peran uji", group: "Grup peran uji" },
+];
+
+function mockRolesApi(
+  overrides: (url: string, init?: RequestInit) => Response | null,
+) {
+  mockApi((url, init) => {
+    const override = overrides(url, init);
+
+    if (override) {
+      return override;
+    }
+
+    if (url === "/api/roles" && !init?.method) {
+      return jsonResponse([cashierRole]);
+    }
+
+    if (url === "/api/permissions") {
+      return jsonResponse(permissions);
+    }
+
+    return null;
+  });
+}
+
+describe("RolesPage", () => {
+  it("renders permission groups from the API", async () => {
+    const user = userEvent.setup();
+    mockRolesApi(() => null);
+    renderWithProviders(<RolesPage />, { user: owner });
+
+    const editButtons = await screen.findAllByRole("button", {
+      name: "Ubah Kasir",
+    });
+    await user.click(editButtons[0]);
+
+    expect((await screen.findAllByText("Grup uji")).length).toBeGreaterThan(0);
+    expect(
+      (await screen.findAllByText("Lihat pengguna uji")).length,
+    ).toBeGreaterThan(0);
+    expect(
+      (await screen.findAllByText("Kelola peran uji")).length,
+    ).toBeGreaterThan(0);
+  });
+
+  it("patches the role then puts its permissions", async () => {
+    const user = userEvent.setup();
+    mockRolesApi((url, init) => {
+      if (url === "/api/roles/role-cashier" && init?.method === "PATCH") {
+        return jsonResponse(cashierRole);
+      }
+
+      if (
+        url === "/api/roles/role-cashier/permissions" &&
+        init?.method === "PUT"
+      ) {
+        return jsonResponse(cashierRole);
+      }
+
+      return null;
+    });
+    renderWithProviders(<RolesPage />, { user: owner });
+
+    const editButtons = await screen.findAllByRole("button", {
+      name: "Ubah Kasir",
+    });
+    await user.click(editButtons[0]);
+    await user.click(screen.getByRole("button", { name: "Simpan" }));
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledWith(
+        "/api/roles/role-cashier/permissions",
+        expect.objectContaining({ method: "PUT" }),
+      );
+    });
+
+    const patchIndex = fetchMock.mock.calls.findIndex(
+      ([url, init]) =>
+        url === "/api/roles/role-cashier" && init?.method === "PATCH",
+    );
+    const putIndex = fetchMock.mock.calls.findIndex(
+      ([url, init]) =>
+        url === "/api/roles/role-cashier/permissions" && init?.method === "PUT",
+    );
+
+    expect(patchIndex).toBeGreaterThan(-1);
+    expect(putIndex).toBeGreaterThan(patchIndex);
+
+    const patchBody = JSON.parse(
+      (fetchMock.mock.calls[patchIndex][1] as RequestInit).body as string,
+    );
+    const putBody = JSON.parse(
+      (fetchMock.mock.calls[putIndex][1] as RequestInit).body as string,
+    );
+
+    expect(patchBody).not.toHaveProperty("permissionCodes");
+    expect(patchBody).toMatchObject({
+      code: "CASHIER",
+      description: "Membuat pesanan.",
+      name: "Kasir",
+    });
+    expect(putBody).toEqual({ permissionCodes: ["users.view"] });
+  });
+
+  it("disables the code field of a system role", async () => {
+    const user = userEvent.setup();
+    mockRolesApi((url, init) =>
+      url === "/api/roles" && !init?.method ? jsonResponse([ownerRole]) : null,
+    );
+    renderWithProviders(<RolesPage />, { user: owner });
+
+    const editButtons = await screen.findAllByRole("button", {
+      name: "Ubah Pemilik",
+    });
+    await user.click(editButtons[0]);
+
+    expect((screen.getByLabelText(/^Kode/) as HTMLInputElement).disabled).toBe(
+      true,
+    );
   });
 });

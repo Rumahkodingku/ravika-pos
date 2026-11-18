@@ -16,6 +16,12 @@ import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/layout";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/toast";
+import {
+  useCreateRoleMutation,
+  usePermissionsQuery,
+  useRolesQuery,
+  useUpdateRoleMutation,
+} from "@/features/management/api/roles";
 import { FormDrawer } from "@/features/management/form-drawer";
 import {
   PermissionGate,
@@ -23,10 +29,7 @@ import {
 } from "@/features/management/permission-gate";
 import { ResponsiveList } from "@/features/management/responsive-list";
 import { TableSkeleton } from "@/features/management/table-skeleton";
-import { useAsyncData } from "@/mocks/management/hooks";
-import { managementService } from "@/mocks/management/service";
-import { permissionGroups } from "@/mocks/permissions";
-import type { Role } from "@/types/domain";
+import type { Permission, Role } from "@/types/domain";
 
 const roleSchema = z.object({
   name: z.string().min(1, "Nama role wajib diisi."),
@@ -47,15 +50,36 @@ const emptyRole: RoleValues = {
   permissionCodes: [],
 };
 
+function groupPermissions(permissions: Permission[]) {
+  const groups = new Map<string, Permission[]>();
+
+  for (const permission of permissions) {
+    groups.set(permission.group, [
+      ...(groups.get(permission.group) ?? []),
+      permission,
+    ]);
+  }
+
+  return Array.from(groups, ([label, items]) => ({
+    label,
+    permissions: items,
+  }));
+}
+
 export default function RolesPage() {
   const { toast } = useToast();
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<Role | null>(null);
 
-  const { data, error, isLoading, refresh } = useAsyncData(
-    () => managementService.listRoles(),
-    "roles",
-  );
+  const rolesQuery = useRolesQuery();
+  const permissionsQuery = usePermissionsQuery();
+  const createRoleMutation = useCreateRoleMutation();
+  const updateRoleMutation = useUpdateRoleMutation();
+
+  const data = rolesQuery.data;
+  const permissionGroups = groupPermissions(permissionsQuery.data ?? []);
+  const isLoading = rolesQuery.isLoading || permissionsQuery.isLoading;
+  const error = rolesQuery.error ?? permissionsQuery.error;
 
   const {
     formState: { errors, isDirty, isSubmitting },
@@ -115,14 +139,21 @@ export default function RolesPage() {
   const onSubmit = handleSubmit(async (values) => {
     try {
       if (editing) {
-        await managementService.updateRole(editing.id, values);
+        await updateRoleMutation.mutateAsync({
+          id: editing.id,
+          input: {
+            name: values.name,
+            code: values.code,
+            description: values.description,
+          },
+          permissionCodes: values.permissionCodes,
+        });
         toast({ title: "Peran diperbarui", tone: "success" });
       } else {
-        await managementService.createRole(values);
+        await createRoleMutation.mutateAsync(values);
         toast({ title: "Peran ditambahkan", tone: "success" });
       }
       setFormOpen(false);
-      refresh();
     } catch (reason) {
       setError("root", {
         message:
@@ -136,15 +167,12 @@ export default function RolesPage() {
       <div className="flex flex-col gap-6">
         <PageHeader
           actions={
-            <>
-              <Badge tone="neutral">Data simulasi</Badge>
-              <PermissionGate permission="roles.manage">
-                <Button onClick={openCreate}>
-                  <Plus aria-hidden="true" className="h-4 w-4" />
-                  Tambah peran
-                </Button>
-              </PermissionGate>
-            </>
+            <PermissionGate permission="roles.manage">
+              <Button onClick={openCreate}>
+                <Plus aria-hidden="true" className="h-4 w-4" />
+                Tambah peran
+              </Button>
+            </PermissionGate>
           }
           description="Atur izin untuk setiap peran. Perubahan langsung memengaruhi navigasi sesi terkait."
           title="Peran dan izin"
@@ -155,7 +183,12 @@ export default function RolesPage() {
             {isLoading ? (
               <TableSkeleton columns={5} />
             ) : error ? (
-              <ErrorState onRetry={refresh} />
+              <ErrorState
+                onRetry={() => {
+                  void rolesQuery.refetch();
+                  void permissionsQuery.refetch();
+                }}
+              />
             ) : !data || data.length === 0 ? (
               <EmptyState
                 action={
