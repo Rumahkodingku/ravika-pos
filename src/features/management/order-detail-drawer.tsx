@@ -1,6 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { CheckCircle2, Clock } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -19,8 +20,10 @@ import {
   useRefundOrderMutation,
 } from "@/features/management/api/orders";
 import { PermissionGate } from "@/features/management/permission-gate";
+import { cn } from "@/lib/cn";
 import { formatCurrency, formatDateTime } from "@/lib/format";
 import type { Order, PaymentMethod } from "@/types/domain";
+import type { PreparationStatus } from "@/types/ui";
 
 const reasonSchema = z.object({
   reason: z.string().min(3, "Alasan minimal 3 karakter."),
@@ -46,6 +49,21 @@ const statusLabels: Record<string, string> = {
 
 const cancellableStatuses = ["NEW", "ACCEPTED", "PREPARING"];
 const recordedPaymentStatuses = ["PAID", "PARTIALLY_PAID"];
+const preparationFlow = [
+  "NEW",
+  "ACCEPTED",
+  "PREPARING",
+  "READY",
+  "COMPLETED",
+] as const;
+
+function statusFlow(status: Order["orderStatus"]): PreparationStatus[] {
+  if (status === "CANCELLED") {
+    return ["NEW", "CANCELLED"];
+  }
+
+  return [...preparationFlow];
+}
 
 export function OrderDetailDrawer({
   onOpenChange,
@@ -314,27 +332,87 @@ export function OrderDetailDrawer({
                   Belum ada riwayat status.
                 </p>
               ) : (
-                history.map((entry) => (
-                  <div
-                    className="flex flex-col gap-0.5 text-body"
-                    key={entry.id}
-                  >
-                    <span className="font-medium text-foreground">
-                      {entry.previousStatus
-                        ? `${statusLabels[entry.previousStatus]} menjadi ${statusLabels[entry.newStatus]}`
-                        : statusLabels[entry.newStatus]}
-                    </span>
-                    <span className="text-caption text-muted-foreground">
-                      {formatDateTime(entry.createdAt)} oleh{" "}
-                      {entry.changedByName ?? "Tidak ada"}
-                    </span>
-                    {entry.reason ? (
-                      <span className="text-caption text-muted-foreground">
-                        Alasan: {entry.reason}
-                      </span>
-                    ) : null}
-                  </div>
-                ))
+                (() => {
+                  const flow = statusFlow(current.orderStatus);
+                  const currentIndex = flow.indexOf(current.orderStatus);
+                  const historyByStatus = new Map(
+                    history.map((entry) => [entry.newStatus, entry]),
+                  );
+
+                  return (
+                    <ol
+                      aria-label="Riwayat status pesanan"
+                      className="relative flex flex-col gap-4"
+                    >
+                      {flow.map((status, index) => {
+                        const isTerminal =
+                          status === "COMPLETED" || status === "CANCELLED";
+                        const isCompleted =
+                          index < currentIndex ||
+                          (index === currentIndex && isTerminal);
+                        const isReached = index <= currentIndex;
+                        const entry = historyByStatus.get(status);
+                        const timestamp =
+                          status === "NEW"
+                            ? (entry?.createdAt ?? current.createdAt)
+                            : (entry?.createdAt ?? null);
+                        const Icon = isCompleted ? CheckCircle2 : Clock;
+
+                        return (
+                          <li className="relative flex gap-3" key={status}>
+                            {index < flow.length - 1 ? (
+                              <span
+                                aria-hidden="true"
+                                className={cn(
+                                  "absolute left-4 top-8 h-[calc(100%-1rem)] w-px",
+                                  isCompleted ? "bg-success" : "bg-border",
+                                )}
+                              />
+                            ) : null}
+                            <span
+                              aria-label={
+                                isCompleted ? "Selesai" : "Belum selesai"
+                              }
+                              role="img"
+                              className={cn(
+                                "relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border",
+                                isCompleted
+                                  ? "border-success bg-success-subtle text-success-strong"
+                                  : "border-border bg-surface-subtle text-muted-foreground",
+                              )}
+                            >
+                              <Icon aria-hidden="true" className="h-4 w-4" />
+                            </span>
+                            <div className="flex min-w-0 flex-col gap-0.5">
+                              <span className="text-body font-medium text-foreground">
+                                {statusLabels[status]}
+                              </span>
+                              {isReached ? (
+                                <>
+                                  <span className="text-caption text-muted-foreground">
+                                    {formatDateTime(
+                                      timestamp ?? current.createdAt,
+                                    )}{" "}
+                                    oleh {entry?.changedByName ?? "Tidak ada"}
+                                  </span>
+                                  {entry?.reason ? (
+                                    <span className="text-caption text-muted-foreground">
+                                      Alasan: {entry.reason}
+                                    </span>
+                                  ) : null}
+                                </>
+                              ) : (
+                                <span className="text-caption text-muted-foreground">
+                                  Belum dicapai
+                                </span>
+                              )}
+                            </div>
+                          </li>
+                        );
+                      })}
+                    </ol>
+                  );
+                })()
               )}
             </div>
 
