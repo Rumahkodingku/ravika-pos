@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronDown, LogOut, Menu } from "lucide-react";
+import { ChevronDown, KeyRound, LogOut, Menu } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
@@ -18,6 +18,7 @@ import { Container } from "@/components/ui/layout";
 import { MegaMenu } from "@/components/ui/mega-menu";
 import { MobileMenuSheet } from "@/components/ui/mobile-menu-sheet";
 import { useLogoutMutation } from "@/features/auth/api";
+import { ChangePasswordDialog } from "@/features/auth/change-password-dialog";
 import { useSession } from "@/features/auth/session-provider";
 import { cn } from "@/lib/cn";
 import {
@@ -59,6 +60,7 @@ export function ManagementShell({ children }: { children: React.ReactNode }) {
   const { user } = useSession();
   const { mutate: logout } = useLogoutMutation();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [passwordOpen, setPasswordOpen] = useState(false);
 
   const permissions = user?.permissions ?? [];
   const can = (permission: string) => permissions.includes(permission);
@@ -171,6 +173,11 @@ export function ManagementShell({ children }: { children: React.ReactNode }) {
                       </Badge>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
+                    <DropdownMenuItem onSelect={() => setPasswordOpen(true)}>
+                      <KeyRound aria-hidden="true" className="h-4 w-4" />
+                      Ubah kata sandi
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
                     <DropdownMenuItem onSelect={handleLogout}>
                       <LogOut aria-hidden="true" className="h-4 w-4" />
                       Keluar
@@ -235,6 +242,11 @@ export function ManagementShell({ children }: { children: React.ReactNode }) {
           onOpenChange={setMobileNavOpen}
           open={mobileNavOpen}
           quickActions={visibleQuickActions}
+        />
+
+        <ChangePasswordDialog
+          onOpenChange={setPasswordOpen}
+          open={passwordOpen}
         />
       </div>
     </ShellTheme>

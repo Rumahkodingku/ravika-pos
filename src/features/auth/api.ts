@@ -38,3 +38,15 @@ export function useLogoutMutation() {
     },
   });
 }
+
+export type ChangePasswordInput = {
+  currentPassword: string;
+  newPassword: string;
+};
+
+export function useChangePasswordMutation() {
+  return useMutation({
+    mutationFn: (input: ChangePasswordInput) =>
+      apiFetch<void>("/auth/change-password", { body: input, method: "POST" }),
+  });
+}
