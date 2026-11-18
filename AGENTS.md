@@ -1,6 +1,6 @@
 # RAVIKA POS
 
-Self-hosted, LAN-first POS for cafes. Phases 1 through 7 are implemented. The UI runs on the real backend API: TanStack Query server state, cookie sessions, permission guards, SQLite/Drizzle, RBAC, catalog, tables and QR, orders, payments, full-order refund, KDS with SSE, reports, license, and backup/restore. No mock data path remains.
+Self-hosted, LAN-first POS for cafes. Phases 1 through 8 are implemented as a release candidate. The UI runs on the real backend API: TanStack Query server state, cookie sessions, permission guards, SQLite/Drizzle, RBAC, catalog, tables and QR, orders, payments, full-order refund, KDS with SSE, reports, license, and backup/restore. No mock data path remains. Pilot and hardware-target testing remain future work.
 
 ## Commands
 
@@ -98,7 +98,7 @@ If docs conflict with config or scripts, trust the executable source. If a requi
 - Next.js 16 has breaking changes. Read `node_modules/next/dist/docs/` before framework code.
 - The order status route uses `export const instant = false` to avoid the `cacheComponents` URL-data prerender warning; review before removing.
 - Customer menu uses `useParams` in a client page and does not need `instant = false`.
-- No Playwright or browser E2E yet (Phase 8). Vitest covers backend integration and RTL flows for auth, users/roles, catalog, tables, orders/refund, POS, payments, KDS SSE, public menu/status, reports, and restore.
+- Playwright E2E runs locally against a production build with `.e2e/ravika.sqlite` and `RAVIKA_SEED_MODE=development`. It is not part of CI. CI runs check/test/build only.
 - Do not add Zustand. TanStack Query, query keys, and the KDS SSE client already exist; use them.
 - Database file lives in `data/` by default and is ignored. Bootstrap owner production requires env variables from `.env.example`.
 - Order/payment/refund/public-order mutations require `Idempotency-Key`. Refund endpoint is `POST /api/orders/:id/refund` and is full-order only.

@@ -13,7 +13,9 @@ export function assertSameOrigin(request: Request) {
     return;
   }
 
-  if (origin !== new URL(request.url).origin) {
+  const host = request.headers.get("host");
+
+  if (!host || new URL(origin).host !== host) {
     throw AppError.forbidden(
       "ORIGIN_FORBIDDEN",
       "Origin request tidak diizinkan.",

@@ -5,7 +5,10 @@ import type { AppDatabase } from "./types";
 
 export async function bootstrap(db: AppDatabase) {
   const mode =
-    process.env.NODE_ENV === "production" ? "production" : "development";
+    process.env.RAVIKA_SEED_MODE === "development" ||
+    process.env.NODE_ENV !== "production"
+      ? "development"
+      : "production";
 
   await db.transaction(async (tx) => {
     await seedDatabase(tx as unknown as AppDatabase, mode);
