@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { EmptyState } from "@/components/feedback/empty-state";
 import { ErrorState } from "@/components/feedback/error-state";
-import { Badge, StatusBadge } from "@/components/ui/badge";
+import { StatusBadge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import {
   Card,
@@ -26,6 +26,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useDashboardQuery } from "@/features/management/api/reports";
 import {
   PermissionGate,
   RequirePermission,
@@ -39,19 +40,11 @@ import {
   formatNumber,
 } from "@/lib/format";
 import { preparationStatusConfig } from "@/lib/status";
-import { useAsyncData, useManagementStore } from "@/mocks/management/hooks";
-import { managementService } from "@/mocks/management/service";
 
 export default function DashboardPage() {
-  const tables = useManagementStore((state) => state.tables);
   const [range, setRange] = useState("today");
-  const { data, error, isLoading, refresh } = useAsyncData(
-    () => managementService.getDashboard({ range }),
-    JSON.stringify([range]),
-  );
+  const { data, error, isLoading, refetch } = useDashboardQuery(range);
 
-  const tableName = (id: string | null) =>
-    tables.find((table) => table.id === id)?.name ?? "meja";
   const totalActive =
     data?.queue.reduce((total, item) => total + item.count, 0) ?? 0;
 
@@ -60,22 +53,19 @@ export default function DashboardPage() {
       <div className="flex flex-col gap-8">
         <PageHeader
           actions={
-            <>
-              <Badge tone="neutral">Data simulasi</Badge>
-              <PermissionGate permission="orders.create">
-                <Link
-                  className={buttonVariants({
-                    variant: "primary",
-                    size: "sm",
-                    className: "h-11 sm:h-9",
-                  })}
-                  href="/app/pos"
-                >
-                  <ShoppingCart aria-hidden="true" className="h-4 w-4" />
-                  Buat pesanan
-                </Link>
-              </PermissionGate>
-            </>
+            <PermissionGate permission="orders.create">
+              <Link
+                className={buttonVariants({
+                  variant: "primary",
+                  size: "sm",
+                  className: "h-11 sm:h-9",
+                })}
+                href="/app/pos"
+              >
+                <ShoppingCart aria-hidden="true" className="h-4 w-4" />
+                Buat pesanan
+              </Link>
+            </PermissionGate>
           }
           description="Ringkasan operasional sesuai periode."
           eyebrow={formatDate(new Date())}
@@ -95,7 +85,7 @@ export default function DashboardPage() {
               <option value="30d">30 hari</option>
             </Select>
             <p className="text-caption text-muted-foreground">
-              Angka dihitung dari pesanan dan pembayaran contoh.
+              Angka dihitung dari pesanan dan pembayaran tercatat.
             </p>
           </CardContent>
         </Card>
@@ -110,7 +100,7 @@ export default function DashboardPage() {
             <Skeleton className="h-72" />
           </div>
         ) : error ? (
-          <ErrorState onRetry={refresh} />
+          <ErrorState onRetry={() => void refetch()} />
         ) : !data ? null : data.transactionCount === 0 ? (
           <EmptyState
             description="Belum ada transaksi pada periode ini. Ubah filter untuk melihat data lain."
@@ -167,7 +157,7 @@ export default function DashboardPage() {
 
             <div className="grid gap-4 xl:grid-cols-[1.55fr_1fr]">
               <ChartContainer
-                description="Total penjualan harian dalam Rupiah. Data simulasi."
+                description="Total penjualan harian dalam Rupiah."
                 title="Tren penjualan"
               >
                 <BarChart
@@ -179,7 +169,6 @@ export default function DashboardPage() {
 
               <Card className="flex flex-col">
                 <CardHeader
-                  action={<Badge tone="info">Data contoh</Badge>}
                   description="Status persiapan dan tiket aktif pada periode ini."
                   title="Antrean pesanan"
                 />
@@ -233,7 +222,7 @@ export default function DashboardPage() {
                               </span>
                               <span className="text-caption text-muted-foreground">
                                 {order.orderType === "DINE_IN"
-                                  ? `Dine-in, ${tableName(order.tableId)}`
+                                  ? `Dine-in, ${order.tableName ?? "Tanpa meja"}`
                                   : "Takeaway"}
                                 , {formatElapsed(order.createdAt)}
                               </span>
@@ -283,7 +272,7 @@ export default function DashboardPage() {
                     Lihat semua pesanan
                   </Link>
                 }
-                description="Contoh pesanan terbaru dengan status pembayaran dan persiapan terpisah."
+                description="Pesanan terbaru dengan status pembayaran dan persiapan terpisah."
                 title="Pesanan terbaru"
               >
                 <Card>
@@ -364,7 +353,6 @@ export default function DashboardPage() {
 
               <Card>
                 <CardHeader
-                  action={<Badge tone="neutral">Data contoh</Badge>}
                   description="Berdasarkan kuantitas terjual."
                   title="Produk terlaris"
                 />

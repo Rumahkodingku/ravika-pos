@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import { ThemeScript } from "@/components/theme/theme-script";
 import { ToastProvider } from "@/components/ui/toast";
-import { MockSessionProvider } from "@/features/auth/mock-session";
+import { Providers } from "./providers";
 import "./globals.css";
 
 const plusJakarta = Plus_Jakarta_Sans({
@@ -35,9 +35,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body
         className={`${plusJakarta.variable} min-h-dvh bg-background font-sans text-foreground antialiased`}
       >
-        <ToastProvider>
-          <MockSessionProvider>{children}</MockSessionProvider>
-        </ToastProvider>
+        <Providers>
+          <ToastProvider>{children}</ToastProvider>
+        </Providers>
       </body>
     </html>
   );

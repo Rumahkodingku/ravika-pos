@@ -1,6 +1,6 @@
 # RAVIKA POS - Spesifikasi Fase 7: Frontend-Backend Integration
 
-**Status:** Approved untuk implementasi
+**Status:** Implemented dan terverifikasi. Automated gates, manual smoke, dan final review lulus.
 **Milestone:** M7 - Integration Complete
 **Fase:** 7, Frontend-Backend Integration
 **Tanggal:** 18 November 2026
@@ -1248,6 +1248,71 @@ Fase 8 akan:
 
 Fase 8 tidak boleh menganggap Fase 7 selesai tanpa manual smoke dan build gate.
 
+### 22.1 Catatan rekonsiliasi implementasi
+
+Baseline kode: `dd750b9`. Verifikasi otomatis pada 18 November 2026:
+`pnpm check` lulus, `pnpm test` lulus (27 file, 98 test), dan `pnpm build`
+lulus. Manual smoke pada database bersih dijalankan oleh controller.
+
+Field aditif yang benar-benar dikirim:
+
+- `SessionUser.roleLabel`
+- `ManagementUser.roleLabel` dan `username` opsional
+- `GET /api/roles/options` mengembalikan `{ id, code, name }[]`
+- `TableSummary.activeOrderCount`
+- `Payment.orderNumber` dan `Payment.recordedByName`; search payment
+  mencakup nomor pesanan, `reference`, dan `notes`
+- `OrderStatusHistory.changedByName`
+- `PublicMenuResponse.addOns` top-level berisi add-on aktif yang
+  dirujuk produk. `products[].addOns` tetap berisi relasi `addOnId`,
+  `isRequired`, `minSelection`, dan `maxSelection`.
+
+Create public order mengembalikan:
+
+```json
+{
+  "orderNumber": "RVK-2025",
+  "publicToken": "pub-...",
+  "grandTotal": 26000,
+  "tableName": "Meja 01"
+}
+```
+
+`tableName` bertipe `string | null`. Public order status mengembalikan:
+
+```json
+{
+  "orderNumber": "RVK-2025",
+  "orderStatus": "PREPARING",
+  "paymentStatus": "PAID",
+  "grandTotal": 26000,
+  "tableName": "Meja 01",
+  "createdAt": "2026-11-18T08:00:00.000Z",
+  "items": [
+    {
+      "productName": "Espresso",
+      "variantName": "Large",
+      "quantity": 2,
+      "unitPrice": 13000,
+      "lineTotal": 26000,
+      "addOns": [{ "name": "Extra Shot", "price": 5000, "quantity": 1 }]
+    }
+  ]
+}
+```
+
+Deviasi minor dari dokumen ini:
+
+1. Landing path juga mengarahkan pengguna dengan `payments.view` ke
+   `/app/pos`, meskipun tanpa `orders.create`. Ini menutup operator
+   pembayaran agar tidak berakhir di halaman terlarang.
+2. UI tidak memakai `staleTime` operasional terpisah; semua query
+   memakai default 30 detik kecuali public status yang polling 10 detik
+   dan public menu yang memakai 60 detik.
+
+Tidak ada deviasi kontrak API lain, migration baru, atau dependency di
+luar daftar.
+
 ## Appendix A: File map
 
 ### Frontend inti
@@ -1383,31 +1448,31 @@ Response:
 
 ## Appendix C: Checklist implementasi
 
-- [ ] Dependency dan provider.
-- [ ] API client dan Problem Details.
-- [ ] Query keys dan invalidasi.
-- [ ] Session provider dan server guard.
-- [ ] Login/logout/change password.
-- [ ] Backend roleLabel dan role options.
-- [ ] Users page dynamic roles.
-- [ ] Roles/permissions page.
-- [ ] Catalog pages.
-- [ ] Backend table count dan public add-ons.
-- [ ] Tables page dan QR.
-- [ ] Backend payment/history enrichment.
-- [ ] Orders dan refund.
-- [ ] Payments page.
-- [ ] POS.
-- [ ] KDS dan SSE.
-- [ ] Public menu/order.
-- [ ] Public status polling.
-- [ ] Dashboard/reports.
-- [ ] License.
-- [ ] Backup/restore restart.
-- [ ] Hapus mock dan design-system.
-- [ ] Cleanup copy simulasi.
-- [ ] Unit/integration/RTL tests.
-- [ ] Manual smoke.
-- [ ] Docs.
-- [ ] `pnpm check`, `pnpm test`, `pnpm build`.
-- [ ] Commit dan tag.
+- [x] Dependency dan provider.
+- [x] API client dan Problem Details.
+- [x] Query keys dan invalidasi.
+- [x] Session provider dan server guard.
+- [x] Login/logout/change password.
+- [x] Backend roleLabel dan role options.
+- [x] Users page dynamic roles.
+- [x] Roles/permissions page.
+- [x] Catalog pages.
+- [x] Backend table count dan public add-ons.
+- [x] Tables page dan QR.
+- [x] Backend payment/history enrichment.
+- [x] Orders dan refund.
+- [x] Payments page.
+- [x] POS.
+- [x] KDS dan SSE.
+- [x] Public menu/order.
+- [x] Public status polling.
+- [x] Dashboard/reports.
+- [x] License.
+- [x] Backup/restore restart.
+- [x] Hapus mock dan design-system.
+- [x] Cleanup copy simulasi.
+- [x] Unit/integration/RTL tests.
+- [x] Manual smoke.
+- [x] Docs.
+- [x] `pnpm check`, `pnpm test`, `pnpm build`.
+- [x] Commit dan tag.

@@ -4,7 +4,7 @@
 
 POS self-hosted untuk kafe dan UMKM. Satu instalasi melayani satu bisnis, berjalan di komputer server lokal, dan diakses lewat LAN/Wi-Fi tanpa mewajibkan internet untuk transaksi.
 
-**Status:** Fase 4.5, Fase 5 backend foundation, dan Fase 6 backend API modules selesai. UI masih memakai mock data dan mock auth sampai Fase 7. Backend menyediakan SQLite, Drizzle, session database, RBAC, katalog, meja dan QR, order, pembayaran, refund penuh, KDS dengan SSE, laporan, lisensi, serta backup dan restore.
+**Status:** Fase 1 sampai Fase 7 selesai. UI memakai API backend nyata: TanStack Query untuk server state, session cookie HttpOnly, guard berbasis permission, dan data SQLite melalui Drizzle. Mock data, mock auth, dan `/app/design-system` sudah dihapus. Backend menyediakan katalog, meja dan QR, order, pembayaran, refund penuh, KDS dengan SSE, laporan, lisensi, serta backup dan restore. Manual smoke pada database bersih dijalankan terpisah sebelum tag rilis.
 
 ## Stack
 
@@ -24,12 +24,14 @@ Sudah terpasang:
 - `qrcode.react` 4.2
 - Drizzle ORM 0.45
 - SQLite `node:sqlite` melalui `drizzle-orm/sqlite-proxy`
-- Vitest 5.1
+- TanStack Query 5.108
+- Vitest 5.1, Testing Library, dan jsdom
 
 Direncanakan, belum dipasang:
 
-- Zustand dan TanStack Query
-- Playwright
+- Playwright (Fase 8)
+
+Tidak dipakai: Zustand.
 
 ## Menjalankan
 
@@ -55,7 +57,9 @@ pnpm start
 
 Bootstrap development membuat akun demo `owner@ravika.id`,
 `cashier@ravika.id`, dan `barista@ravika.id` dengan password `demo123`.
-Bootstrap produksi hanya membuat owner dari environment variable.
+Akun ini hanya berasal dari seed development dan tidak ditampilkan di
+halaman login. Bootstrap produksi hanya membuat owner dari environment
+variable.
 
 ## Command
 
@@ -88,17 +92,17 @@ src/
 │   ├── shells/          # layout per experience
 │   ├── feedback/        # loading, empty, error, offline
 │   └── theme/           # theme provider, script, toggle
-├── features/            # auth, management, dan UI per domain
+├── features/            # auth, management, operational, kds, customer, system
 ├── infrastructure/      # database, migration, seed, bootstrap
-├── modules/             # auth, business, health, rbac, users
-├── lib/                 # utilitas dan service contracts
-├── mocks/               # fixtures, mock auth, dan mock service
+├── modules/             # auth, business, health, rbac, users, katalog, order, payment, laporan
+├── lib/                 # utilitas, API client, query keys, navigation
 ├── shared/              # error, HTTP, logging, permissions, ids
 ├── styles/              # token CSS
 └── types/               # tipe domain bersama
 ```
 
-API ada di `src/app/api`. UI belum terhubung ke API sampai Fase 7.
+API ada di `src/app/api`. UI memanggil API melalui `src/lib/api/client.ts` dan
+query hook per domain di `src/features/**/api.ts`. Tidak ada folder `src/mocks`.
 
 ## Route aplikasi
 
@@ -121,9 +125,8 @@ API ada di `src/app/api`. UI belum terhubung ke API sampai Fase 7.
 | `/kds` | Kitchen Display System |
 | `/menu/[token]` | Menu pelanggan via QR |
 | `/order/[publicToken]` | Status pesanan pelanggan |
-| `/app/design-system` | Pratinjau komponen internal |
 
-Token desain ada di `src/styles/tokens.css`. Theme, shell, dan komponen dasar sudah tersedia; pratinjau ada di `/app/design-system`.
+Token desain ada di `src/styles/tokens.css`. Theme, shell, dan komponen dasar tersedia di aplikasi. Tidak ada route pratinjau `/app/design-system`.
 
 ## API backend
 
@@ -139,6 +142,7 @@ Token desain ada di `src/styles/tokens.css`. Theme, shell, dan komponen dasar su
 | GET/POST | `/api/users` | `users.view` / `users.manage` |
 | GET/PATCH | `/api/users/:id` | `users.view` / `users.manage` |
 | GET/POST | `/api/roles` | `roles.manage` |
+| GET | `/api/roles/options` | `users.view` |
 | PATCH | `/api/roles/:id` | `roles.manage` |
 | PUT | `/api/roles/:id/permissions` | `permissions.manage` |
 | GET | `/api/permissions` | `permissions.manage` |
@@ -176,7 +180,30 @@ Token desain ada di `src/styles/tokens.css`. Theme, shell, dan komponen dasar su
 Mutasi order, pembayaran, refund, dan order publik memerlukan header
 `Idempotency-Key`. Error API memakai RFC 9457 `application/problem+json`.
 
-UI belum terhubung ke API sampai Fase 7. Login UI masih memakai sessionStorage dan tiga akun demo: `owner@ravika.id`, `cashier@ravika.id`, dan `barista@ravika.id` dengan kata sandi `demo123`. Data mock kembali ke seed saat reload. Store operasional disinkronkan antar tab lewat BroadcastChannel. Backend sudah menyediakan SSE untuk KDS. QR meja dibuat dengan `qrcode.react`; untuk memindai dari ponsel, buka aplikasi lewat IP LAN, bukan localhost.
+Session internal memakai cookie HttpOnly dari backend dan tidak membaca token di
+browser. Guard layout dan halaman memakai permission, bukan nama role. Role
+custom dapat dibuat lalu ditetapkan ke pengguna. Login tidak menampilkan akun
+demo atau tombol isi kredensial.
+
+Beberapa response backend memuat field tambahan untuk UI:
+
+- `SessionUser` dan `ManagementUser` memuat `roleLabel`.
+- `GET /api/roles/options` menyediakan pilihan role untuk form pengguna.
+- `TableSummary` memuat `activeOrderCount`.
+- `Payment` memuat `orderNumber` dan `recordedByName`; pencarian juga mencakup nomor pesanan.
+- History order memuat `changedByName`.
+- Public menu memuat `addOns` top-level berisi nama dan harga add-on aktif.
+
+KDS memakai SSE `/api/events` dan melakukan refetch setelah reconnect. Halaman
+status publik melakukan polling setiap 10 detik. Refund penuh tersedia dari
+detail order `PAID`. QR meja dibuat dengan `qrcode.react`; untuk memindai dari
+ponsel, buka aplikasi lewat IP LAN, bukan localhost.
+
+Restore hanya berhasil setelah database diganti. Setelah itu aplikasi menampilkan
+layar blocking "Restart diperlukan", mengosongkan cache query, dan memanggil
+`/api/health` setiap 3 detik. Setelah server hidup kembali, halaman memuat ulang
+otomatis. Restore memerlukan restart proses server; jangan menampilkan toast
+sukses biasa.
 
 ## Dokumen
 
@@ -193,14 +220,17 @@ UI belum terhubung ke API sampai Fase 7. Login UI masih memakai sessionStorage d
 - `docs/specification/phase-4-5-single-location-mvp.md` — penyelarasan satu lokasi
 - `docs/specification/phase-5-backend-foundation.md` — spec backend foundation Fase 5
 - `docs/specification/phase-6-backend-api-modules.md` — spec API modul Fase 6
+- `docs/specification/phase-7-frontend-backend-integration.md` — spec integrasi frontend-backend Fase 7
 
 Baca PRD dan seluruh dokumen desain sebelum membuat halaman atau komponen baru.
 
 ## Aturan pengembangan
 
-- Frontend UI sudah disetujui pada M4 (17 November 2026, baseline `d6c07b5`). Baseline MVP satu lokasi `c33e473`. Backend operasional dimulai di Fase 5.
+- Frontend UI disetujui pada M4 (17 November 2026, baseline `d6c07b5`). Baseline MVP satu lokasi `c33e473`. Integrasi frontend-backend selesai di Fase 7.
 - MVP satu bisnis dan satu lokasi operasional. Modul lokasi tambahan tidak termasuk ruang lingkup.
-- Fase 0–4 memakai mock data terpusat; jangan membuat API atau persistence.
+- UI memakai API backend nyata. Jangan menambahkan mock data, mock auth, atau service mock baru.
+- Server state memakai TanStack Query melalui `src/lib/api` dan hook domain. Jangan menambahkan Zustand atau data-fetching library lain.
+- Mutasi order, pembayaran, refund, dan order publik wajib memakai `Idempotency-Key`.
 - Jangan menambah UI library tanpa persetujuan. Komponen dasar dibuat custom dengan HTML native.
 - Gunakan token desain; jangan sebar nilai warna, spacing, atau radius mentah.
 - Copy UI berbahasa Indonesia. Kode dan komentar berbahasa Inggris.

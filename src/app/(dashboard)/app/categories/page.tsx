@@ -25,6 +25,14 @@ import {
 } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/toast";
+import {
+  useCategoriesQuery,
+  useCreateCategoryMutation,
+  useMoveCategoryMutation,
+  useProductsQuery,
+  useSetCategoryActiveMutation,
+  useUpdateCategoryMutation,
+} from "@/features/management/api/catalog";
 import { ConfirmDialog } from "@/features/management/confirm-dialog";
 import { DataTableToolbar } from "@/features/management/data-table-toolbar";
 import { FormDrawer } from "@/features/management/form-drawer";
@@ -35,8 +43,6 @@ import {
 import { ResponsiveList } from "@/features/management/responsive-list";
 import { TablePagination } from "@/features/management/table-pagination";
 import { TableSkeleton } from "@/features/management/table-skeleton";
-import { useAsyncData, useManagementStore } from "@/mocks/management/hooks";
-import { managementService } from "@/mocks/management/service";
 import type { Category } from "@/types/domain";
 
 const categorySchema = z.object({
@@ -57,7 +63,6 @@ const emptyCategory: CategoryValues = {
 
 export default function CategoriesPage() {
   const { toast } = useToast();
-  const products = useManagementStore((state) => state.products);
   const [search, setSearch] = useState("");
   const [active, setActive] = useState("all");
   const [page, setPage] = useState(1);
@@ -66,16 +71,18 @@ export default function CategoriesPage() {
   const [confirmTarget, setConfirmTarget] = useState<Category | null>(null);
   const [isConfirming, setIsConfirming] = useState(false);
 
-  const { data, error, isLoading, refresh } = useAsyncData(
-    () =>
-      managementService.listCategories({
-        search,
-        active,
-        page,
-        pageSize: 10,
-      }),
-    JSON.stringify([search, active, page]),
-  );
+  const { data, error, isLoading, refetch } = useCategoriesQuery({
+    search,
+    active,
+    page,
+    pageSize: 10,
+  });
+  const { data: productData } = useProductsQuery({ pageSize: 200 });
+  const createCategory = useCreateCategoryMutation();
+  const updateCategory = useUpdateCategoryMutation();
+  const moveCategory = useMoveCategoryMutation();
+  const setCategoryActive = useSetCategoryActiveMutation();
+  const products = productData?.items ?? [];
 
   const {
     formState: { errors, isDirty, isSubmitting },
@@ -111,14 +118,13 @@ export default function CategoriesPage() {
   const onSubmit = handleSubmit(async (values) => {
     try {
       if (editing) {
-        await managementService.updateCategory(editing.id, values);
+        await updateCategory.mutateAsync({ id: editing.id, input: values });
         toast({ title: "Kategori diperbarui", tone: "success" });
       } else {
-        await managementService.createCategory(values);
+        await createCategory.mutateAsync(values);
         toast({ title: "Kategori ditambahkan", tone: "success" });
       }
       setFormOpen(false);
-      refresh();
     } catch (reason) {
       setError("root", {
         message:
@@ -129,8 +135,7 @@ export default function CategoriesPage() {
 
   const move = async (category: Category, direction: "up" | "down") => {
     try {
-      await managementService.moveCategory(category.id, direction);
-      refresh();
+      await moveCategory.mutateAsync({ id: category.id, direction });
     } catch (reason) {
       toast({
         title: "Urutan gagal diubah",
@@ -147,17 +152,16 @@ export default function CategoriesPage() {
     }
 
     try {
-      await managementService.setCategoryActive(
-        category.id,
-        !category.isActive,
-      );
+      await setCategoryActive.mutateAsync({
+        category,
+        isActive: !category.isActive,
+      });
       toast({
         title: category.isActive
           ? "Kategori dinonaktifkan"
           : "Kategori diaktifkan",
         tone: "success",
       });
-      refresh();
     } catch (reason) {
       toast({
         title: "Status gagal diubah",
@@ -179,7 +183,7 @@ export default function CategoriesPage() {
               </Button>
             </PermissionGate>
           }
-          description="Susun kategori untuk katalog dan menu pelanggan. Data simulasi."
+          description="Susun kategori untuk katalog dan menu pelanggan."
           title="Kategori"
         />
 
@@ -219,7 +223,7 @@ export default function CategoriesPage() {
             {isLoading ? (
               <TableSkeleton columns={5} />
             ) : error ? (
-              <ErrorState onRetry={refresh} />
+              <ErrorState onRetry={() => void refetch()} />
             ) : !data || data.items.length === 0 ? (
               <EmptyState
                 action={
@@ -467,13 +471,12 @@ export default function CategoriesPage() {
             }
             setIsConfirming(true);
             try {
-              await managementService.setCategoryActive(
-                confirmTarget.id,
-                false,
-              );
+              await setCategoryActive.mutateAsync({
+                category: confirmTarget,
+                isActive: false,
+              });
               toast({ title: "Kategori dinonaktifkan", tone: "success" });
               setConfirmTarget(null);
-              refresh();
             } catch (reason) {
               toast({
                 title: "Status gagal diubah",

@@ -70,6 +70,10 @@ export type DiningTable = {
   updatedAt: string;
 };
 
+export type TableSummary = Omit<DiningTable, "qrToken"> & {
+  activeOrderCount: number;
+};
+
 export type UserRole = "OWNER" | "CASHIER" | "BARISTA";
 
 export type ManagementUser = {
@@ -77,7 +81,8 @@ export type ManagementUser = {
   name: string;
   email: string;
   username?: string;
-  role: UserRole;
+  role: string;
+  roleLabel: string;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
@@ -86,7 +91,7 @@ export type ManagementUser = {
 export type Role = {
   id: string;
   name: string;
-  code: UserRole | string;
+  code: string;
   description: string;
   isSystem: boolean;
   permissionCodes: string[];
@@ -146,12 +151,14 @@ export type Order = {
 export type Payment = {
   id: string;
   orderId: string;
+  orderNumber?: string;
   method: PaymentMethod;
   amount: number;
   status: "RECORDED" | "REFUNDED";
   reference: string;
   notes: string;
   recordedBy: string;
+  recordedByName?: string;
   paidAt: string;
   createdAt: string;
 };
@@ -162,6 +169,7 @@ export type OrderStatusHistory = {
   previousStatus: PreparationStatus | null;
   newStatus: PreparationStatus;
   changedBy: string | null;
+  changedByName?: string;
   reason: string;
   createdAt: string;
 };

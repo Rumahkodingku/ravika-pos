@@ -2,7 +2,6 @@
 
 import { Armchair, LogOut, ShoppingCart, Trash2, Wallet } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ConnectionIndicator } from "@/components/feedback/connection-indicator";
 import { EmptyState } from "@/components/feedback/empty-state";
@@ -18,8 +17,13 @@ import { Drawer } from "@/components/ui/drawer";
 import { Field } from "@/components/ui/field";
 import { QuantityControl } from "@/components/ui/quantity-control";
 import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/components/ui/toast";
-import { useMockSession } from "@/features/auth/mock-session";
+import { useLogoutMutation } from "@/features/auth/api";
+import { useSession } from "@/features/auth/session-provider";
+import { useTablesQuery } from "@/features/management/api/tables";
+import {
+  useBusinessQuery,
+  usePayableOrdersQuery,
+} from "@/features/operational/api";
 import { OrderConfirmation } from "@/features/operational/order-confirmation";
 import { PosCheckoutDrawer } from "@/features/operational/pos-checkout-drawer";
 import { PosPayableOrderDrawer } from "@/features/operational/pos-payable-order-drawer";
@@ -28,9 +32,9 @@ import {
   TablePickerDrawer,
   TableSelector,
 } from "@/features/operational/table-selector";
+import { useConnectionStatus } from "@/features/operational/use-connection-status";
 import { cn } from "@/lib/cn";
 import { formatCurrency } from "@/lib/format";
-import { useManagementStore } from "@/mocks/management/hooks";
 import type { SessionUser } from "@/types/auth";
 import type { Order } from "@/types/domain";
 
@@ -45,7 +49,6 @@ function CartHeader() {
           {itemCount} item di keranjang
         </p>
       </div>
-      <Badge tone="neutral">Data contoh</Badge>
     </div>
   );
 }
@@ -58,8 +61,9 @@ function CartControls({
   onOpenTablePicker: () => void;
 }) {
   const { orderType, setOrderType, setTableId, tableId } = usePosCart();
-  const tables = useManagementStore((state) => state.tables);
-  const selectedTable = tables.find((table) => table.id === tableId) ?? null;
+  const { data: tableData } = useTablesQuery({ pageSize: 100 });
+  const selectedTable =
+    tableData?.items.find((table) => table.id === tableId) ?? null;
 
   return (
     <>
@@ -276,9 +280,10 @@ function PosShellContent({
   children: React.ReactNode;
   onLogout: () => void;
 }) {
-  const { itemCount, setTableId, subtotal, tableId } = usePosCart();
-  const business = useManagementStore((state) => state.business);
-  const orders = useManagementStore((state) => state.orders);
+  const { clearCart, itemCount, setTableId, subtotal, tableId } = usePosCart();
+  const { data: business } = useBusinessQuery();
+  const { data: payableOrders = [] } = usePayableOrdersQuery();
+  const connectionStatus = useConnectionStatus();
   const [cartOpen, setCartOpen] = useState(false);
   const [tablePickerOpen, setTablePickerOpen] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
@@ -287,12 +292,7 @@ function PosShellContent({
   const [paymentOrder, setPaymentOrder] = useState<Order | null>(null);
   const [payableOpen, setPayableOpen] = useState(false);
 
-  const payableCount = orders.filter(
-    (order) =>
-      order.orderStatus !== "CANCELLED" &&
-      (order.paymentStatus === "UNPAID" ||
-        order.paymentStatus === "PARTIALLY_PAID"),
-  ).length;
+  const payableCount = payableOrders.length;
 
   return (
     <div className="flex min-h-dvh flex-col bg-surface-subtle">
@@ -311,7 +311,7 @@ function PosShellContent({
           </Link>
           <div className="hidden min-w-0 flex-col sm:flex">
             <span className="truncate text-label font-medium text-foreground">
-              {business.name}
+              {business?.name ?? "RAVIKA"}
             </span>
             <span className="truncate text-caption text-muted-foreground">
               Kasir: {cashier.name}
@@ -319,10 +319,10 @@ function PosShellContent({
           </div>
           <div className="ml-auto flex items-center gap-2">
             <div className="sm:hidden">
-              <ConnectionIndicator compact status="connected" />
+              <ConnectionIndicator compact status={connectionStatus} />
             </div>
             <div className="hidden sm:block">
-              <ConnectionIndicator status="connected" />
+              <ConnectionIndicator status={connectionStatus} />
             </div>
             <ThemeToggle />
             <Button
@@ -348,7 +348,10 @@ function PosShellContent({
             </Button>
             <Button
               aria-label="Keluar POS"
-              onClick={onLogout}
+              onClick={() => {
+                clearCart();
+                onLogout();
+              }}
               variant="outline"
             >
               <LogOut aria-hidden="true" className="h-4 w-4" />
@@ -474,13 +477,8 @@ function PosShellContent({
 }
 
 export function PosShell({ children }: { children: React.ReactNode }) {
-  const router = useRouter();
-  const { toast } = useToast();
-  const { logout, user } = useMockSession();
-
-  if (!user) {
-    return null;
-  }
+  const { user } = useSession();
+  const { mutate: logout } = useLogoutMutation();
 
   return (
     <ShellTheme defaultTheme="light">
@@ -489,12 +487,6 @@ export function PosShell({ children }: { children: React.ReactNode }) {
           cashier={user}
           onLogout={() => {
             logout();
-            toast({
-              title: "Sesi demo berakhir",
-              description: "Anda kembali ke halaman masuk.",
-              tone: "info",
-            });
-            router.replace("/login");
           }}
         >
           {children}

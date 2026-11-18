@@ -16,6 +16,13 @@ import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/layout";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/toast";
+import { useSession } from "@/features/auth/session-provider";
+import {
+  useCreateRoleMutation,
+  usePermissionsQuery,
+  useRolesQuery,
+  useUpdateRoleMutation,
+} from "@/features/management/api/roles";
 import { FormDrawer } from "@/features/management/form-drawer";
 import {
   PermissionGate,
@@ -23,10 +30,7 @@ import {
 } from "@/features/management/permission-gate";
 import { ResponsiveList } from "@/features/management/responsive-list";
 import { TableSkeleton } from "@/features/management/table-skeleton";
-import { useAsyncData } from "@/mocks/management/hooks";
-import { managementService } from "@/mocks/management/service";
-import { permissionGroups } from "@/mocks/permissions";
-import type { Role } from "@/types/domain";
+import type { Permission, Role } from "@/types/domain";
 
 const roleSchema = z.object({
   name: z.string().min(1, "Nama role wajib diisi."),
@@ -35,7 +39,7 @@ const roleSchema = z.object({
     .min(2, "Kode minimal 2 karakter.")
     .max(20, "Kode maksimal 20 karakter."),
   description: z.string(),
-  permissionCodes: z.array(z.string()).min(1, "Pilih minimal satu izin."),
+  permissionCodes: z.array(z.string()),
 });
 
 type RoleValues = z.infer<typeof roleSchema>;
@@ -47,15 +51,43 @@ const emptyRole: RoleValues = {
   permissionCodes: [],
 };
 
+function groupPermissions(permissions: Permission[]) {
+  const groups = new Map<string, Permission[]>();
+
+  for (const permission of permissions) {
+    groups.set(permission.group, [
+      ...(groups.get(permission.group) ?? []),
+      permission,
+    ]);
+  }
+
+  return Array.from(groups, ([label, items]) => ({
+    label,
+    permissions: items,
+  }));
+}
+
 export default function RolesPage() {
   const { toast } = useToast();
+  const { user } = useSession();
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<Role | null>(null);
 
-  const { data, error, isLoading, refresh } = useAsyncData(
-    () => managementService.listRoles(),
-    "roles",
-  );
+  const canManagePermissions = user.permissions.includes("permissions.manage");
+  const rolesQuery = useRolesQuery();
+  const permissionsQuery = usePermissionsQuery(canManagePermissions);
+  const createRoleMutation = useCreateRoleMutation();
+  const updateRoleMutation = useUpdateRoleMutation();
+
+  const data = rolesQuery.data;
+  const permissionGroups = canManagePermissions
+    ? groupPermissions(permissionsQuery.data ?? [])
+    : [];
+  const isLoading =
+    rolesQuery.isLoading ||
+    (canManagePermissions && permissionsQuery.isLoading);
+  const error =
+    rolesQuery.error ?? (canManagePermissions ? permissionsQuery.error : null);
 
   const {
     formState: { errors, isDirty, isSubmitting },
@@ -113,16 +145,37 @@ export default function RolesPage() {
   };
 
   const onSubmit = handleSubmit(async (values) => {
+    if (canManagePermissions && values.permissionCodes.length === 0) {
+      setError("permissionCodes", { message: "Pilih minimal satu izin." });
+      return;
+    }
+
     try {
       if (editing) {
-        await managementService.updateRole(editing.id, values);
+        await updateRoleMutation.mutateAsync({
+          id: editing.id,
+          input: {
+            name: values.name,
+            code: values.code,
+            description: values.description,
+          },
+          permissionCodes: canManagePermissions
+            ? values.permissionCodes
+            : undefined,
+        });
         toast({ title: "Peran diperbarui", tone: "success" });
       } else {
-        await managementService.createRole(values);
+        await createRoleMutation.mutateAsync({
+          name: values.name,
+          code: values.code,
+          description: values.description,
+          ...(canManagePermissions
+            ? { permissionCodes: values.permissionCodes }
+            : {}),
+        });
         toast({ title: "Peran ditambahkan", tone: "success" });
       }
       setFormOpen(false);
-      refresh();
     } catch (reason) {
       setError("root", {
         message:
@@ -136,15 +189,12 @@ export default function RolesPage() {
       <div className="flex flex-col gap-6">
         <PageHeader
           actions={
-            <>
-              <Badge tone="neutral">Data simulasi</Badge>
-              <PermissionGate permission="roles.manage">
-                <Button onClick={openCreate}>
-                  <Plus aria-hidden="true" className="h-4 w-4" />
-                  Tambah peran
-                </Button>
-              </PermissionGate>
-            </>
+            <PermissionGate permission="roles.manage">
+              <Button onClick={openCreate}>
+                <Plus aria-hidden="true" className="h-4 w-4" />
+                Tambah peran
+              </Button>
+            </PermissionGate>
           }
           description="Atur izin untuk setiap peran. Perubahan langsung memengaruhi navigasi sesi terkait."
           title="Peran dan izin"
@@ -155,7 +205,14 @@ export default function RolesPage() {
             {isLoading ? (
               <TableSkeleton columns={5} />
             ) : error ? (
-              <ErrorState onRetry={refresh} />
+              <ErrorState
+                onRetry={() => {
+                  void rolesQuery.refetch();
+                  if (canManagePermissions) {
+                    void permissionsQuery.refetch();
+                  }
+                }}
+              />
             ) : !data || data.length === 0 ? (
               <EmptyState
                 action={
@@ -310,71 +367,78 @@ export default function RolesPage() {
             <Textarea id="role-description" {...register("description")} />
           </Field>
 
-          <div className="flex flex-col gap-3 border-t border-border pt-4">
-            <div className="flex items-center justify-between gap-2">
-              <p className="text-label font-medium text-foreground">
-                Matriks izin
-              </p>
-              <span className="text-caption text-muted-foreground">
-                {selectedPermissions.length} dipilih
-              </span>
-            </div>
-            {errors.permissionCodes?.message ? (
-              <p className="text-caption font-medium text-danger-strong">
-                {errors.permissionCodes.message}
-              </p>
-            ) : null}
-            {permissionGroups.map((group) => {
-              const codes = group.permissions.map(
-                (permission) => permission.code,
-              );
-              const allSelected = codes.every((code) =>
-                selectedPermissions.includes(code),
-              );
-              return (
-                <fieldset
-                  className="flex flex-col gap-2 rounded-md border border-border p-3"
-                  key={group.label}
-                >
-                  <legend className="sr-only">{group.label}</legend>
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-label font-medium text-foreground">
-                      {group.label}
-                    </span>
-                    <label
-                      className="flex min-h-11 items-center gap-2 text-caption text-muted-foreground"
-                      htmlFor={`role-group-${codes[0]}`}
-                    >
-                      <Checkbox
-                        checked={allSelected}
-                        id={`role-group-${codes[0]}`}
-                        onChange={() => toggleGroup(codes)}
-                      />
-                      Pilih semua
-                    </label>
-                  </div>
-                  <div className="grid gap-1 sm:grid-cols-2">
-                    {group.permissions.map((permission) => (
+          {canManagePermissions ? (
+            <div className="flex flex-col gap-3 border-t border-border pt-4">
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-label font-medium text-foreground">
+                  Matriks izin
+                </p>
+                <span className="text-caption text-muted-foreground">
+                  {selectedPermissions.length} dipilih
+                </span>
+              </div>
+              {errors.permissionCodes?.message ? (
+                <p className="text-caption font-medium text-danger-strong">
+                  {errors.permissionCodes.message}
+                </p>
+              ) : null}
+              {permissionGroups.map((group) => {
+                const codes = group.permissions.map(
+                  (permission) => permission.code,
+                );
+                const allSelected = codes.every((code) =>
+                  selectedPermissions.includes(code),
+                );
+                return (
+                  <fieldset
+                    className="flex flex-col gap-2 rounded-md border border-border p-3"
+                    key={group.label}
+                  >
+                    <legend className="sr-only">{group.label}</legend>
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-label font-medium text-foreground">
+                        {group.label}
+                      </span>
                       <label
-                        className="flex min-h-11 items-center gap-2 text-body text-foreground"
-                        htmlFor={`role-permission-${permission.code}`}
-                        key={permission.code}
+                        className="flex min-h-11 items-center gap-2 text-caption text-muted-foreground"
+                        htmlFor={`role-group-${codes[0]}`}
                       >
                         <Checkbox
-                          checked={selectedPermissions.includes(
-                            permission.code,
-                          )}
-                          id={`role-permission-${permission.code}`}
-                          onChange={() => togglePermission(permission.code)}
+                          checked={allSelected}
+                          id={`role-group-${codes[0]}`}
+                          onChange={() => toggleGroup(codes)}
                         />
-                        {permission.label}
+                        Pilih semua
                       </label>
-                    ))}
-                  </div>
-                </fieldset>
-              );
-            })}
-          </div>
+                    </div>
+                    <div className="grid gap-1 sm:grid-cols-2">
+                      {group.permissions.map((permission) => (
+                        <label
+                          className="flex min-h-11 items-center gap-2 text-body text-foreground"
+                          htmlFor={`role-permission-${permission.code}`}
+                          key={permission.code}
+                        >
+                          <Checkbox
+                            checked={selectedPermissions.includes(
+                              permission.code,
+                            )}
+                            id={`role-permission-${permission.code}`}
+                            onChange={() => togglePermission(permission.code)}
+                          />
+                          {permission.label}
+                        </label>
+                      ))}
+                    </div>
+                  </fieldset>
+                );
+              })}
+            </div>
+          ) : (
+            <p className="rounded-md border border-border bg-surface-subtle px-3 py-2 text-caption text-muted-foreground">
+              Anda tidak dapat mengubah izin peran. Perubahan izin memerlukan
+              izin permissions.manage.
+            </p>
+          )}
 
           {errors.root?.message ? (
             <p

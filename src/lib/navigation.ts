@@ -8,7 +8,6 @@ import {
   LayoutDashboard,
   Monitor,
   Package,
-  Palette,
   Settings,
   ShieldCheck,
   ShoppingCart,
@@ -182,13 +181,6 @@ export const quickActions: QuickAction[] = [
     icon: Package,
     permission: "products.manage",
     description: "Perbarui menu",
-  },
-  {
-    label: "Design system",
-    href: "/app/design-system",
-    icon: Palette,
-    permission: "dashboard.view",
-    description: "Pratinjau komponen internal",
   },
 ];
 

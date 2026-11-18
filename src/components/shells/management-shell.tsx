@@ -1,12 +1,11 @@
 "use client";
 
-import { ChevronDown, LogOut, Menu } from "lucide-react";
+import { ChevronDown, KeyRound, LogOut, Menu } from "lucide-react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useMemo, useState } from "react";
 import { ShellTheme } from "@/components/shells/shell-theme";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -17,14 +16,15 @@ import {
 import { Container } from "@/components/ui/layout";
 import { MegaMenu } from "@/components/ui/mega-menu";
 import { MobileMenuSheet } from "@/components/ui/mobile-menu-sheet";
-import { useToast } from "@/components/ui/toast";
-import { useMockSession } from "@/features/auth/mock-session";
+import { useLogoutMutation } from "@/features/auth/api";
+import { ChangePasswordDialog } from "@/features/auth/change-password-dialog";
+import { useSession } from "@/features/auth/session-provider";
 import { cn } from "@/lib/cn";
 import {
   megaMenuGroups,
   quickActions,
   quickNavigation,
-} from "@/mocks/navigation";
+} from "@/lib/navigation";
 import type { NavItem } from "@/types/ui";
 
 function isActivePath(pathname: string, href: string) {
@@ -55,10 +55,10 @@ function QuickNavLink({ item, pathname }: { item: NavItem; pathname: string }) {
 
 export function ManagementShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const router = useRouter();
-  const { toast } = useToast();
-  const { logout, user } = useMockSession();
+  const { user } = useSession();
+  const { mutate: logout } = useLogoutMutation();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [passwordOpen, setPasswordOpen] = useState(false);
 
   const permissions = user?.permissions ?? [];
   const can = (permission: string) => permissions.includes(permission);
@@ -85,10 +85,6 @@ export function ManagementShell({ children }: { children: React.ReactNode }) {
   const hasMenu = visibleGroups.length > 0 || visibleQuickActions.length > 0;
   const canViewDashboard = can("dashboard.view");
 
-  if (!user) {
-    return null;
-  }
-
   const initials = user.name
     .split(" ")
     .map((part) => part[0])
@@ -97,12 +93,6 @@ export function ManagementShell({ children }: { children: React.ReactNode }) {
 
   const handleLogout = () => {
     logout();
-    toast({
-      title: "Sesi demo berakhir",
-      description: "Anda kembali ke halaman masuk.",
-      tone: "info",
-    });
-    router.replace("/login");
   };
 
   return (
@@ -169,16 +159,9 @@ export function ManagementShell({ children }: { children: React.ReactNode }) {
                       </span>
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      onSelect={() => router.push("/app/design-system")}
-                    >
-                      <span className="flex h-4 w-4 items-center justify-center text-caption font-semibold">
-                        UI
-                      </span>
-                      Design system
-                      <Badge className="ml-auto" tone="neutral">
-                        Internal
-                      </Badge>
+                    <DropdownMenuItem onSelect={() => setPasswordOpen(true)}>
+                      <KeyRound aria-hidden="true" className="h-4 w-4" />
+                      Ubah kata sandi
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onSelect={handleLogout}>
@@ -234,7 +217,7 @@ export function ManagementShell({ children }: { children: React.ReactNode }) {
         <footer className="border-t border-border py-4">
           <Container size="wide">
             <p className="text-caption text-muted-foreground">
-              Mode UI dengan data simulasi. Sesi: {user.roleLabel}.
+              RAVIKA POS. Sesi: {user.roleLabel}.
             </p>
           </Container>
         </footer>
@@ -245,6 +228,11 @@ export function ManagementShell({ children }: { children: React.ReactNode }) {
           onOpenChange={setMobileNavOpen}
           open={mobileNavOpen}
           quickActions={visibleQuickActions}
+        />
+
+        <ChangePasswordDialog
+          onOpenChange={setPasswordOpen}
+          open={passwordOpen}
         />
       </div>
     </ShellTheme>

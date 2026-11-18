@@ -5,7 +5,7 @@ export type SessionUser = {
   name: string;
   email: string;
   username: string;
-  role: UserRole;
+  role: string;
   roleLabel: string;
   permissions: string[];
 };

@@ -1,3 +1,5 @@
+import type { AddOn, ProductAddOn, ProductVariant } from "@/types/domain";
+
 export type ValidationIssue = {
   path: string;
   message: string;
@@ -18,4 +20,64 @@ export type Paginated<T> = {
   pageSize: number;
   total: number;
   pageCount: number;
+};
+
+export type BaseListParams = {
+  page?: number;
+  pageSize?: number;
+  search?: string;
+  sortBy?: string;
+  sortDir?: "asc" | "desc";
+};
+
+export type ProductListParams = BaseListParams & {
+  categoryId?: string;
+  active?: string;
+  availability?: string;
+};
+
+export type CategoryListParams = BaseListParams & { active?: string };
+
+export type TableListParams = BaseListParams & { status?: string };
+
+export type OrderListParams = BaseListParams & {
+  orderStatus?: string;
+  paymentStatus?: string;
+  dateFrom?: string;
+  dateTo?: string;
+};
+
+export type PaymentListParams = BaseListParams & {
+  method?: string;
+  status?: string;
+  dateFrom?: string;
+  dateTo?: string;
+};
+
+export type UserListParams = BaseListParams & {
+  role?: string;
+  active?: string;
+};
+
+export type SalesReportParams = BaseListParams & {
+  dateFrom?: string;
+  dateTo?: string;
+};
+
+export type TopProductsParams = SalesReportParams & { limit?: number };
+
+export type PublicMenuResponse = {
+  business: { name: string; address: string };
+  table: { id: string; name: string };
+  categories: Array<{ id: string; name: string }>;
+  products: Array<{
+    id: string;
+    categoryId: string;
+    name: string;
+    description: string;
+    basePrice: number;
+    variants: ProductVariant[];
+    addOns: ProductAddOn[];
+  }>;
+  addOns: AddOn[];
 };

@@ -38,6 +38,14 @@ export async function listRoles(db: AppDatabase, businessId: string) {
   return Promise.all(rows.map((row) => toRole(db, row)));
 }
 
+export async function listRoleOptions(db: AppDatabase, businessId: string) {
+  const rows = await listRoleRows(db, businessId);
+
+  return rows
+    .map((row) => ({ id: row.id, code: row.code, name: row.name }))
+    .sort((left, right) => left.name.localeCompare(right.name, "id"));
+}
+
 export async function getRole(db: AppDatabase, businessId: string, id: string) {
   const row = await findRole(db, businessId, id);
 

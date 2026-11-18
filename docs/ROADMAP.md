@@ -87,11 +87,10 @@ Gunakan stack yang telah ditetapkan untuk RAVIKA POS:
 - Drizzle ORM
 - `node:sqlite`
 - Zod
-- Zustand
 - TanStack Query
 - React Hook Form
 - Server-Sent Events (SSE) untuk pembaruan KDS
-- Vitest dan Playwright
+- Vitest, Testing Library, dan Playwright (Playwright mulai Fase 8)
 - pnpm
 
 Tetap gunakan pendekatan Modular Monolith. Jangan menambahkan
@@ -730,22 +729,22 @@ Urutan yang disarankan:
 
 ### Aktivitas per modul
 
-- [ ] Cocokkan TypeScript types frontend dengan API contracts.
-- [ ] Implementasikan API client/service.
-- [ ] Implementasikan TanStack Query untuk server state.
-- [ ] Implementasikan mutation dan invalidation/refetch.
-- [ ] Hubungkan loading, empty, error, dan success states ke response
+- [x] Cocokkan TypeScript types frontend dengan API contracts.
+- [x] Implementasikan API client/service.
+- [x] Implementasikan TanStack Query untuk server state.
+- [x] Implementasikan mutation dan invalidation/refetch.
+- [x] Hubungkan loading, empty, error, dan success states ke response
     API.
-- [ ] Implementasikan form submission ke API.
-- [ ] Implementasikan authorization-aware navigation dan action
+- [x] Implementasikan form submission ke API.
+- [x] Implementasikan authorization-aware navigation dan action
     visibility.
-- [ ] Pastikan server tetap melakukan authorization; menyembunyikan
+- [x] Pastikan server tetap melakukan authorization; menyembunyikan
     tombol bukan mekanisme keamanan.
-- [ ] Hapus ketergantungan halaman terhadap mock data setelah
+- [x] Hapus ketergantungan halaman terhadap mock data setelah
     integrasi modul selesai.
-- [ ] Pertahankan fixtures untuk automated tests jika masih
+- [x] Pertahankan fixtures untuk automated tests jika masih
     diperlukan.
-- [ ] Uji alur lintas modul.
+- [x] Uji alur lintas modul.
 
 ### Kriteria integrasi
 
@@ -758,6 +757,18 @@ Urutan yang disarankan:
 - SSE reconnect/refetch berfungsi untuk KDS.
 - UI yang telah disetujui tetap konsisten, kecuali ada perubahan yang
     disepakati.
+
+### Status implementasi
+
+- Status: Implemented. Automated gates lulus; manual smoke pada
+  database bersih dijalankan terpisah.
+- Baseline kode: `dd750b9`
+- Tag: `phase-7-integration` (pending)
+- Dokumen: `docs/specification/phase-7-frontend-backend-integration.md`
+- Verifikasi: `pnpm check`, `pnpm test` (27 file, 98 test), `pnpm build`
+- Catatan: mock store, mock auth, mock controls, dan route
+  `/app/design-system` sudah dihapus. Tidak ada Zustand dan tidak ada
+  migration baru.
 
 ------------------------------------------------------------------------
 
@@ -846,6 +857,9 @@ milestone ini disetujui.
 **Status M5:** Selesai dan terverifikasi. Baseline `c05faf1`, tag
 `phase-5-backend-foundation`.
 
+**Status M7:** Selesai dan terverifikasi. Baseline kode `5f9679f`; tag
+`phase-7-integration`.
+
 ------------------------------------------------------------------------
 
 ## 7. Definition of Done
@@ -859,8 +873,8 @@ Sebuah halaman dianggap selesai apabila:
 - Memiliki responsive behavior.
 - Memiliki state loading, empty, error, dan success yang relevan.
 - Interaksi utama dapat didemonstrasikan.
-- Menggunakan mock data terpusat, bukan hardcoded data berulang dalam
-    komponen.
+- Menggunakan data API melalui API client dan query hook, bukan data
+    hardcoded berulang dalam komponen.
 - Lulus lint, typecheck, dan build.
 - Tidak memiliki issue P0/P1 yang belum diselesaikan.
 

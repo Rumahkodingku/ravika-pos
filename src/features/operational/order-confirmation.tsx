@@ -5,7 +5,6 @@ import { Badge, StatusBadge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Drawer } from "@/components/ui/drawer";
 import { formatCurrency } from "@/lib/format";
-import { useManagementStore } from "@/mocks/management/hooks";
 import type { Order } from "@/types/domain";
 
 export function OrderConfirmation({
@@ -19,9 +18,6 @@ export function OrderConfirmation({
   open: boolean;
   order: Order | null;
 }) {
-  const tables = useManagementStore((state) => state.tables);
-  const table = tables.find((candidate) => candidate.id === order?.tableId);
-
   return (
     <Drawer
       description="Pesanan sudah masuk antrean KDS."
@@ -59,7 +55,7 @@ export function OrderConfirmation({
               </span>
               <span className="text-caption text-muted-foreground">
                 {order.orderType === "DINE_IN"
-                  ? `Dine-in, ${table?.name ?? "meja"}`
+                  ? `Dine-in, ${order.tableName ?? "meja"}`
                   : "Takeaway"}
               </span>
             </div>

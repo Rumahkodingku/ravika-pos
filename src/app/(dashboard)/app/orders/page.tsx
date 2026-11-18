@@ -19,6 +19,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useOrdersQuery } from "@/features/management/api/orders";
 import { DataTableToolbar } from "@/features/management/data-table-toolbar";
 import { OrderDetailDrawer } from "@/features/management/order-detail-drawer";
 import { RequirePermission } from "@/features/management/permission-gate";
@@ -27,8 +28,6 @@ import { SortableTableHead } from "@/features/management/sortable-table-head";
 import { TablePagination } from "@/features/management/table-pagination";
 import { TableSkeleton } from "@/features/management/table-skeleton";
 import { formatCurrency, formatDateTime } from "@/lib/format";
-import { useAsyncData } from "@/mocks/management/hooks";
-import { managementService } from "@/mocks/management/service";
 import type { Order } from "@/types/domain";
 
 type OrderFilters = {
@@ -54,21 +53,17 @@ export default function OrdersPage() {
   const [page, setPage] = useState(1);
   const [selected, setSelected] = useState<Order | null>(null);
 
-  const { data, error, isLoading, refresh } = useAsyncData(
-    () =>
-      managementService.listOrders({
-        search,
-        orderStatus: filters.orderStatus,
-        paymentStatus: filters.paymentStatus,
-        dateFrom: filters.dateFrom,
-        dateTo: filters.dateTo,
-        sortBy: "createdAt",
-        sortDir,
-        page,
-        pageSize: 10,
-      }),
-    JSON.stringify([search, filters, sortDir, page]),
-  );
+  const { data, error, isLoading, refetch } = useOrdersQuery({
+    search,
+    orderStatus: filters.orderStatus,
+    paymentStatus: filters.paymentStatus,
+    dateFrom: filters.dateFrom,
+    dateTo: filters.dateTo,
+    sortBy: "createdAt",
+    sortDir,
+    page,
+    pageSize: 10,
+  });
 
   const activeFilterCount = [
     filters.orderStatus !== defaultOrderFilters.orderStatus,
@@ -88,7 +83,7 @@ export default function OrdersPage() {
     <RequirePermission permission="orders.view">
       <div className="flex flex-col gap-6">
         <PageHeader
-          description="Pantau pesanan, status pembayaran, dan persiapan. Data simulasi."
+          description="Pantau pesanan, status pembayaran, dan persiapan."
           title="Pesanan"
         />
 
@@ -189,7 +184,7 @@ export default function OrdersPage() {
             {isLoading ? (
               <TableSkeleton columns={7} />
             ) : error ? (
-              <ErrorState onRetry={refresh} />
+              <ErrorState onRetry={() => refetch()} />
             ) : !data || data.items.length === 0 ? (
               <EmptyState
                 description="Belum ada pesanan pada filter ini. Ubah filter atau kembali lagi nanti."
@@ -327,7 +322,7 @@ export default function OrdersPage() {
               setSelected(null);
             }
           }}
-          onOrderChanged={refresh}
+          onOrderChanged={() => refetch()}
           order={selected}
         />
       </div>

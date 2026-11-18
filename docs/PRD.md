@@ -1081,6 +1081,30 @@ pembayaran yang belum diterima tanpa label yang jelas.
 - **AC-BKP-004** --- Kegagalan backup ditampilkan tanpa menyatakan
     proses berhasil.
 
+## 6.14 Catatan integrasi UI Fase 7
+
+Bagian ini mencatat perilaku UI dan field API aditif yang dipakai setelah
+integrasi frontend-backend. Tidak ada perubahan aturan bisnis.
+
+- Login, logout, dan ganti kata sandi memakai session cookie HttpOnly
+    dari backend. Halaman login tidak menampilkan akun demo atau tombol
+    isi kredensial.
+- Guard layout dan halaman memakai permission. Role custom dapat dibuat
+    lalu ditetapkan ke pengguna; label role ditampilkan dari `roleLabel`.
+- Refund penuh tersedia dari detail order `PAID` bila pengguna memiliki
+    `payments.refund`. Refund sebagian tetap di luar MVP.
+- Halaman status pesanan publik melakukan polling setiap 10 detik dan
+    tetap memisahkan status pembayaran dari status persiapan.
+- Menu publik memakai `addOns` top-level yang berisi nama dan harga
+    add-on aktif yang dirujuk produk.
+- Setelah restore berhasil, UI menampilkan layar blocking yang meminta
+    restart server, mengosongkan cache query, dan memuat ulang halaman
+    setelah `/api/health` merespons.
+- Field response aditif untuk UI: `roleLabel` pada user dan session,
+    `GET /api/roles/options`, `activeOrderCount` pada daftar meja,
+    `orderNumber` dan `recordedByName` pada payment, serta
+    `changedByName` pada history order. Tidak ada migration baru.
+
 ------------------------------------------------------------------------
 
 # 7. Aturan Bisnis

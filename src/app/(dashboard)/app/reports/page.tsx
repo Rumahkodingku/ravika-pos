@@ -4,7 +4,7 @@ import { BarChart3 } from "lucide-react";
 import { useState } from "react";
 import { EmptyState } from "@/components/feedback/empty-state";
 import { ErrorState } from "@/components/feedback/error-state";
-import { Badge, StatusBadge } from "@/components/ui/badge";
+import { StatusBadge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { BarChart, ChartContainer } from "@/components/ui/chart";
 import { DatePicker } from "@/components/ui/date-picker";
@@ -19,6 +19,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  useSalesReportQuery,
+  useTopProductsQuery,
+} from "@/features/management/api/reports";
 import { RequirePermission } from "@/features/management/permission-gate";
 import {
   formatCompactCurrency,
@@ -28,8 +32,6 @@ import {
   formatDateTime,
   formatNumber,
 } from "@/lib/format";
-import { useAsyncData } from "@/mocks/management/hooks";
-import { managementService } from "@/mocks/management/service";
 
 function rangeDates(period: string, customFrom: string, customTo: string) {
   const today = formatDateKey(new Date());
@@ -68,20 +70,21 @@ export default function ReportsPage() {
     customTo !== "" &&
     customFrom > customTo;
 
-  const { data, error, isLoading, refresh } = useAsyncData(
-    () =>
-      managementService.getSalesReport({
-        dateFrom: dates.from,
-        dateTo: dates.to,
-      }),
-    JSON.stringify([dates.from, dates.to]),
-  );
+  const { data, error, isLoading, refetch } = useSalesReportQuery({
+    dateFrom: dates.from,
+    dateTo: dates.to,
+  });
+  const topProductsQuery = useTopProductsQuery({
+    dateFrom: dates.from,
+    dateTo: dates.to,
+    limit: 5,
+  });
+  const topProducts = topProductsQuery.data ?? data?.topProducts ?? [];
 
   return (
     <RequirePermission permission="reports.view">
       <div className="flex flex-col gap-6">
         <PageHeader
-          actions={<Badge tone="warning">Data simulasi</Badge>}
           description="Ringkasan penjualan dan produk terlaris. Bukan laporan akuntansi final."
           title="Laporan"
         />
@@ -134,7 +137,7 @@ export default function ReportsPage() {
             ))}
           </div>
         ) : error ? (
-          <ErrorState onRetry={refresh} />
+          <ErrorState onRetry={() => void refetch()} />
         ) : isCustomRangeInvalid ? null : !data ? null : data.transactionCount ===
           0 ? (
           <EmptyState
@@ -189,7 +192,7 @@ export default function ReportsPage() {
 
             <div className="grid gap-4 xl:grid-cols-[1.5fr_1fr]">
               <ChartContainer
-                description="Total penjualan harian dalam Rupiah. Data simulasi."
+                description="Total penjualan harian dalam Rupiah."
                 title="Tren penjualan"
               >
                 <BarChart
@@ -204,12 +207,12 @@ export default function ReportsPage() {
                   title="Produk terlaris"
                 />
                 <CardContent className="flex flex-col gap-3">
-                  {data.topProducts.length === 0 ? (
+                  {topProducts.length === 0 ? (
                     <p className="text-body text-muted-foreground">
                       Belum ada produk terjual pada periode ini.
                     </p>
                   ) : (
-                    data.topProducts.map((product) => (
+                    topProducts.map((product) => (
                       <div
                         className="flex items-center justify-between gap-2 text-body"
                         key={product.name}

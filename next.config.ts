@@ -4,7 +4,7 @@ const nextConfig: NextConfig = {
   /* config options here */
   experimental: {
     agentFeedback: true,
-    // Mock data is fetched in the browser and session guards block navigation by design in Phase 2.
+    // Mock data is gone; this keeps validation advisory while server-state queries render in the browser.
     instantInsights: {
       validationLevel: "manual-warning",
     },

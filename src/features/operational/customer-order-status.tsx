@@ -1,15 +1,16 @@
 "use client";
 
 import { ReceiptText } from "lucide-react";
-import { useEffect, useState } from "react";
 import { EmptyState } from "@/components/feedback/empty-state";
+import { ErrorState } from "@/components/feedback/error-state";
 import { LoadingState } from "@/components/feedback/loading-state";
 import { Badge, StatusBadge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { ServiceFlow } from "@/components/ui/service-flow";
+import { usePublicOrderQuery } from "@/features/customer/api";
+import { ApiError } from "@/lib/api/errors";
 import { formatCurrency, formatDateTime } from "@/lib/format";
 import { preparationStatusConfig } from "@/lib/status";
-import { useManagementStore } from "@/mocks/management/hooks";
 import type { PreparationStatus, ServiceFlowStep } from "@/types/ui";
 
 const statusOrder: PreparationStatus[] = [
@@ -21,33 +22,41 @@ const statusOrder: PreparationStatus[] = [
 ];
 
 export function CustomerOrderStatus({ publicToken }: { publicToken: string }) {
-  const orders = useManagementStore((state) => state.orders);
-  const tables = useManagementStore((state) => state.tables);
-  const [mounted, setMounted] = useState(false);
+  const {
+    data: order,
+    error,
+    isLoading,
+    refetch,
+  } = usePublicOrderQuery(publicToken);
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  const order = mounted
-    ? orders.find((candidate) => candidate.publicToken === publicToken)
-    : undefined;
-
-  if (!mounted) {
+  if (isLoading) {
     return <LoadingState message="Memuat status pesanan..." />;
+  }
+
+  if (error) {
+    if (error instanceof ApiError && error.status === 404) {
+      return (
+        <EmptyState
+          description="Tautan status pesanan tidak valid. Pindai ulang QR di meja atau minta bantuan staf."
+          icon={ReceiptText}
+          title="Pesanan tidak ditemukan"
+        />
+      );
+    }
+
+    return <ErrorState onRetry={() => void refetch()} />;
   }
 
   if (!order) {
     return (
       <EmptyState
-        description="Tautan status pesanan tidak valid atau data simulasi sudah dimuat ulang. Minta bantuan staf."
+        description="Tautan status pesanan tidak valid. Pindai ulang QR di meja atau minta bantuan staf."
         icon={ReceiptText}
         title="Pesanan tidak ditemukan"
       />
     );
   }
 
-  const table = tables.find((candidate) => candidate.id === order.tableId);
   const currentIndex = statusOrder.indexOf(order.orderStatus);
   const steps: ServiceFlowStep[] =
     order.orderStatus === "CANCELLED"
@@ -81,21 +90,18 @@ export function CustomerOrderStatus({ publicToken }: { publicToken: string }) {
             {formatDateTime(order.createdAt)}
           </p>
         </div>
-        <Badge className="shrink-0" tone="neutral">
-          Data contoh
-        </Badge>
       </div>
 
       <Card>
         <CardHeader
           action={
             <Badge tone="neutral">
-              {order.orderType === "DINE_IN" ? "Dine-in" : "Takeaway"}
+              {order.tableName ? "Dine-in" : "Takeaway"}
             </Badge>
           }
           description={
-            table
-              ? `${table.name}. Pembayaran dilakukan di kasir.`
+            order.tableName
+              ? `${order.tableName}. Pembayaran dilakukan di kasir.`
               : "Pembayaran dilakukan di kasir."
           }
           title="Ringkasan pesanan"
@@ -127,10 +133,10 @@ export function CustomerOrderStatus({ publicToken }: { publicToken: string }) {
       <Card>
         <CardHeader title="Item pesanan" />
         <CardContent className="flex flex-col gap-3">
-          {order.items.map((item) => (
+          {order.items.map((item, index) => (
             <div
               className="flex items-start justify-between gap-3 border-b border-border pb-3 last:border-0 last:pb-0"
-              key={item.id}
+              key={`${item.productName}-${index}`}
             >
               <div className="flex min-w-0 flex-col">
                 <span className="text-body font-medium text-foreground">
@@ -141,19 +147,14 @@ export function CustomerOrderStatus({ publicToken }: { publicToken: string }) {
                     Varian {item.variantName}
                   </span>
                 ) : null}
-                {item.addOns.map((addOn) => (
+                {item.addOns.map((addOn, addOnIndex) => (
                   <span
                     className="text-caption text-muted-foreground"
-                    key={addOn.id}
+                    key={`${addOn.name}-${addOnIndex}`}
                   >
                     Add-on {addOn.name}
                   </span>
                 ))}
-                {item.notes ? (
-                  <span className="text-caption text-muted-foreground">
-                    Catatan: {item.notes}
-                  </span>
-                ) : null}
               </div>
               <span className="shrink-0 text-body tabular-nums text-foreground">
                 {formatCurrency(item.lineTotal)}

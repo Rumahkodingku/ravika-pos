@@ -26,6 +26,15 @@ import {
 } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/toast";
+import {
+  type ProductInput,
+  useAddOnsQuery,
+  useCategoriesQuery,
+  useCreateProductMutation,
+  useProductsQuery,
+  useSetProductFlagsMutation,
+  useUpdateProductMutation,
+} from "@/features/management/api/catalog";
 import { DataTableToolbar } from "@/features/management/data-table-toolbar";
 import { FormDrawer } from "@/features/management/form-drawer";
 import {
@@ -37,9 +46,7 @@ import { SortableTableHead } from "@/features/management/sortable-table-head";
 import { TablePagination } from "@/features/management/table-pagination";
 import { TableSkeleton } from "@/features/management/table-skeleton";
 import { formatCurrency } from "@/lib/format";
-import { useAsyncData, useManagementStore } from "@/mocks/management/hooks";
-import { managementService } from "@/mocks/management/service";
-import type { Product, ProductAddOn, ProductVariant } from "@/types/domain";
+import type { Product } from "@/types/domain";
 
 const variantSchema = z.object({
   id: z.string().optional(),
@@ -94,8 +101,6 @@ function toValues(product: Product): ProductValues {
 
 export default function ProductsPage() {
   const { toast } = useToast();
-  const categories = useManagementStore((state) => state.categories);
-  const addOns = useManagementStore((state) => state.addOns);
   const [search, setSearch] = useState("");
   const [categoryId, setCategoryId] = useState("all");
   const [active, setActive] = useState("all");
@@ -107,28 +112,23 @@ export default function ProductsPage() {
   const [editing, setEditing] = useState<Product | null>(null);
   const [detail, setDetail] = useState<Product | null>(null);
 
-  const { data, error, isLoading, refresh } = useAsyncData(
-    () =>
-      managementService.listProducts({
-        search,
-        categoryId,
-        active,
-        availability,
-        sortBy,
-        sortDir,
-        page,
-        pageSize: 10,
-      }),
-    JSON.stringify([
-      search,
-      categoryId,
-      active,
-      availability,
-      sortBy,
-      sortDir,
-      page,
-    ]),
-  );
+  const { data, error, isLoading, refetch } = useProductsQuery({
+    search,
+    categoryId,
+    active,
+    availability,
+    sortBy,
+    sortDir,
+    page,
+    pageSize: 10,
+  });
+  const { data: categoryData } = useCategoriesQuery({ pageSize: 200 });
+  const { data: addOnData = [] } = useAddOnsQuery();
+  const createProduct = useCreateProductMutation();
+  const updateProduct = useUpdateProductMutation();
+  const setProductFlags = useSetProductFlagsMutation();
+  const categories = categoryData?.items ?? [];
+  const addOns = addOnData;
 
   const {
     control,
@@ -158,34 +158,25 @@ export default function ProductsPage() {
   };
 
   const onSubmit = handleSubmit(async (values) => {
-    const variants: ProductVariant[] = values.variants.map(
-      (variant, index) => ({
-        id: variant.id ?? `variant-${Date.now()}-${index}`,
+    const input: ProductInput = {
+      ...values,
+      variants: values.variants.map((variant) => ({
+        ...(variant.id ? { id: variant.id } : {}),
         name: variant.name,
         priceAdjustment: variant.priceAdjustment,
         isActive: variant.isActive,
-      }),
-    );
-    const relations: ProductAddOn[] = values.addOns;
+      })),
+    };
 
     try {
       if (editing) {
-        await managementService.updateProduct(editing.id, {
-          ...values,
-          variants,
-          addOns: relations,
-        });
+        await updateProduct.mutateAsync({ id: editing.id, input });
         toast({ title: "Produk diperbarui", tone: "success" });
       } else {
-        await managementService.createProduct({
-          ...values,
-          variants,
-          addOns: relations,
-        });
+        await createProduct.mutateAsync(input);
         toast({ title: "Produk ditambahkan", tone: "success" });
       }
       setFormOpen(false);
-      refresh();
     } catch (reason) {
       setError("root", {
         message:
@@ -193,6 +184,22 @@ export default function ProductsPage() {
       });
     }
   });
+
+  const toggleFlags = async (
+    product: Product,
+    flags: { isAvailable?: boolean; isActive?: boolean },
+  ) => {
+    try {
+      await setProductFlags.mutateAsync({ flags, id: product.id });
+      toast({ title: "Produk diperbarui", tone: "success" });
+    } catch (reason) {
+      toast({
+        title: "Produk gagal diperbarui",
+        description: reason instanceof Error ? reason.message : "Coba lagi.",
+        tone: "danger",
+      });
+    }
+  };
 
   const resetFilters = () => {
     setSearch("");
@@ -227,7 +234,7 @@ export default function ProductsPage() {
               </Button>
             </PermissionGate>
           }
-          description="Kelola menu, harga, varian, dan add-on. Data simulasi."
+          description="Kelola menu, harga, varian, dan add-on."
           title="Produk"
         />
 
@@ -299,7 +306,7 @@ export default function ProductsPage() {
             {isLoading ? (
               <TableSkeleton columns={6} />
             ) : error ? (
-              <ErrorState onRetry={refresh} />
+              <ErrorState onRetry={() => void refetch()} />
             ) : !data || data.items.length === 0 ? (
               <EmptyState
                 action={
@@ -418,6 +425,38 @@ export default function ProductsPage() {
                                 Detail
                               </Button>
                               <PermissionGate permission="products.manage">
+                                <Button
+                                  aria-label={`Tandai ${product.name} ${
+                                    product.isAvailable ? "habis" : "tersedia"
+                                  }`}
+                                  onClick={() =>
+                                    toggleFlags(product, {
+                                      isAvailable: !product.isAvailable,
+                                    })
+                                  }
+                                  size="sm"
+                                  variant="ghost"
+                                >
+                                  {product.isAvailable ? "Habis" : "Tersedia"}
+                                </Button>
+                                <Button
+                                  aria-label={`${
+                                    product.isActive
+                                      ? "Nonaktifkan"
+                                      : "Aktifkan"
+                                  } ${product.name}`}
+                                  onClick={() =>
+                                    toggleFlags(product, {
+                                      isActive: !product.isActive,
+                                    })
+                                  }
+                                  size="sm"
+                                  variant="ghost"
+                                >
+                                  {product.isActive
+                                    ? "Nonaktifkan"
+                                    : "Aktifkan"}
+                                </Button>
                                 <Button
                                   aria-label={`Ubah ${product.name}`}
                                   onClick={() => openEdit(product)}
