@@ -2274,9 +2274,9 @@ diam-diam.
                                                   sebelum Service Worker
                                                   dan PWA diaktifkan.
 
-  OPEN-013                Penyimpanan gambar      Tentukan format, batas
-                                                  ukuran, dan lokasi
-                                                  penyimpanan lokal.
+  OPEN-013                Penyimpanan gambar      Diputuskan: BLOB SQLite,
+                                                  JPEG/PNG/WebP, maks 5 MB,
+                                                  client resize 1600px WebP.
 
   OPEN-014                Cetak struk             Tidak termasuk MVP;
                                                   evaluasi setelah

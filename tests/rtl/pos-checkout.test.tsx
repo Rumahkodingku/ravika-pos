@@ -26,6 +26,7 @@ const croissant: Product = {
   categoryId: "category-makanan",
   name: "Croissant",
   description: "",
+  imageUrl: null,
   basePrice: 28000,
   isAvailable: true,
   isActive: true,

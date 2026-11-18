@@ -31,6 +31,8 @@ import {
   updateProductRow,
 } from "./catalog.repository";
 import type { CategoryInput, ProductInput } from "./catalog.schemas";
+import { listProductImages } from "./product-image.repository";
+import { productImageUrl } from "./product-image.service";
 
 function toCategory(
   row: Awaited<ReturnType<typeof listCategoryRows>>[number],
@@ -70,39 +72,48 @@ async function toProducts(
   const ids = rows.map((row) => row.id);
   const variants = await listVariantRows(db, ids);
   const relations = await listProductAddOnRows(db, ids);
+  const images = await listProductImages(db, ids);
+  const imageByProduct = new Map(
+    images.map((image) => [image.productId, image]),
+  );
 
-  return rows.map((row) => ({
-    id: row.id,
-    businessId: row.businessId,
-    categoryId: row.categoryId,
-    name: row.name,
-    description: row.description,
-    basePrice: row.basePrice,
-    isAvailable: row.isAvailable,
-    isActive: row.isActive,
-    variants: variants
-      .filter((variant) => variant.productId === row.id)
-      .map(
-        (variant): ProductVariant => ({
-          id: variant.id,
-          name: variant.name,
-          priceAdjustment: variant.priceAdjustment,
-          isActive: variant.isActive,
-        }),
-      ),
-    addOns: relations
-      .filter((relation) => relation.productId === row.id)
-      .map(
-        (relation): ProductAddOn => ({
-          addOnId: relation.addOnId,
-          isRequired: relation.isRequired,
-          minSelection: relation.minSelection,
-          maxSelection: relation.maxSelection,
-        }),
-      ),
-    createdAt: row.createdAt.toISOString(),
-    updatedAt: row.updatedAt.toISOString(),
-  }));
+  return rows.map((row) => {
+    const image = imageByProduct.get(row.id);
+
+    return {
+      id: row.id,
+      businessId: row.businessId,
+      categoryId: row.categoryId,
+      name: row.name,
+      description: row.description,
+      imageUrl: image ? productImageUrl(row.id, image.updatedAt) : null,
+      basePrice: row.basePrice,
+      isAvailable: row.isAvailable,
+      isActive: row.isActive,
+      variants: variants
+        .filter((variant) => variant.productId === row.id)
+        .map(
+          (variant): ProductVariant => ({
+            id: variant.id,
+            name: variant.name,
+            priceAdjustment: variant.priceAdjustment,
+            isActive: variant.isActive,
+          }),
+        ),
+      addOns: relations
+        .filter((relation) => relation.productId === row.id)
+        .map(
+          (relation): ProductAddOn => ({
+            addOnId: relation.addOnId,
+            isRequired: relation.isRequired,
+            minSelection: relation.minSelection,
+            maxSelection: relation.maxSelection,
+          }),
+        ),
+      createdAt: row.createdAt.toISOString(),
+      updatedAt: row.updatedAt.toISOString(),
+    };
+  });
 }
 
 export async function listCategories(

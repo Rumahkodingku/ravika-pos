@@ -187,6 +187,57 @@ export function useUpdateProductMutation() {
   });
 }
 
+export function useUploadProductImageMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, image }: { id: string; image: Blob }) => {
+      const body = new FormData();
+      body.append("image", image, "product.webp");
+
+      return apiFetch<{ imageUrl: string }>(`/products/${id}/image`, {
+        body,
+        method: "PUT",
+      });
+    },
+    onSuccess: ({ imageUrl }, { id }) => {
+      const product = queryClient.getQueryData<Product>(queryKeys.product(id));
+
+      if (product) {
+        queryClient.setQueryData(queryKeys.product(id), {
+          ...product,
+          imageUrl,
+        });
+      }
+
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+      queryClient.invalidateQueries({ queryKey: ["public"] });
+    },
+  });
+}
+
+export function useDeleteProductImageMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) =>
+      apiFetch<void>(`/products/${id}/image`, { method: "DELETE" }),
+    onSuccess: (_data, id) => {
+      const product = queryClient.getQueryData<Product>(queryKeys.product(id));
+
+      if (product) {
+        queryClient.setQueryData(queryKeys.product(id), {
+          ...product,
+          imageUrl: null,
+        });
+      }
+
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+      queryClient.invalidateQueries({ queryKey: ["public"] });
+    },
+  });
+}
+
 export function useSetProductFlagsMutation() {
   const queryClient = useQueryClient();
 

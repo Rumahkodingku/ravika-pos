@@ -250,6 +250,7 @@ export async function getPublicMenu(db: AppDatabase, token: string) {
       categoryId: product.categoryId,
       name: product.name,
       description: product.description,
+      imageUrl: product.imageUrl,
       basePrice: product.basePrice,
       variants: product.variants.filter((variant) => variant.isActive),
       addOns: product.addOns,

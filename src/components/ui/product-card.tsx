@@ -1,9 +1,10 @@
 "use client";
 
-import { Package, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { ProductImage } from "@/components/ui/product-image";
 import { formatCurrency } from "@/lib/format";
 import type { Product } from "@/types/domain";
 
@@ -22,10 +23,7 @@ export function ProductCard({
   return (
     <Card className="flex flex-col" variant="product">
       <div className="relative flex aspect-[4/3] items-center justify-center border-b border-border bg-surface-subtle">
-        <Package
-          aria-hidden="true"
-          className="h-10 w-10 text-muted-foreground"
-        />
+        <ProductImage name={product.name} src={product.imageUrl} />
         <Badge
           className="absolute left-2.5 top-2.5"
           tone={available ? "success" : "neutral"}

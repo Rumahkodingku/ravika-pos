@@ -1278,6 +1278,20 @@ Create public order mengembalikan:
 }
 ```
 
+### 22.2 Addendum gambar produk
+
+Gambar produk ditambahkan setelah Phase 7 selesai.
+
+- Satu gambar opsional per produk.
+- Storage BLOB di tabel `product_images`.
+- Format JPEG, PNG, WebP; SVG/GIF ditolak.
+- Maksimal 5 MB setelah kompresi client.
+- Client resize maksimal 1600px dan encode WebP 0.82, fallback JPEG.
+- `GET /api/product-images/:productId` publik dan versioned.
+- `PUT/DELETE /api/products/:id/image` memakai `products.manage`.
+- Backup/restore SQLite otomatis mencakup gambar.
+- `Product.imageUrl` ditambahkan ke DTO management dan public menu.
+
 `tableName` bertipe `string | null`. Public order status mengembalikan:
 
 ```json

@@ -173,6 +173,8 @@ Token desain ada di `src/styles/tokens.css`. Theme, shell, dan komponen dasar te
 | GET | `/api/licensing/status` | `license.view` |
 | GET/POST | `/api/backup` | `backup.create` |
 | POST | `/api/backup/restore` | `backup.restore` |
+| GET | `/api/product-images/:productId` | Publik, versioned image |
+| PUT/DELETE | `/api/products/:id/image` | `products.manage` |
 | GET | `/api/public/menu/:token` | Publik, rate limited |
 | POST | `/api/public/orders` | Publik, rate limited |
 | GET | `/api/public/orders/:publicToken` | Publik, rate limited |

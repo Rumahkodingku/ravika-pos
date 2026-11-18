@@ -62,7 +62,9 @@ Self-hosted, LAN-first POS for cafes. Phases 1 through 7 are implemented. The UI
 - Dine-in tables become `OCCUPIED` automatically and return to `AVAILABLE` when no active order remains.
 - Cancel is blocked when a recorded payment exists. Full-order refund is available from order detail for `PAID` orders with `payments.refund`.
 - POS cart uses sessionStorage key `ravika-pos-cart`. QR table tokens and order public tokens are separate.
-- QR table codes are scannable. Product images remain neutral placeholders with no upload.
+- QR table codes are scannable. Product images are optional; products without one use a neutral placeholder.
+- Product images are optional and stored as BLOB in `product_images` (one per product), never as files in `public/` or `data/uploads/`. Uploads use `PUT /api/products/:id/image`, deletes use `DELETE`, and public reads use versioned `GET /api/product-images/:productId`.
+- Product image upload allows JPEG/PNG/WebP, max 5 MB after client compression. The client resizes to 1600px and encodes WebP 0.82 with JPEG fallback. SVG/GIF are rejected.
 - Public menu uses top-level `addOns` from the public menu response. Public order status polls every 10 seconds through TanStack Query.
 - Public order status uses `publicToken` and must never show internal user data or other orders.
 
