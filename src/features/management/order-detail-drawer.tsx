@@ -45,6 +45,7 @@ const statusLabels: Record<string, string> = {
 };
 
 const cancellableStatuses = ["NEW", "ACCEPTED", "PREPARING"];
+const recordedPaymentStatuses = ["PAID", "PARTIALLY_PAID"];
 
 export function OrderDetailDrawer({
   onOpenChange,
@@ -82,10 +83,14 @@ export function OrderDetailDrawer({
     resolver: zodResolver(reasonSchema),
   });
 
+  // Backend blocks cancel only while a RECORDED payment exists, so a refunded order can still be cancelled.
   const canCancel =
     current !== null &&
-    current.paymentStatus === "UNPAID" &&
+    (current.paymentStatus === "UNPAID" ||
+      current.paymentStatus === "REFUNDED") &&
     cancellableStatuses.includes(current.orderStatus);
+  const hasRecordedPayment =
+    current !== null && recordedPaymentStatuses.includes(current.paymentStatus);
   const canRefund = current !== null && current.paymentStatus === "PAID";
 
   const onCancel = cancelForm.handleSubmit(async (values) => {
@@ -341,7 +346,7 @@ export function OrderDetailDrawer({
                   </Button>
                 ) : (
                   <p className="rounded-md border border-border bg-surface-subtle px-3 py-2 text-caption text-muted-foreground">
-                    {current.paymentStatus !== "UNPAID"
+                    {hasRecordedPayment
                       ? "Pembayaran sudah tercatat. Gunakan refund bila pesanan perlu dikembalikan."
                       : "Pesanan dengan status ini tidak dapat dibatalkan dari management."}
                   </p>

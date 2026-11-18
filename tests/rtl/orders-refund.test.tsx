@@ -188,4 +188,31 @@ describe("order refund", () => {
 
     expect(screen.queryByRole("button", { name: "Refund pesanan" })).toBeNull();
   });
+
+  it("shows the cancel action for a refunded order", async () => {
+    const refundedOrder = {
+      ...paidOrder,
+      orderStatus: "PREPARING" as const,
+      paymentStatus: "REFUNDED" as const,
+    };
+    mockApi(refundedOrder, () => jsonResponse({}, 201));
+    renderDrawer(owner, refundedOrder);
+
+    expect(
+      await screen.findByRole("button", { name: "Batalkan pesanan" }),
+    ).toBeDefined();
+  });
+
+  it("hides the cancel action while a payment is recorded", async () => {
+    const paidPreparingOrder = { ...paidOrder, orderStatus: "NEW" as const };
+    mockApi(paidPreparingOrder, () => jsonResponse({}, 201));
+    renderDrawer(owner, paidPreparingOrder);
+
+    await screen.findByText(/RVK-2100/);
+
+    expect(
+      screen.queryByRole("button", { name: "Batalkan pesanan" }),
+    ).toBeNull();
+    expect(screen.getByText(/Pembayaran sudah tercatat/)).toBeDefined();
+  });
 });

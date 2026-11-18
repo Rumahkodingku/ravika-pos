@@ -377,4 +377,71 @@ describe("RolesPage", () => {
       true,
     );
   });
+
+  it("skips the permissions request without permissions.manage", async () => {
+    const roleManager = {
+      ...owner,
+      permissions: ["roles.manage"],
+      role: "SUPERVISOR",
+      roleLabel: "Supervisor",
+    };
+    mockRolesApi((url, init) =>
+      url === "/api/permissions" && !init?.method
+        ? jsonResponse({ status: 403 }, 403)
+        : null,
+    );
+    renderWithProviders(<RolesPage />, { user: roleManager });
+
+    expect((await screen.findAllByText("Kasir")).length).toBeGreaterThan(0);
+    expect(
+      screen.getAllByRole("button", { name: "Ubah Kasir" }).length,
+    ).toBeGreaterThan(0);
+    expect(
+      fetchMock.mock.calls.some(([url]) =>
+        String(url).startsWith("/api/permissions"),
+      ),
+    ).toBe(false);
+  });
+
+  it("patches the role without putting permissions without permissions.manage", async () => {
+    const user = userEvent.setup();
+    const roleManager = {
+      ...owner,
+      permissions: ["roles.manage"],
+      role: "SUPERVISOR",
+      roleLabel: "Supervisor",
+    };
+    mockRolesApi((url, init) =>
+      url === "/api/roles/role-cashier" && init?.method === "PATCH"
+        ? jsonResponse(cashierRole)
+        : null,
+    );
+    renderWithProviders(<RolesPage />, { user: roleManager });
+
+    const editButtons = await screen.findAllByRole("button", {
+      name: "Ubah Kasir",
+    });
+    await user.click(editButtons[0]);
+
+    expect(
+      screen.getByText(/Anda tidak dapat mengubah izin peran/),
+    ).toBeDefined();
+
+    await user.click(screen.getByRole("button", { name: "Simpan" }));
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledWith(
+        "/api/roles/role-cashier",
+        expect.objectContaining({ method: "PATCH" }),
+      );
+    });
+
+    expect(
+      fetchMock.mock.calls.some(
+        ([url, init]) =>
+          String(url) === "/api/roles/role-cashier/permissions" &&
+          init?.method === "PUT",
+      ),
+    ).toBe(false);
+  });
 });

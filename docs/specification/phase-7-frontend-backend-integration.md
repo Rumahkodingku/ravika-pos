@@ -1472,7 +1472,7 @@ Response:
 - [x] Hapus mock dan design-system.
 - [x] Cleanup copy simulasi.
 - [x] Unit/integration/RTL tests.
-- [ ] Manual smoke.
+- [x] Manual smoke.
 - [x] Docs.
 - [x] `pnpm check`, `pnpm test`, `pnpm build`.
 - [ ] Commit dan tag.

@@ -232,7 +232,7 @@ export default function TablesPage() {
                           </Badge>
                         </span>
                         <span className="text-caption text-muted-foreground">
-                          {table.isActive ? "Aktif" : "Nonaktif"} -{" "}
+                          {table.isActive ? "Aktif" : "Nonaktif"},{" "}
                           {table.activeOrderCount} pesanan aktif
                         </span>
                       </button>

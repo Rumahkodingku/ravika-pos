@@ -26,8 +26,9 @@ export function useRolesQuery() {
   });
 }
 
-export function usePermissionsQuery() {
+export function usePermissionsQuery(enabled = true) {
   return useQuery({
+    enabled,
     queryFn: () => apiFetch<Permission[]>("/permissions"),
     queryKey: queryKeys.permissions,
   });
@@ -37,19 +38,18 @@ export type CreateRoleInput = {
   name: string;
   code: string;
   description: string;
-  permissionCodes: string[];
+  permissionCodes?: string[];
 };
 
 export type UpdateRoleInput = Omit<CreateRoleInput, "permissionCodes">;
 
 export function useCreateRoleMutation() {
-  const queryClient = useQueryClient();
+  const onSuccess = useRoleInvalidation();
 
   return useMutation({
     mutationFn: (input: CreateRoleInput) =>
       apiFetch<Role>("/roles", { body: input, method: "POST" }),
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: queryKeys.roles }),
+    onSuccess,
   });
 }
 
@@ -59,6 +59,7 @@ function useRoleInvalidation() {
 
   return () => {
     queryClient.invalidateQueries({ queryKey: queryKeys.roles });
+    queryClient.invalidateQueries({ queryKey: queryKeys.roleOptions });
     queryClient.invalidateQueries({ queryKey: queryKeys.permissions });
     queryClient.invalidateQueries({ queryKey: ["users"] });
     router.refresh();
@@ -95,9 +96,16 @@ export function useUpdateRoleMutation() {
     }: {
       id: string;
       input: UpdateRoleInput;
-      permissionCodes: string[];
+      permissionCodes?: string[];
     }) => {
-      await apiFetch<Role>(`/roles/${id}`, { body: input, method: "PATCH" });
+      const role = await apiFetch<Role>(`/roles/${id}`, {
+        body: input,
+        method: "PATCH",
+      });
+
+      if (!permissionCodes) {
+        return role;
+      }
 
       return apiFetch<Role>(`/roles/${id}/permissions`, {
         body: { permissionCodes },
