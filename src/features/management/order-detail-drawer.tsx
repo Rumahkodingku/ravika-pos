@@ -11,18 +11,22 @@ import { Drawer } from "@/components/ui/drawer";
 import { Field } from "@/components/ui/field";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/toast";
-import { useMockSession } from "@/features/auth/mock-session";
+import {
+  useCancelOrderMutation,
+  useOrderHistoryQuery,
+  useOrderPaymentsQuery,
+  useOrderQuery,
+  useRefundOrderMutation,
+} from "@/features/management/api/orders";
 import { PermissionGate } from "@/features/management/permission-gate";
 import { formatCurrency, formatDateTime } from "@/lib/format";
-import { useAsyncData, useManagementStore } from "@/mocks/management/hooks";
-import { managementService } from "@/mocks/management/service";
 import type { Order, PaymentMethod } from "@/types/domain";
 
-const cancelSchema = z.object({
+const reasonSchema = z.object({
   reason: z.string().min(3, "Alasan minimal 3 karakter."),
 });
 
-type CancelValues = z.infer<typeof cancelSchema>;
+type ReasonValues = z.infer<typeof reasonSchema>;
 
 const paymentMethodLabels: Record<PaymentMethod, string> = {
   CASH: "Tunai",
@@ -40,76 +44,68 @@ const statusLabels: Record<string, string> = {
   CANCELLED: "Dibatalkan",
 };
 
+const cancellableStatuses = ["NEW", "ACCEPTED", "PREPARING"];
+
 export function OrderDetailDrawer({
   onOpenChange,
   onOrderChanged,
   order,
 }: {
   onOpenChange: (open: boolean) => void;
-  onOrderChanged: () => void;
+  onOrderChanged?: () => void;
   order: Order | null;
 }) {
   const { toast } = useToast();
-  const { user } = useMockSession();
-  const tables = useManagementStore((state) => state.tables);
-  const users = useManagementStore((state) => state.users);
-  const payments = useManagementStore((state) => state.payments);
+  const orderQuery = useOrderQuery(order?.id ?? null, {
+    enabled: order !== null,
+  });
+  const paymentsQuery = useOrderPaymentsQuery(order?.id ?? null, {
+    enabled: order !== null,
+  });
+  const historyQuery = useOrderHistoryQuery(order?.id ?? null, {
+    enabled: order !== null,
+  });
+  const cancelMutation = useCancelOrderMutation();
+  const refundMutation = useRefundOrderMutation();
   const [cancelOpen, setCancelOpen] = useState(false);
-  const [isCancelling, setIsCancelling] = useState(false);
+  const [refundOpen, setRefundOpen] = useState(false);
+  const current = orderQuery.data ?? order;
+  const payments = paymentsQuery.data ?? [];
+  const history = historyQuery.data ?? [];
 
-  const { data, error, isLoading } = useAsyncData(
-    () =>
-      order
-        ? Promise.all([
-            managementService.getOrderPayments(order.id),
-            managementService.getOrderHistory(order.id),
-          ])
-        : Promise.resolve(null),
-    order?.id ?? "none",
-  );
-
-  const {
-    formState: { errors },
-    handleSubmit,
-    register,
-    reset,
-  } = useForm<CancelValues>({
+  const cancelForm = useForm<ReasonValues>({
     defaultValues: { reason: "" },
-    resolver: zodResolver(cancelSchema),
+    resolver: zodResolver(reasonSchema),
+  });
+  const refundForm = useForm<ReasonValues>({
+    defaultValues: { reason: "" },
+    resolver: zodResolver(reasonSchema),
   });
 
-  const tableName = (id: string | null) =>
-    tables.find((table) => table.id === id)?.name ?? "Tidak ada";
-  const userName = (id: string | null) =>
-    users.find((candidate) => candidate.id === id)?.name ?? "Sistem";
-
-  const hasRecordedPayment =
-    order !== null &&
-    payments.some(
-      (payment) =>
-        payment.orderId === order.id && payment.status === "RECORDED",
-    );
   const canCancel =
-    order !== null &&
-    !hasRecordedPayment &&
-    ["NEW", "ACCEPTED", "PREPARING"].includes(order.orderStatus) &&
-    user?.permissions.includes("orders.cancel");
+    current !== null &&
+    current.paymentStatus === "UNPAID" &&
+    cancellableStatuses.includes(current.orderStatus);
+  const canRefund = current !== null && current.paymentStatus === "PAID";
 
-  const onCancel = handleSubmit(async (values) => {
-    if (!order || !user) {
+  const onCancel = cancelForm.handleSubmit(async (values) => {
+    if (!current) {
       return;
     }
-    setIsCancelling(true);
+
     try {
-      await managementService.cancelOrder(order.id, values.reason, user.id);
+      await cancelMutation.mutateAsync({
+        id: current.id,
+        reason: values.reason,
+      });
       toast({
         title: "Pesanan dibatalkan",
-        description: `${order.orderNumber} tetap tersimpan dengan status dibatalkan.`,
+        description: `${current.orderNumber} tetap tersimpan dengan status dibatalkan.`,
         tone: "success",
       });
       setCancelOpen(false);
-      reset();
-      onOrderChanged();
+      cancelForm.reset();
+      onOrderChanged?.();
       onOpenChange(false);
     } catch (reason) {
       toast({
@@ -117,8 +113,34 @@ export function OrderDetailDrawer({
         description: reason instanceof Error ? reason.message : "Coba lagi.",
         tone: "danger",
       });
-    } finally {
-      setIsCancelling(false);
+    }
+  });
+
+  const onRefund = refundForm.handleSubmit(async (values) => {
+    if (!current) {
+      return;
+    }
+
+    try {
+      await refundMutation.mutateAsync({
+        id: current.id,
+        reason: values.reason,
+      });
+      toast({
+        title: "Refund tercatat",
+        description: `${current.orderNumber} dikembalikan penuh.`,
+        tone: "success",
+      });
+      setRefundOpen(false);
+      refundForm.reset();
+      onOrderChanged?.();
+      onOpenChange(false);
+    } catch (reason) {
+      toast({
+        title: "Refund gagal dicatat",
+        description: reason instanceof Error ? reason.message : "Coba lagi.",
+        tone: "danger",
+      });
     }
   });
 
@@ -126,47 +148,47 @@ export function OrderDetailDrawer({
     <>
       <Drawer
         description={
-          order
-            ? `${order.orderNumber}, ${formatDateTime(order.createdAt)}`
+          current
+            ? `${current.orderNumber}, ${formatDateTime(current.createdAt)}`
             : undefined
         }
         onOpenChange={onOpenChange}
         open={order !== null}
         title="Detail pesanan"
       >
-        {order ? (
+        {current ? (
           <div className="flex flex-col gap-5">
             <div className="flex flex-wrap gap-2">
-              <StatusBadge kind="preparation" status={order.orderStatus} />
-              <StatusBadge kind="payment" status={order.paymentStatus} />
+              <StatusBadge kind="preparation" status={current.orderStatus} />
+              <StatusBadge kind="payment" status={current.paymentStatus} />
               <Badge tone="neutral">
-                {order.orderType === "DINE_IN" ? "Dine-in" : "Takeaway"}
+                {current.orderType === "DINE_IN" ? "Dine-in" : "Takeaway"}
               </Badge>
               <Badge tone="neutral">
-                {order.source === "QR" ? "QR menu" : "Kasir"}
+                {current.source === "QR" ? "QR menu" : "Kasir"}
               </Badge>
             </div>
 
             <dl className="grid gap-2 text-body">
               <div className="flex justify-between gap-3">
                 <dt className="text-muted-foreground">Meja</dt>
-                <dd>{tableName(order.tableId)}</dd>
+                <dd>{current.tableName ?? "Tidak ada"}</dd>
               </div>
               <div className="flex justify-between gap-3">
                 <dt className="text-muted-foreground">Dibuat oleh</dt>
-                <dd>{userName(order.createdBy)}</dd>
+                <dd>{current.createdByName ?? "Tidak ada"}</dd>
               </div>
-              {order.notes ? (
+              {current.notes ? (
                 <div className="flex justify-between gap-3">
                   <dt className="text-muted-foreground">Catatan</dt>
-                  <dd className="max-w-56 text-right">{order.notes}</dd>
+                  <dd className="max-w-56 text-right">{current.notes}</dd>
                 </div>
               ) : null}
             </dl>
 
             <div className="flex flex-col gap-2 border-t border-border pt-4">
               <p className="text-label font-medium text-foreground">Item</p>
-              {order.items.map((item) => (
+              {current.items.map((item) => (
                 <div
                   className="flex flex-col gap-1 rounded-md border border-border p-3"
                   key={item.id}
@@ -207,13 +229,13 @@ export function OrderDetailDrawer({
               <div className="flex justify-between gap-3 text-muted-foreground">
                 <dt>Subtotal</dt>
                 <dd className="tabular-nums">
-                  {formatCurrency(order.subtotal)}
+                  {formatCurrency(current.subtotal)}
                 </dd>
               </div>
               <div className="flex justify-between gap-3 text-card-title text-foreground">
                 <dt>Total</dt>
                 <dd className="tabular-nums">
-                  {formatCurrency(order.grandTotal)}
+                  {formatCurrency(current.grandTotal)}
                 </dd>
               </div>
             </dl>
@@ -222,18 +244,20 @@ export function OrderDetailDrawer({
               <p className="text-label font-medium text-foreground">
                 Pembayaran
               </p>
-              {isLoading ? (
+              {paymentsQuery.isLoading ? (
                 <p className="text-body text-muted-foreground">
                   Memuat pembayaran...
                 </p>
-              ) : error ? (
-                <p className="text-body text-danger-strong">{error}</p>
-              ) : !data || data[0].length === 0 ? (
+              ) : paymentsQuery.error ? (
+                <p className="text-body text-danger-strong">
+                  Pembayaran gagal dimuat.
+                </p>
+              ) : payments.length === 0 ? (
                 <p className="text-body text-muted-foreground">
                   Belum ada pembayaran tercatat.
                 </p>
               ) : (
-                data[0].map((payment) => (
+                payments.map((payment) => (
                   <div
                     className="flex items-start justify-between gap-2 rounded-md border border-border p-3 text-body"
                     key={payment.id}
@@ -246,7 +270,7 @@ export function OrderDetailDrawer({
                         {formatDateTime(payment.paidAt)}
                       </span>
                       <span className="text-caption text-muted-foreground">
-                        Dicatat oleh {userName(payment.recordedBy)}
+                        Dicatat oleh {payment.recordedByName ?? "Tidak ada"}
                       </span>
                     </div>
                     <div className="flex flex-col items-end gap-1">
@@ -272,32 +296,36 @@ export function OrderDetailDrawer({
               <p className="text-label font-medium text-foreground">
                 Riwayat status
               </p>
-              {isLoading ? (
+              {historyQuery.isLoading ? (
                 <p className="text-body text-muted-foreground">
                   Memuat riwayat...
                 </p>
-              ) : !data || data[1].length === 0 ? (
+              ) : historyQuery.error ? (
+                <p className="text-body text-danger-strong">
+                  Riwayat gagal dimuat.
+                </p>
+              ) : history.length === 0 ? (
                 <p className="text-body text-muted-foreground">
                   Belum ada riwayat status.
                 </p>
               ) : (
-                data[1].map((history) => (
+                history.map((entry) => (
                   <div
                     className="flex flex-col gap-0.5 text-body"
-                    key={history.id}
+                    key={entry.id}
                   >
                     <span className="font-medium text-foreground">
-                      {history.previousStatus
-                        ? `${statusLabels[history.previousStatus]} menjadi ${statusLabels[history.newStatus]}`
-                        : statusLabels[history.newStatus]}
+                      {entry.previousStatus
+                        ? `${statusLabels[entry.previousStatus]} menjadi ${statusLabels[entry.newStatus]}`
+                        : statusLabels[entry.newStatus]}
                     </span>
                     <span className="text-caption text-muted-foreground">
-                      {formatDateTime(history.createdAt)} oleh{" "}
-                      {userName(history.changedBy)}
+                      {formatDateTime(entry.createdAt)} oleh{" "}
+                      {entry.changedByName ?? "Tidak ada"}
                     </span>
-                    {history.reason ? (
+                    {entry.reason ? (
                       <span className="text-caption text-muted-foreground">
-                        Alasan: {history.reason}
+                        Alasan: {entry.reason}
                       </span>
                     ) : null}
                   </div>
@@ -305,19 +333,28 @@ export function OrderDetailDrawer({
               )}
             </div>
 
-            <PermissionGate permission="orders.cancel">
-              {canCancel ? (
-                <Button onClick={() => setCancelOpen(true)} variant="danger">
-                  Batalkan pesanan
-                </Button>
-              ) : (
-                <p className="rounded-md border border-border bg-surface-subtle px-3 py-2 text-caption text-muted-foreground">
-                  {hasRecordedPayment
-                    ? "Pembayaran sudah tercatat. Refund belum tersedia."
-                    : "Pesanan dengan status ini tidak dapat dibatalkan dari management."}
-                </p>
-              )}
-            </PermissionGate>
+            <div className="flex flex-col gap-2 border-t border-border pt-4">
+              <PermissionGate permission="orders.cancel">
+                {canCancel ? (
+                  <Button onClick={() => setCancelOpen(true)} variant="danger">
+                    Batalkan pesanan
+                  </Button>
+                ) : (
+                  <p className="rounded-md border border-border bg-surface-subtle px-3 py-2 text-caption text-muted-foreground">
+                    {current.paymentStatus !== "UNPAID"
+                      ? "Pembayaran sudah tercatat. Gunakan refund bila pesanan perlu dikembalikan."
+                      : "Pesanan dengan status ini tidak dapat dibatalkan dari management."}
+                  </p>
+                )}
+              </PermissionGate>
+              <PermissionGate permission="payments.refund">
+                {canRefund ? (
+                  <Button onClick={() => setRefundOpen(true)} variant="outline">
+                    Refund pesanan
+                  </Button>
+                ) : null}
+              </PermissionGate>
+            </div>
           </div>
         ) : null}
       </Drawer>
@@ -327,7 +364,7 @@ export function OrderDetailDrawer({
         footer={
           <>
             <Button
-              disabled={isCancelling}
+              disabled={cancelMutation.isPending}
               onClick={() => setCancelOpen(false)}
               variant="outline"
             >
@@ -335,7 +372,7 @@ export function OrderDetailDrawer({
             </Button>
             <Button
               form="cancel-order-form"
-              isLoading={isCancelling}
+              isLoading={cancelMutation.isPending}
               type="submit"
               variant="danger"
             >
@@ -350,7 +387,7 @@ export function OrderDetailDrawer({
       >
         <form id="cancel-order-form" onSubmit={onCancel}>
           <Field
-            error={errors.reason?.message}
+            error={cancelForm.formState.errors.reason?.message}
             htmlFor="cancel-reason"
             label="Alasan pembatalan"
             required
@@ -358,13 +395,50 @@ export function OrderDetailDrawer({
             <Textarea
               id="cancel-reason"
               placeholder="Contoh: stok bahan habis"
-              {...register("reason")}
+              {...cancelForm.register("reason")}
             />
           </Field>
-          <p className="mt-2 text-caption text-muted-foreground">
-            Kebijakan pembatalan setelah status disiapkan masih menunggu
-            keputusan produk.
-          </p>
+        </form>
+      </Dialog>
+
+      <Dialog
+        description="Refund mengembalikan seluruh pembayaran pesanan dan tidak dapat dibatalkan."
+        footer={
+          <>
+            <Button
+              disabled={refundMutation.isPending}
+              onClick={() => setRefundOpen(false)}
+              variant="outline"
+            >
+              Kembali
+            </Button>
+            <Button
+              form="refund-order-form"
+              isLoading={refundMutation.isPending}
+              type="submit"
+            >
+              Proses refund
+            </Button>
+          </>
+        }
+        onOpenChange={setRefundOpen}
+        open={refundOpen}
+        size="sm"
+        title="Refund pesanan?"
+      >
+        <form id="refund-order-form" onSubmit={onRefund}>
+          <Field
+            error={refundForm.formState.errors.reason?.message}
+            htmlFor="refund-reason"
+            label="Alasan refund"
+            required
+          >
+            <Textarea
+              id="refund-reason"
+              placeholder="Contoh: pesanan dibatalkan pelanggan"
+              {...refundForm.register("reason")}
+            />
+          </Field>
         </form>
       </Dialog>
     </>
