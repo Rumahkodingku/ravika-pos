@@ -32,14 +32,15 @@ function defaultUsername(email: string) {
 
 function toManagementUser(
   row: Awaited<ReturnType<typeof listUserRows>>[number],
-  roleCode: string,
+  role: { code: string; name: string },
 ): ManagementUser {
   return {
     id: row.id,
     name: row.name,
     email: row.email,
     username: row.username,
-    role: roleCode as ManagementUser["role"],
+    role: role.code,
+    roleLabel: role.name,
     isActive: row.isActive,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
@@ -78,7 +79,7 @@ export async function listUsers(
             params.active === "all" ||
             String(row.isActive) === params.active);
 
-        return matches ? toManagementUser(row, role.code) : null;
+        return matches ? toManagementUser(row, role) : null;
       }),
     )
   ).filter((row): row is ManagementUser => row !== null);
@@ -93,7 +94,7 @@ export async function getUser(db: AppDatabase, businessId: string, id: string) {
     throw AppError.notFound("USER_NOT_FOUND", "Pengguna tidak ditemukan.");
   }
 
-  return toManagementUser(row.user, row.role.code);
+  return toManagementUser(row.user, row.role);
 }
 
 export async function createUser(

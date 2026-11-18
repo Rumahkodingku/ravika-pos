@@ -19,7 +19,6 @@ import type {
   Role,
   SalesReport,
   TableStatus,
-  UserRole,
 } from "@/types/domain";
 import type { PaymentStatus, PreparationStatus } from "@/types/ui";
 
@@ -91,7 +90,8 @@ export type TableInput = {
 export type UserInput = {
   name: string;
   email: string;
-  role: UserRole;
+  role: string;
+  roleLabel: string;
   isActive: boolean;
 };
 

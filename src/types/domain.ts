@@ -77,7 +77,8 @@ export type ManagementUser = {
   name: string;
   email: string;
   username?: string;
-  role: UserRole;
+  role: string;
+  roleLabel: string;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
@@ -86,7 +87,7 @@ export type ManagementUser = {
 export type Role = {
   id: string;
   name: string;
-  code: UserRole | string;
+  code: string;
   description: string;
   isSystem: boolean;
   permissionCodes: string[];

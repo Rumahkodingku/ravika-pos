@@ -35,19 +35,19 @@ import { TablePagination } from "@/features/management/table-pagination";
 import { TableSkeleton } from "@/features/management/table-skeleton";
 import { useAsyncData } from "@/mocks/management/hooks";
 import { managementService } from "@/mocks/management/service";
-import type { ManagementUser, UserRole } from "@/types/domain";
+import type { ManagementUser } from "@/types/domain";
 
 const userSchema = z.object({
   name: z.string().min(1, "Nama pengguna wajib diisi."),
   email: z.string().email("Format email tidak valid."),
-  role: z.enum(["OWNER", "CASHIER", "BARISTA"]),
+  role: z.string().min(1, "Role wajib dipilih."),
   isActive: z.boolean(),
   password: z.string().optional(),
 });
 
 type UserValues = z.infer<typeof userSchema>;
 
-const roleLabels: Record<UserRole, string> = {
+const roleLabels: Record<string, string> = {
   OWNER: "Pemilik",
   CASHIER: "Kasir",
   BARISTA: "Barista",
@@ -121,11 +121,15 @@ export default function UsersPage() {
 
     try {
       const { password: _password, ...input } = values;
+      const payload = {
+        ...input,
+        roleLabel: roleLabels[values.role] ?? values.role,
+      };
       if (editing) {
-        await managementService.updateUser(editing.id, input);
+        await managementService.updateUser(editing.id, payload);
         toast({ title: "Pengguna diperbarui", tone: "success" });
       } else {
-        await managementService.createUser(input);
+        await managementService.createUser(payload);
         toast({
           title: "Pengguna ditambahkan",
           description: "Akun demo login tetap tiga akun yang terdokumentasi.",
@@ -248,7 +252,7 @@ export default function UsersPage() {
                       </Badge>
                     </div>
                     <span className="text-caption text-muted-foreground">
-                      {roleLabels[user.role]}
+                      {user.roleLabel}
                     </span>
                     <PermissionGate permission="users.manage">
                       <Button
@@ -282,7 +286,7 @@ export default function UsersPage() {
                           <TableCell className="text-muted-foreground">
                             {user.email}
                           </TableCell>
-                          <TableCell>{roleLabels[user.role]}</TableCell>
+                          <TableCell>{user.roleLabel}</TableCell>
                           <TableCell>
                             <Badge tone={user.isActive ? "success" : "neutral"}>
                               {user.isActive ? "Aktif" : "Nonaktif"}
