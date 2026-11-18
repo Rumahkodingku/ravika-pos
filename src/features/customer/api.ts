@@ -10,6 +10,7 @@ import {
 } from "@/lib/api/idempotency";
 import { queryKeys } from "@/lib/api/keys";
 import type { PublicMenuResponse } from "@/types/api";
+import type { PaymentStatus, PreparationStatus } from "@/types/ui";
 
 export type PublicOrderCreated = {
   orderNumber: string;
@@ -35,6 +36,34 @@ export function usePublicMenuQuery(token: string) {
     queryFn: () =>
       apiFetch<PublicMenuResponse>(`/public/menu/${encodeURIComponent(token)}`),
     queryKey: queryKeys.publicMenu(token),
+  });
+}
+
+export type PublicOrderStatus = {
+  orderNumber: string;
+  orderStatus: PreparationStatus;
+  paymentStatus: PaymentStatus;
+  grandTotal: number;
+  tableName: string | null;
+  createdAt: string;
+  items: Array<{
+    productName: string;
+    variantName: string | null;
+    quantity: number;
+    unitPrice: number;
+    lineTotal: number;
+    addOns: Array<{ name: string; price: number; quantity: number }>;
+  }>;
+};
+
+export function usePublicOrderQuery(token: string) {
+  return useQuery({
+    queryFn: () =>
+      apiFetch<PublicOrderStatus>(
+        `/public/orders/${encodeURIComponent(token)}`,
+      ),
+    queryKey: queryKeys.publicOrder(token),
+    refetchInterval: 10_000,
   });
 }
 
