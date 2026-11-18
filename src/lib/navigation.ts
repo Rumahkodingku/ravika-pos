@@ -1,6 +1,5 @@
 import {
   Armchair,
-  BadgeCheck,
   BarChart3,
   ChefHat,
   ClipboardList,
@@ -149,13 +148,6 @@ export const megaMenuGroups: NavGroup[] = [
         icon: DatabaseBackup,
         permission: "backup.create",
         description: "Cadangkan dan pulihkan data lokal",
-      },
-      {
-        label: "Lisensi",
-        href: "/app/license",
-        icon: BadgeCheck,
-        permission: "license.view",
-        description: "Periksa status lisensi instalasi",
       },
     ],
   },

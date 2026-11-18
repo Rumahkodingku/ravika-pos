@@ -5,7 +5,6 @@ import type { AppDatabase } from "@/infrastructure/database/types";
 import { hashPassword } from "@/modules/auth/password";
 import { findFirstBusiness } from "@/modules/business/business.repository";
 import { updateBusiness } from "@/modules/business/business.service";
-import { getLicenseStatus } from "@/modules/license/license.service";
 import {
   countActiveOwners,
   findRoleByCode,
@@ -94,7 +93,6 @@ export async function runSetup(
       username,
     });
 
-    await getLicenseStatus(tx as unknown as AppDatabase);
   });
 
   return { restartRequired: true, setupComplete: true as const };

@@ -4,19 +4,12 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRestartRequired } from "@/features/system/restart-required";
 import { apiFetch } from "@/lib/api/client";
 import { queryKeys } from "@/lib/api/keys";
-import type { BackupRecord, License } from "@/types/domain";
+import type { BackupRecord } from "@/types/domain";
 
 export type RestoreBackupResponse = {
   restored: boolean;
   restartRequired: boolean;
 };
-
-export function useLicenseQuery() {
-  return useQuery({
-    queryFn: () => apiFetch<License>("/licensing/status"),
-    queryKey: queryKeys.license,
-  });
-}
 
 export function useBackupsQuery() {
   return useQuery({

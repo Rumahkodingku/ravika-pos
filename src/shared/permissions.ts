@@ -93,10 +93,6 @@ export const permissionGroups: PermissionGroup[] = [
     label: "Pengaturan",
     permissions: [{ code: "settings.manage", label: "Kelola pengaturan" }],
   },
-  {
-    label: "Lisensi",
-    permissions: [{ code: "license.view", label: "Lihat lisensi" }],
-  },
 ];
 
 export const allPermissionCodes = permissionGroups.flatMap((group) =>

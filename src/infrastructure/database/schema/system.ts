@@ -33,32 +33,6 @@ export const auditLogs = sqliteTable(
   ],
 );
 
-export const licenses = sqliteTable(
-  "licenses",
-  {
-    id: text("id").primaryKey(),
-    businessIdentifier: text("business_identifier").notNull(),
-    installationId: text("installation_id").notNull().unique(),
-    licensePayload: text("license_payload").notNull(),
-    issuedAt: integer("issued_at", { mode: "timestamp_ms" }).notNull(),
-    expiresAt: integer("expires_at", { mode: "timestamp_ms" }),
-    status: text("status", {
-      enum: ["VALID", "EXPIRING", "INVALID"],
-    }).notNull(),
-    validationMessage: text("validation_message").notNull().default(""),
-    signature: text("signature").notNull(),
-    publicKeyFingerprint: text("public_key_fingerprint").notNull(),
-    createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
-    updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
-  },
-  (table) => [
-    check(
-      "licenses_status_check",
-      sql`${table.status} IN ('VALID', 'EXPIRING', 'INVALID')`,
-    ),
-  ],
-);
-
 export const backupRecords = sqliteTable(
   "backup_records",
   {

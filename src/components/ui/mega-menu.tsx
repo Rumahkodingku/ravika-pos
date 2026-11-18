@@ -37,7 +37,7 @@ function MegaMenuGroup({
             <Link
               aria-current={active ? "page" : undefined}
               className={cn(
-                "group flex min-h-11 items-start gap-3 rounded-md px-2.5 py-2 transition-colors duration-[var(--motion-fast)] ease-smooth hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring motion-reduce:transition-none",
+                "group flex min-h-11 items-start gap-3 rounded-md px-2.5 py-2 transition-colors duration-(--motion-fast) ease-smooth hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring motion-reduce:transition-none",
                 active && "bg-surface-subtle",
               )}
               href={item.href}
@@ -51,7 +51,7 @@ function MegaMenuGroup({
                     "border-primary/30 bg-primary/10 text-primary-strong",
                 )}
               >
-                <Icon aria-hidden="true" className="h-[18px] w-[18px]" />
+                <Icon aria-hidden="true" className="h-4.5 w-4.5" />
               </span>
               <span className="flex min-w-0 flex-col gap-0.5">
                 <span className="text-label font-medium text-foreground">
@@ -134,19 +134,19 @@ export function MegaMenu({
         aria-controls={panelId}
         aria-expanded={open}
         className={cn(
-          "inline-flex min-h-11 items-center gap-2 rounded-md px-3 text-label font-medium text-muted-foreground transition-colors duration-[var(--motion-fast)] ease-smooth hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background motion-reduce:transition-none",
+          "inline-flex min-h-11 items-center gap-2 rounded-md px-3 text-label font-medium text-muted-foreground transition-colors duration-(--motion-fast) ease-smooth hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background motion-reduce:transition-none",
           open && "bg-muted text-foreground",
         )}
         onClick={() => setOpen((current) => !current)}
         ref={triggerRef}
         type="button"
       >
-        <LayoutGrid aria-hidden="true" className="h-[18px] w-[18px]" />
-        Menu
+        <LayoutGrid aria-hidden="true" className="h-4.5 w-4.5" />
+        Menu Lainnya
         <ChevronDown
           aria-hidden="true"
           className={cn(
-            "h-4 w-4 transition-transform duration-[var(--motion-fast)] motion-reduce:transition-none",
+            "h-4 w-4 transition-transform duration-(--motion-fast) motion-reduce:transition-none",
             open && "rotate-180",
           )}
         />
@@ -155,7 +155,7 @@ export function MegaMenu({
       {open ? (
         <nav
           aria-label="Menu utama"
-          className="mega-menu-panel fixed left-1/2 top-[calc(var(--ravika-header-height)+0.5rem)] z-[var(--z-dropdown)] w-[min(1180px,calc(100vw-2rem))] -translate-x-1/2 overflow-hidden rounded-xl border border-border bg-surface text-foreground"
+          className="mega-menu-panel fixed left-1/2 top-[calc(var(--ravika-header-height)+0.5rem)] z-(--z-dropdown) w-[min(1400px,calc(100vw-2rem))] -translate-x-1/2 overflow-hidden rounded-xl border border-border bg-surface text-foreground"
           id={panelId}
           ref={panelRef}
         >

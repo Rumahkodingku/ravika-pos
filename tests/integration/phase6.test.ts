@@ -28,7 +28,6 @@ import {
 } from "@/modules/catalog/catalog.service";
 import { publishRealtime, subscribeRealtime } from "@/modules/events/event-bus";
 import { findIdempotentResponse } from "@/modules/idempotency/idempotency.service";
-import { getLicenseStatus } from "@/modules/license/license.service";
 import {
   cancelOrder,
   createOrder,
@@ -538,59 +537,6 @@ describe("phase 6 reports", () => {
     expect(
       report.orders.every((order) => formatDateKey(order.createdAt) === today),
     ).toBe(true);
-  });
-});
-
-describe("phase 6 license", () => {
-  const originalEnv = { ...process.env };
-  const directory = mkdtempSync(join(tmpdir(), "ravika-license-"));
-
-  afterEach(() => {
-    process.env = { ...originalEnv };
-  });
-
-  it("validates, expires, and rejects a license", async () => {
-    const { publicKey, privateKey } = generateKeyPairSync("ed25519");
-    const publicKeyBase64 = publicKey
-      .export({ format: "der", type: "spki" })
-      .toString("base64");
-    const file = join(directory, "license.json");
-    const payload = {
-      licenseId: "lic-test",
-      businessIdentifier: businessId,
-      installationId: "installation-test",
-      issuedAt: "2026-01-01T00:00:00.000Z",
-      expiresAt: "2030-01-01T00:00:00.000Z",
-    };
-
-    const writeLicense = (signature: string, data = payload) => {
-      writeFileSync(file, JSON.stringify({ payload: data, signature }));
-    };
-    const signatureFor = (data: typeof payload) =>
-      sign(null, Buffer.from(stableStringify(data)), privateKey).toString(
-        "base64url",
-      );
-
-    process.env.RAVIKA_LICENSE_FILE = file;
-    process.env.RAVIKA_LICENSE_PUBLIC_KEY = publicKeyBase64;
-    process.env.RAVIKA_INSTALLATION_ID = "installation-test";
-
-    writeLicense(signatureFor(payload));
-    expect((await getLicenseStatus(bundle.db)).status).toBe("VALID");
-
-    const expiring = {
-      ...payload,
-      expiresAt: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString(),
-    };
-    writeLicense(signatureFor(expiring), expiring);
-    expect((await getLicenseStatus(bundle.db)).status).toBe("EXPIRING");
-
-    writeLicense("invalid-signature");
-    expect((await getLicenseStatus(bundle.db)).status).toBe("INVALID");
-
-    const mismatch = { ...payload, businessIdentifier: "business-lain" };
-    writeLicense(signatureFor(mismatch), mismatch);
-    expect((await getLicenseStatus(bundle.db)).status).toBe("INVALID");
   });
 });
 

@@ -184,19 +184,6 @@ export type Refund = {
   createdAt: string;
 };
 
-export type LicenseStatus = "VALID" | "EXPIRING" | "INVALID";
-
-export type License = {
-  id: string;
-  businessIdentifier: string;
-  installationId: string;
-  issuedAt: string;
-  expiresAt: string | null;
-  status: LicenseStatus;
-  publicKeyFingerprint: string;
-  validationMessage?: string;
-};
-
 export type BackupStatus = "READY" | "IN_PROGRESS" | "FAILED";
 
 export type BackupRecord = {
