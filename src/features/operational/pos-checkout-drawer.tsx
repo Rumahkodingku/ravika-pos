@@ -7,10 +7,11 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Drawer } from "@/components/ui/drawer";
 import { useToast } from "@/components/ui/toast";
-import { useMockSession } from "@/features/auth/mock-session";
+import {
+  useCreateOrderMutation,
+  usePosTablesQuery,
+} from "@/features/operational/api";
 import { formatCurrency } from "@/lib/format";
-import { useManagementStore } from "@/mocks/management/hooks";
-import { managementService } from "@/mocks/management/service";
 import type { Order } from "@/types/domain";
 
 export function PosCheckoutDrawer({
@@ -23,20 +24,16 @@ export function PosCheckoutDrawer({
   open: boolean;
 }) {
   const { toast } = useToast();
-  const { user } = useMockSession();
-  const tables = useManagementStore((state) => state.tables);
+  const { data: tableData } = usePosTablesQuery();
+  const createOrder = useCreateOrderMutation();
   const { clearCart, lines, orderNotes, orderType, subtotal, tableId } =
     usePosCart();
   const [error, setError] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const table = tables.find((candidate) => candidate.id === tableId);
+  const table = tableData?.items.find((candidate) => candidate.id === tableId);
   const canSubmit =
     lines.length > 0 && (orderType === "TAKEAWAY" || tableId !== null);
 
   const submit = async () => {
-    if (!user) {
-      return;
-    }
     if (!canSubmit) {
       setError(
         orderType === "DINE_IN"
@@ -46,15 +43,12 @@ export function PosCheckoutDrawer({
       return;
     }
 
-    setIsSubmitting(true);
     setError(null);
 
     try {
-      const order = await managementService.createOrder({
+      const order = await createOrder.mutateAsync({
         orderType,
         tableId: orderType === "DINE_IN" ? tableId : null,
-        source: "CASHIER",
-        createdBy: user.id,
         notes: orderNotes,
         items: lines.map((line) => ({
           productId: line.productId,
@@ -73,16 +67,9 @@ export function PosCheckoutDrawer({
         tone: "success",
       });
     } catch (reason) {
-      const message =
-        reason instanceof Error ? reason.message : "Pesanan gagal dibuat.";
-      setError(message);
-      toast({
-        title: "Pesanan gagal dibuat",
-        description: message,
-        tone: "danger",
-      });
-    } finally {
-      setIsSubmitting(false);
+      setError(
+        reason instanceof Error ? reason.message : "Pesanan gagal dibuat.",
+      );
     }
   };
 
@@ -92,7 +79,7 @@ export function PosCheckoutDrawer({
       footer={
         <>
           <Button
-            disabled={isSubmitting}
+            disabled={createOrder.isPending}
             onClick={() => onOpenChange(false)}
             variant="outline"
           >
@@ -100,7 +87,7 @@ export function PosCheckoutDrawer({
           </Button>
           <Button
             disabled={!canSubmit}
-            isLoading={isSubmitting}
+            isLoading={createOrder.isPending}
             onClick={submit}
           >
             Konfirmasi pesanan

@@ -8,7 +8,7 @@ import {
   useMemo,
   useState,
 } from "react";
-import { useManagementStore } from "@/mocks/management/hooks";
+import { usePosCatalogQuery } from "@/features/operational/api";
 import type { AddOn, Product, ProductVariant } from "@/types/domain";
 
 const STORAGE_KEY = "ravika-pos-cart";
@@ -117,8 +117,7 @@ function resolveLine(
 }
 
 export function PosCartProvider({ children }: { children: ReactNode }) {
-  const products = useManagementStore((state) => state.products);
-  const addOns = useManagementStore((state) => state.addOns);
+  const { products, addOns } = usePosCatalogQuery();
   const [items, setItems] = useState<PosCartDraft[]>([]);
   const [orderType, setOrderType] = useState<PosOrderType>("DINE_IN");
   const [tableId, setTableId] = useState<string | null>(null);

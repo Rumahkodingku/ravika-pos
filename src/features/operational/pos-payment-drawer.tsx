@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect, useMemo } from "react";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Badge } from "@/components/ui/badge";
@@ -13,10 +13,10 @@ import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/toast";
-import { useMockSession } from "@/features/auth/mock-session";
+import { useOrderPaymentsQuery } from "@/features/management/api/orders";
+import { useRecordPaymentMutation } from "@/features/operational/api";
+import { createIdempotencyKey } from "@/lib/api/idempotency";
 import { formatCurrency, formatDateTime } from "@/lib/format";
-import { useManagementStore } from "@/mocks/management/hooks";
-import { managementService } from "@/mocks/management/service";
 import type { Order, PaymentMethod } from "@/types/domain";
 
 const paymentSchema = z.object({
@@ -48,33 +48,21 @@ export function PosPaymentDrawer({
   order: Order | null;
 }) {
   const { toast } = useToast();
-  const { user } = useMockSession();
-  const orders = useManagementStore((state) => state.orders);
-  const payments = useManagementStore((state) => state.payments);
-  const users = useManagementStore((state) => state.users);
-  const currentOrder =
-    orders.find((candidate) => candidate.id === order?.id) ?? order;
-  const orderPayments = useMemo(
-    () =>
-      currentOrder
-        ? payments
-            .filter(
-              (payment) =>
-                payment.orderId === currentOrder.id &&
-                payment.status === "RECORDED",
-            )
-            .sort((left, right) => right.paidAt.localeCompare(left.paidAt))
-        : [],
-    [currentOrder, payments],
-  );
+  const recordPayment = useRecordPaymentMutation();
+  const paymentsQuery = useOrderPaymentsQuery(order?.id ?? null, {
+    enabled: open && order !== null,
+  });
+  const orderPayments = (paymentsQuery.data ?? [])
+    .filter((payment) => payment.status === "RECORDED")
+    .sort((left, right) => right.paidAt.localeCompare(left.paidAt));
   const paid = orderPayments.reduce(
     (total, payment) => total + payment.amount,
     0,
   );
-  const remaining = Math.max(0, (currentOrder?.grandTotal ?? 0) - paid);
+  const remaining = Math.max(0, (order?.grandTotal ?? 0) - paid);
 
   const {
-    formState: { errors, isSubmitting },
+    formState: { errors },
     handleSubmit,
     register,
     reset,
@@ -92,7 +80,7 @@ export function PosPaymentDrawer({
   });
 
   useEffect(() => {
-    if (!open || !currentOrder) {
+    if (!open || !order) {
       return;
     }
 
@@ -103,7 +91,7 @@ export function PosPaymentDrawer({
       notes: "",
       verified: false,
     });
-  }, [currentOrder, open, remaining, reset]);
+  }, [open, order, remaining, reset]);
 
   const method = watch("method");
   const amount = watch("amount");
@@ -119,7 +107,7 @@ export function PosPaymentDrawer({
     : undefined;
 
   const onSubmit = handleSubmit(async (values) => {
-    if (!currentOrder || !user) {
+    if (!order) {
       return;
     }
     if (values.method !== "CASH" && !values.verified) {
@@ -141,20 +129,21 @@ export function PosPaymentDrawer({
         : values.amount;
 
     try {
-      await managementService.recordPayment({
-        orderId: currentOrder.id,
+      await recordPayment.mutateAsync({
+        orderId: order.id,
+        key: createIdempotencyKey(),
         method: values.method,
         amount: appliedAmount,
         reference: values.reference,
         notes: values.notes,
-        actorId: user.id,
+        verified: values.verified,
       });
       onPaid?.();
 
       if (remaining - appliedAmount <= 0) {
         toast({
           title: "Pembayaran lunas",
-          description: `${currentOrder.orderNumber} sudah dibayar penuh.`,
+          description: `${order.orderNumber} sudah dibayar penuh.`,
           tone: "success",
         });
         onOpenChange(false);
@@ -181,7 +170,7 @@ export function PosPaymentDrawer({
       footer={
         <>
           <Button
-            disabled={isSubmitting}
+            disabled={recordPayment.isPending}
             onClick={() => onOpenChange(false)}
             variant="outline"
           >
@@ -190,7 +179,7 @@ export function PosPaymentDrawer({
           {remaining > 0 ? (
             <Button
               form="pos-payment-form"
-              isLoading={isSubmitting}
+              isLoading={recordPayment.isPending}
               type="submit"
             >
               Catat pembayaran
@@ -199,21 +188,19 @@ export function PosPaymentDrawer({
         </>
       }
       onOpenChange={onOpenChange}
-      open={open && currentOrder !== null}
+      open={open && order !== null}
       title="Pembayaran"
     >
-      {currentOrder ? (
+      {order ? (
         <div className="flex flex-col gap-5">
           <div className="rounded-md border border-border bg-surface-subtle p-3">
             <div className="flex items-center justify-between gap-3">
               <div className="flex flex-col">
                 <span className="text-body font-medium text-foreground">
-                  {currentOrder.orderNumber}
+                  {order.orderNumber}
                 </span>
                 <span className="text-caption text-muted-foreground">
-                  {currentOrder.orderType === "DINE_IN"
-                    ? "Dine-in"
-                    : "Takeaway"}
+                  {order.orderType === "DINE_IN" ? "Dine-in" : "Takeaway"}
                 </span>
               </div>
               <Badge tone={paymentTone}>{paymentLabel}</Badge>
@@ -222,7 +209,7 @@ export function PosPaymentDrawer({
               <div className="flex justify-between gap-3">
                 <dt className="text-muted-foreground">Total</dt>
                 <dd className="tabular-nums">
-                  {formatCurrency(currentOrder.grandTotal)}
+                  {formatCurrency(order.grandTotal)}
                 </dd>
               </div>
               <div className="flex justify-between gap-3">
@@ -254,10 +241,7 @@ export function PosPaymentDrawer({
                       {formatDateTime(payment.paidAt)}
                     </span>
                     <span className="text-caption text-muted-foreground">
-                      Dicatat oleh{" "}
-                      {users.find(
-                        (candidate) => candidate.id === payment.recordedBy,
-                      )?.name ?? "Tidak ada"}
+                      Dicatat oleh {payment.recordedByName ?? "Tidak ada"}
                     </span>
                   </div>
                   <span className="shrink-0 tabular-nums text-foreground">

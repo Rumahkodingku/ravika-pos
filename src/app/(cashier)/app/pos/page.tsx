@@ -4,27 +4,27 @@ import { PackageSearch } from "lucide-react";
 import { useMemo, useState } from "react";
 import { EmptyState } from "@/components/feedback/empty-state";
 import { usePosCart } from "@/components/shells/pos-cart-context";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { SearchInput } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/layout";
 import { ProductCard } from "@/components/ui/product-card";
 import { useToast } from "@/components/ui/toast";
 import {
+  useBusinessQuery,
+  usePosCatalogQuery,
+} from "@/features/operational/api";
+import {
   ProductConfigurator,
   type ProductConfiguratorResult,
 } from "@/features/operational/product-configurator";
 import { formatCurrency } from "@/lib/format";
-import { useManagementStore } from "@/mocks/management/hooks";
 import type { Product } from "@/types/domain";
 
 export default function PosPage() {
   const { addLine } = usePosCart();
   const { toast } = useToast();
-  const business = useManagementStore((state) => state.business);
-  const products = useManagementStore((state) => state.products);
-  const categories = useManagementStore((state) => state.categories);
-  const addOns = useManagementStore((state) => state.addOns);
+  const { data: business } = useBusinessQuery();
+  const { addOns, categories, isLoading, products } = usePosCatalogQuery();
   const [category, setCategory] = useState("Semua");
   const [query, setQuery] = useState("");
   const [configProduct, setConfigProduct] = useState<Product | null>(null);
@@ -96,9 +96,8 @@ export default function PosPage() {
   return (
     <div className="flex flex-col gap-5">
       <PageHeader
-        actions={<Badge tone="neutral">Data contoh</Badge>}
         description="Pilih produk, atur pesanan, lalu lanjutkan ke pembayaran."
-        eyebrow={business.name}
+        eyebrow={business?.name ?? "RAVIKA"}
         title="POS"
       />
 
@@ -150,7 +149,9 @@ export default function PosPage() {
             )}
           </div>
 
-          {filteredProducts.length === 0 ? (
+          {isLoading ? (
+            <p className="text-body text-muted-foreground">Memuat katalog...</p>
+          ) : filteredProducts.length === 0 ? (
             <EmptyState
               description="Coba kata kunci lain atau pilih kategori yang berbeda."
               icon={PackageSearch}
