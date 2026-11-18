@@ -58,6 +58,13 @@ export async function updateTableRow(
   await db.update(diningTables).set(input).where(eq(diningTables.id, id));
 }
 
+export async function listActiveTableOrderRows(db: DbExecutor) {
+  return db
+    .select({ tableId: orders.tableId })
+    .from(orders)
+    .where(inArray(orders.orderStatus, [...activeStatuses]));
+}
+
 export async function countActiveOrdersForTable(
   db: DbExecutor,
   tableId: string,

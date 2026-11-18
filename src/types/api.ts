@@ -1,3 +1,5 @@
+import type { AddOn, ProductAddOn, ProductVariant } from "@/types/domain";
+
 export type ValidationIssue = {
   path: string;
   message: string;
@@ -63,3 +65,19 @@ export type SalesReportParams = BaseListParams & {
 };
 
 export type TopProductsParams = SalesReportParams & { limit?: number };
+
+export type PublicMenuResponse = {
+  business: { name: string; address: string };
+  table: { id: string; name: string };
+  categories: Array<{ id: string; name: string }>;
+  products: Array<{
+    id: string;
+    categoryId: string;
+    name: string;
+    description: string;
+    basePrice: number;
+    variants: ProductVariant[];
+    addOns: ProductAddOn[];
+  }>;
+  addOns: AddOn[];
+};

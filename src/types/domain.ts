@@ -70,6 +70,10 @@ export type DiningTable = {
   updatedAt: string;
 };
 
+export type TableSummary = Omit<DiningTable, "qrToken"> & {
+  activeOrderCount: number;
+};
+
 export type UserRole = "OWNER" | "CASHIER" | "BARISTA";
 
 export type ManagementUser = {

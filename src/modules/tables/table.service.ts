@@ -3,6 +3,7 @@ import "server-only";
 import type { AppDatabase } from "@/infrastructure/database/types";
 import { findFirstBusiness } from "@/modules/business/business.repository";
 import {
+  listAddOns,
   listCategories,
   listProducts,
 } from "@/modules/catalog/catalog.service";
@@ -18,22 +19,27 @@ import {
   findTableByName,
   findTableByTokenHash,
   insertTable,
+  listActiveTableOrderRows,
   listTableRows,
   updateTableRow,
 } from "./table.repository";
 import type { TableInput } from "./table.schemas";
 
-export type TableSummary = Omit<DiningTable, "qrToken">;
+export type TableSummary = Omit<DiningTable, "qrToken"> & {
+  activeOrderCount: number;
+};
 export type TableWithToken = DiningTable;
 
 function toSummary(
   row: Awaited<ReturnType<typeof listTableRows>>[number],
+  activeOrderCount: number,
 ): TableSummary {
   return {
     id: row.id,
     name: row.name,
     status: row.status,
     isActive: row.isActive,
+    activeOrderCount,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
   };
@@ -43,7 +49,15 @@ function toTable(
   row: Awaited<ReturnType<typeof listTableRows>>[number],
   qrToken: string,
 ): TableWithToken {
-  return { ...toSummary(row), qrToken };
+  return {
+    id: row.id,
+    name: row.name,
+    status: row.status,
+    isActive: row.isActive,
+    qrToken,
+    createdAt: row.createdAt.toISOString(),
+    updatedAt: row.updatedAt.toISOString(),
+  };
 }
 
 function makeTokenPair(tableId: string) {
@@ -65,6 +79,14 @@ export async function listTables(
     pageSize?: number;
   },
 ) {
+  const counts = new Map<string, number>();
+
+  for (const order of await listActiveTableOrderRows(db)) {
+    if (order.tableId) {
+      counts.set(order.tableId, (counts.get(order.tableId) ?? 0) + 1);
+    }
+  }
+
   const rows = (await listTableRows(db))
     .filter(
       (row) =>
@@ -75,7 +97,11 @@ export async function listTables(
     )
     .sort((left, right) => left.name.localeCompare(right.name));
 
-  return pageOf(rows.map(toSummary), params.page, params.pageSize);
+  return pageOf(
+    rows.map((row) => toSummary(row, counts.get(row.id) ?? 0)),
+    params.page,
+    params.pageSize,
+  );
 }
 
 export async function getTable(db: AppDatabase, id: string) {
@@ -199,6 +225,14 @@ export async function getPublicMenu(db: AppDatabase, token: string) {
     availability: "true",
     pageSize: 1000,
   });
+  const referencedAddOnIds = new Set(
+    products.items.flatMap((product) =>
+      product.addOns.map((relation) => relation.addOnId),
+    ),
+  );
+  const activeAddOns = (await listAddOns(db, business.id)).filter(
+    (addOn) => addOn.isActive && referencedAddOnIds.has(addOn.id),
+  );
 
   return {
     business: {
@@ -222,5 +256,6 @@ export async function getPublicMenu(db: AppDatabase, token: string) {
       variants: product.variants.filter((variant) => variant.isActive),
       addOns: product.addOns,
     })),
+    addOns: activeAddOns,
   };
 }
