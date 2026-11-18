@@ -857,8 +857,8 @@ milestone ini disetujui.
 **Status M5:** Selesai dan terverifikasi. Baseline `c05faf1`, tag
 `phase-5-backend-foundation`.
 
-**Status M7:** Implemented. Baseline kode `dd750b9`; tag
-`phase-7-integration` pending sampai manual smoke dan final gate selesai.
+**Status M7:** Selesai dan terverifikasi. Baseline kode `5f9679f`; tag
+`phase-7-integration`.
 
 ------------------------------------------------------------------------
 
