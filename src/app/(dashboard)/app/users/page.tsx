@@ -2,6 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Pencil, Plus, Users } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -24,6 +25,13 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useToast } from "@/components/ui/toast";
+import { useSession } from "@/features/auth/session-provider";
+import { useRoleOptionsQuery } from "@/features/management/api/roles";
+import {
+  useCreateUserMutation,
+  useUpdateUserMutation,
+  useUsersQuery,
+} from "@/features/management/api/users";
 import { DataTableToolbar } from "@/features/management/data-table-toolbar";
 import { FormDrawer } from "@/features/management/form-drawer";
 import {
@@ -33,8 +41,6 @@ import {
 import { ResponsiveList } from "@/features/management/responsive-list";
 import { TablePagination } from "@/features/management/table-pagination";
 import { TableSkeleton } from "@/features/management/table-skeleton";
-import { useAsyncData } from "@/mocks/management/hooks";
-import { managementService } from "@/mocks/management/service";
 import type { ManagementUser } from "@/types/domain";
 
 const userSchema = z.object({
@@ -47,12 +53,6 @@ const userSchema = z.object({
 
 type UserValues = z.infer<typeof userSchema>;
 
-const roleLabels: Record<string, string> = {
-  OWNER: "Pemilik",
-  CASHIER: "Kasir",
-  BARISTA: "Barista",
-};
-
 const emptyUser: UserValues = {
   name: "",
   email: "",
@@ -63,6 +63,8 @@ const emptyUser: UserValues = {
 
 export default function UsersPage() {
   const { toast } = useToast();
+  const router = useRouter();
+  const { user: currentUser } = useSession();
   const [search, setSearch] = useState("");
   const [role, setRole] = useState("all");
   const [active, setActive] = useState("all");
@@ -70,17 +72,16 @@ export default function UsersPage() {
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<ManagementUser | null>(null);
 
-  const { data, error, isLoading, refresh } = useAsyncData(
-    () =>
-      managementService.listUsers({
-        search,
-        role,
-        active,
-        page,
-        pageSize: 10,
-      }),
-    JSON.stringify([search, role, active, page]),
-  );
+  const { data, error, isLoading, refetch } = useUsersQuery({
+    search,
+    role,
+    active,
+    page,
+    pageSize: 10,
+  });
+  const { data: roleOptions = [] } = useRoleOptionsQuery();
+  const createUserMutation = useCreateUserMutation();
+  const updateUserMutation = useUpdateUserMutation();
 
   const {
     formState: { errors, isDirty, isSubmitting },
@@ -112,32 +113,29 @@ export default function UsersPage() {
   };
 
   const onSubmit = handleSubmit(async (values) => {
-    if (!editing && (values.password ?? "").length < 6) {
+    if (!editing && (values.password ?? "").length < 8) {
       setError("password", {
-        message: "Kata sandi awal minimal 6 karakter.",
+        message: "Kata sandi awal minimal 8 karakter.",
       });
       return;
     }
 
     try {
-      const { password: _password, ...input } = values;
-      const payload = {
-        ...input,
-        roleLabel: roleLabels[values.role] ?? values.role,
-      };
       if (editing) {
-        await managementService.updateUser(editing.id, payload);
+        const { password: _password, ...input } = values;
+        await updateUserMutation.mutateAsync({ id: editing.id, input });
+        if (editing.id === currentUser.id) {
+          router.refresh();
+        }
         toast({ title: "Pengguna diperbarui", tone: "success" });
       } else {
-        await managementService.createUser(payload);
-        toast({
-          title: "Pengguna ditambahkan",
-          description: "Akun demo login tetap tiga akun yang terdokumentasi.",
-          tone: "success",
+        await createUserMutation.mutateAsync({
+          ...values,
+          password: values.password ?? "",
         });
+        toast({ title: "Pengguna ditambahkan", tone: "success" });
       }
       setFormOpen(false);
-      refresh();
     } catch (reason) {
       setError("root", {
         message:
@@ -158,7 +156,7 @@ export default function UsersPage() {
               </Button>
             </PermissionGate>
           }
-          description="Atur akses staf. Data simulasi."
+          description="Atur akses staf."
           title="Pengguna"
         />
 
@@ -177,9 +175,11 @@ export default function UsersPage() {
                     value={role}
                   >
                     <option value="all">Semua role</option>
-                    <option value="OWNER">Pemilik</option>
-                    <option value="CASHIER">Kasir</option>
-                    <option value="BARISTA">Barista</option>
+                    {roleOptions.map((option) => (
+                      <option key={option.id} value={option.code}>
+                        {option.name}
+                      </option>
+                    ))}
                   </Select>
                   <Select
                     aria-label="Filter status aktif"
@@ -217,7 +217,7 @@ export default function UsersPage() {
             {isLoading ? (
               <TableSkeleton columns={5} />
             ) : error ? (
-              <ErrorState onRetry={refresh} />
+              <ErrorState onRetry={() => void refetch()} />
             ) : !data || data.items.length === 0 ? (
               <EmptyState
                 action={
@@ -330,7 +330,7 @@ export default function UsersPage() {
           description={
             editing
               ? "Ubah profil dan akses pengguna."
-              : "Tambahkan pengguna baru. Login demo tetap tiga akun."
+              : "Tambahkan pengguna baru."
           }
           formId="user-form"
           isDirty={isDirty}
@@ -358,7 +358,6 @@ export default function UsersPage() {
           </Field>
           {!editing ? (
             <Field
-              description="Kata sandi hanya simulasi dan tidak dipakai untuk login."
               error={errors.password?.message}
               htmlFor="user-password"
               label="Kata sandi awal"
@@ -379,9 +378,11 @@ export default function UsersPage() {
             required
           >
             <Select id="user-role" {...register("role")}>
-              <option value="OWNER">Pemilik</option>
-              <option value="CASHIER">Kasir</option>
-              <option value="BARISTA">Barista</option>
+              {roleOptions.map((option) => (
+                <option key={option.id} value={option.code}>
+                  {option.name}
+                </option>
+              ))}
             </Select>
           </Field>
           <label
@@ -392,8 +393,7 @@ export default function UsersPage() {
             Pengguna aktif
           </label>
           <FieldDescription>
-            Minimal satu pemilik harus tetap aktif. Aturan ini dicek oleh mock
-            service.
+            Minimal satu pemilik harus tetap aktif.
           </FieldDescription>
           {errors.root?.message ? (
             <p
