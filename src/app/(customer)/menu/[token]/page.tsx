@@ -7,7 +7,6 @@ import { useMemo, useState } from "react";
 import { EmptyState } from "@/components/feedback/empty-state";
 import { ErrorState } from "@/components/feedback/error-state";
 import { LoadingState } from "@/components/feedback/loading-state";
-import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
 import { Drawer } from "@/components/ui/drawer";
@@ -16,13 +15,17 @@ import { ProductCard } from "@/components/ui/product-card";
 import { QuantityControl } from "@/components/ui/quantity-control";
 import { useToast } from "@/components/ui/toast";
 import {
+  type PublicOrderCreated,
+  useCreatePublicOrderMutation,
+  usePublicMenuQuery,
+} from "@/features/customer/api";
+import {
   ProductConfigurator,
   type ProductConfiguratorResult,
 } from "@/features/operational/product-configurator";
+import { ApiError } from "@/lib/api/errors";
 import { formatCurrency } from "@/lib/format";
-import { useAsyncData, useManagementStore } from "@/mocks/management/hooks";
-import { managementService } from "@/mocks/management/service";
-import type { AddOn, Order, Product } from "@/types/domain";
+import type { AddOn, Product } from "@/types/domain";
 
 type CustomerCartItem = {
   key: string;
@@ -44,46 +47,39 @@ function lineKey(input: Omit<CustomerCartItem, "key">) {
 
 export default function MenuPage() {
   const params = useParams<{ token: string }>();
-  const token = params.token;
+  const token = params.token ?? "";
   const { toast } = useToast();
-  const products = useManagementStore((state) => state.products);
-  const categories = useManagementStore((state) => state.categories);
-  const addOns = useManagementStore((state) => state.addOns);
+  const { data: menu, error, isLoading, refetch } = usePublicMenuQuery(token);
+  const createOrder = useCreatePublicOrderMutation();
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("Semua");
   const [cart, setCart] = useState<CustomerCartItem[]>([]);
   const [cartOpen, setCartOpen] = useState(false);
   const [configProduct, setConfigProduct] = useState<Product | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const [createdOrder, setCreatedOrder] = useState<Order | null>(null);
-
-  const {
-    data: context,
-    error: tokenError,
-    isLoading: tokenLoading,
-    refresh: refreshToken,
-  } = useAsyncData(
-    () => managementService.validateTableToken(token),
-    token ?? "",
+  const [createdOrder, setCreatedOrder] = useState<PublicOrderCreated | null>(
+    null,
   );
 
-  const activeCategories = useMemo(
+  const categories = menu?.categories ?? [];
+  const addOns = menu?.addOns ?? [];
+  const products = useMemo<Product[]>(
     () =>
-      categories
-        .filter((item) => item.isActive)
-        .sort((left, right) => left.sortOrder - right.sortOrder),
-    [categories],
+      (menu?.products ?? []).map((product) => ({
+        ...product,
+        businessId: "",
+        isAvailable: true,
+        isActive: true,
+        createdAt: "",
+        updatedAt: "",
+      })),
+    [menu?.products],
   );
 
   const filteredProducts = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
 
     return products.filter((product) => {
-      if (!product.isActive) {
-        return false;
-      }
-
       const categoryName =
         categories.find((item) => item.id === product.categoryId)?.name ??
         "Tanpa kategori";
@@ -193,20 +189,15 @@ export default function MenuPage() {
   };
 
   const submitOrder = async () => {
-    if (!context || lines.length === 0) {
+    if (!menu || lines.length === 0) {
       return;
     }
 
-    setIsSubmitting(true);
     setSubmitError(null);
 
     try {
-      const order = await managementService.createOrder({
-        orderType: "DINE_IN",
-        tableId: context.table.id,
+      const order = await createOrder.mutateAsync({
         tableToken: token,
-        source: "QR",
-        createdBy: null,
         notes: "",
         items: lines.map((line) => ({
           productId: line.productId,
@@ -228,20 +219,28 @@ export default function MenuPage() {
       setSubmitError(
         reason instanceof Error ? reason.message : "Pesanan gagal dikirim.",
       );
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
-  if (tokenLoading) {
+  if (isLoading) {
     return <LoadingState message="Memeriksa QR meja..." />;
   }
 
-  if (tokenError) {
-    return <ErrorState onRetry={refreshToken} />;
+  if (error) {
+    if (error instanceof ApiError && error.status === 404) {
+      return (
+        <EmptyState
+          description="Token QR tidak valid atau meja sudah tidak aktif. Pindai ulang QR di meja atau minta bantuan staf."
+          icon={UtensilsCrossed}
+          title="QR tidak valid"
+        />
+      );
+    }
+
+    return <ErrorState onRetry={() => void refetch()} />;
   }
 
-  if (!context) {
+  if (!menu) {
     return (
       <EmptyState
         description="Token QR tidak valid atau meja sudah tidak aktif. Pindai ulang QR di meja atau minta bantuan staf."
@@ -257,10 +256,9 @@ export default function MenuPage() {
         <div className="flex flex-col gap-0.5">
           <h1 className="text-page-title text-foreground">Menu</h1>
           <p className="text-body text-muted-foreground">
-            {context.business.name}, {context.table.name}
+            {menu.business.name}, {menu.table.name}
           </p>
         </div>
-        <Badge tone="neutral">Data contoh</Badge>
       </div>
 
       <SearchInput
@@ -271,7 +269,7 @@ export default function MenuPage() {
       />
 
       <div className="flex flex-wrap gap-1.5">
-        {["Semua", ...activeCategories.map((item) => item.name)].map((item) => (
+        {["Semua", ...categories.map((item) => item.name)].map((item) => (
           <Button
             aria-pressed={category === item}
             className="h-11 shrink-0"
@@ -327,7 +325,7 @@ export default function MenuPage() {
           <Button
             className="w-full"
             disabled={lines.length === 0}
-            isLoading={isSubmitting}
+            isLoading={createOrder.isPending}
             onClick={submitOrder}
           >
             Kirim pesanan
@@ -443,11 +441,7 @@ export default function MenuPage() {
         footer={
           <Link
             className={buttonVariants({ variant: "primary" })}
-            href={
-              createdOrder?.publicToken
-                ? `/order/${createdOrder.publicToken}`
-                : "/menu"
-            }
+            href={createdOrder ? `/order/${createdOrder.publicToken}` : "/menu"}
           >
             Lihat status pesanan
           </Link>
@@ -467,7 +461,8 @@ export default function MenuPage() {
                 {createdOrder.orderNumber}
               </p>
               <p className="text-caption text-muted-foreground">
-                {context.table.name}, {formatCurrency(createdOrder.grandTotal)}
+                {createdOrder.tableName ?? menu.table.name},{" "}
+                {formatCurrency(createdOrder.grandTotal)}
               </p>
             </div>
             <p className="text-body text-muted-foreground">
