@@ -76,6 +76,7 @@ export type ManagementUser = {
   id: string;
   name: string;
   email: string;
+  username?: string;
   role: UserRole;
   isActive: boolean;
   createdAt: string;
@@ -128,6 +129,8 @@ export type Order = {
   orderType: OrderType;
   source: OrderSource;
   tableId: string | null;
+  tableName?: string | null;
+  createdByName?: string | null;
   orderStatus: PreparationStatus;
   paymentStatus: PaymentStatus;
   publicToken: string | null;
@@ -163,6 +166,15 @@ export type OrderStatusHistory = {
   createdAt: string;
 };
 
+export type Refund = {
+  id: string;
+  orderId: string;
+  amount: number;
+  reason: string;
+  recordedBy: string;
+  createdAt: string;
+};
+
 export type LicenseStatus = "VALID" | "EXPIRING" | "INVALID";
 
 export type License = {
@@ -170,9 +182,10 @@ export type License = {
   businessIdentifier: string;
   installationId: string;
   issuedAt: string;
-  expiresAt: string;
+  expiresAt: string | null;
   status: LicenseStatus;
   publicKeyFingerprint: string;
+  validationMessage?: string;
 };
 
 export type BackupStatus = "READY" | "IN_PROGRESS" | "FAILED";

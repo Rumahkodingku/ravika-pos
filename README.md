@@ -4,7 +4,7 @@
 
 POS self-hosted untuk kafe dan UMKM. Satu instalasi melayani satu bisnis, berjalan di komputer server lokal, dan diakses lewat LAN/Wi-Fi tanpa mewajibkan internet untuk transaksi.
 
-**Status:** Fase 4.5 selesai dan Fase 5 backend foundation selesai. UI masih memakai mock data dan mock auth sampai Fase 7. Backend menyediakan SQLite, Drizzle, session database, RBAC, auth API, health, dan business API. SSE belum diimplementasikan.
+**Status:** Fase 4.5, Fase 5 backend foundation, dan Fase 6 backend API modules selesai. UI masih memakai mock data dan mock auth sampai Fase 7. Backend menyediakan SQLite, Drizzle, session database, RBAC, katalog, meja dan QR, order, pembayaran, refund penuh, KDS dengan SSE, laporan, lisensi, serta backup dan restore.
 
 ## Stack
 
@@ -29,7 +29,6 @@ Sudah terpasang:
 Direncanakan, belum dipasang:
 
 - Zustand dan TanStack Query
-- SSE untuk KDS
 - Playwright
 
 ## Menjalankan
@@ -43,8 +42,11 @@ pnpm dev
 Buka `http://localhost:3000`.
 
 Untuk menjalankan backend produksi, isi `.env` dengan database path, cookie
-Secure, dan bootstrap owner. Database dibuat dan dimigrasikan otomatis saat
-API pertama kali diakses.
+Secure, bootstrap owner, `RAVIKA_QR_TOKEN_KEY` (base64 32 byte), serta
+`RAVIKA_INSTALLATION_ID`, `RAVIKA_LICENSE_FILE`, dan
+`RAVIKA_LICENSE_PUBLIC_KEY` bila lisensi dipakai. Database dibuat dan
+dimigrasikan otomatis saat API pertama kali diakses. Backup ditulis ke
+`data/backups/`; restore memerlukan restart proses.
 
 ```bash
 pnpm build
@@ -134,10 +136,47 @@ Token desain ada di `src/styles/tokens.css`. Theme, shell, dan komponen dasar su
 | GET | `/api/health` | Publik |
 | GET | `/api/business` | `business.view` |
 | PATCH | `/api/business` | `business.update` |
+| GET/POST | `/api/users` | `users.view` / `users.manage` |
+| GET/PATCH | `/api/users/:id` | `users.view` / `users.manage` |
+| GET/POST | `/api/roles` | `roles.manage` |
+| PATCH | `/api/roles/:id` | `roles.manage` |
+| PUT | `/api/roles/:id/permissions` | `permissions.manage` |
+| GET | `/api/permissions` | `permissions.manage` |
+| GET/POST | `/api/categories` | `categories.view` / `categories.manage` |
+| PATCH | `/api/categories/:id` | `categories.manage` |
+| POST | `/api/categories/:id/move` | `categories.manage` |
+| GET/POST | `/api/products` | `products.view` / `products.manage` |
+| GET/PATCH | `/api/products/:id` | `products.view` / `products.manage` |
+| GET | `/api/add-ons` | `products.view` |
+| GET/POST | `/api/tables` | `tables.view` / `tables.manage` |
+| GET/PATCH | `/api/tables/:id` | `tables.view` / `tables.manage` |
+| POST | `/api/tables/:id/regenerate-qr` | `tables.manage` |
+| GET/POST | `/api/orders` | `orders.view` / `orders.create` |
+| GET | `/api/orders/payable` | `payments.view` |
+| GET | `/api/orders/:id` | `orders.view` |
+| GET | `/api/orders/:id/history` | `orders.view` |
+| GET/POST | `/api/orders/:id/payments` | `payments.view` / `payments.create` |
+| POST | `/api/orders/:id/cancel` | `orders.cancel` |
+| POST | `/api/orders/:id/refund` | `payments.refund` |
+| GET | `/api/payments` | `payments.view` |
+| GET | `/api/payments/:id` | `payments.view` |
+| GET | `/api/kds/orders` | `kds.view` |
+| POST | `/api/kds/orders/:id/status` | `kds.update_status` |
+| GET | `/api/events` | `kds.view`, SSE |
+| GET | `/api/reports/summary` | `reports.view` |
+| GET | `/api/reports/sales` | `reports.view` |
+| GET | `/api/reports/top-products` | `reports.view` |
+| GET | `/api/licensing/status` | `license.view` |
+| GET/POST | `/api/backup` | `backup.create` |
+| POST | `/api/backup/restore` | `backup.restore` |
+| GET | `/api/public/menu/:token` | Publik, rate limited |
+| POST | `/api/public/orders` | Publik, rate limited |
+| GET | `/api/public/orders/:publicToken` | Publik, rate limited |
 
-Error API memakai RFC 9457 `application/problem+json`.
+Mutasi order, pembayaran, refund, dan order publik memerlukan header
+`Idempotency-Key`. Error API memakai RFC 9457 `application/problem+json`.
 
-UI belum terhubung ke API sampai Fase 7. Login UI masih memakai sessionStorage dan tiga akun demo: `owner@ravika.id`, `cashier@ravika.id`, dan `barista@ravika.id` dengan kata sandi `demo123`. Data mock kembali ke seed saat reload. Store operasional disinkronkan antar tab lewat BroadcastChannel. QR meja dibuat dengan `qrcode.react`; untuk memindai dari ponsel, buka aplikasi lewat IP LAN, bukan localhost.
+UI belum terhubung ke API sampai Fase 7. Login UI masih memakai sessionStorage dan tiga akun demo: `owner@ravika.id`, `cashier@ravika.id`, dan `barista@ravika.id` dengan kata sandi `demo123`. Data mock kembali ke seed saat reload. Store operasional disinkronkan antar tab lewat BroadcastChannel. Backend sudah menyediakan SSE untuk KDS. QR meja dibuat dengan `qrcode.react`; untuk memindai dari ponsel, buka aplikasi lewat IP LAN, bukan localhost.
 
 ## Dokumen
 
