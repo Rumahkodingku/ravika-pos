@@ -7,9 +7,11 @@ import { ShellTheme } from "@/components/shells/shell-theme";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { useLogoutMutation } from "@/features/auth/api";
+import { useKdsEvents } from "@/features/kds/use-kds-events";
 
 export function KdsShell({ children }: { children: React.ReactNode }) {
   const { mutate: logout } = useLogoutMutation();
+  const { status } = useKdsEvents();
 
   return (
     <ShellTheme defaultTheme="dark">
@@ -32,7 +34,7 @@ export function KdsShell({ children }: { children: React.ReactNode }) {
                 </span>
               </span>
             </Link>
-            <ConnectionIndicator className="ml-auto" status="connected" />
+            <ConnectionIndicator className="ml-auto" status={status} />
             <ThemeToggle />
             <Button
               aria-label="Keluar KDS"
