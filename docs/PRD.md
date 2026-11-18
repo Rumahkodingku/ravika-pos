@@ -604,6 +604,10 @@ pesanan.
     membuat akun pemilik saat instalasi pertama.
 - **FR-AUTH-010** --- Sistem WAJIB menyimpan kata sandi dalam bentuk
     hash menggunakan algoritma yang sesuai, bukan teks biasa.
+- **FR-AUTH-011** --- Sistem WAJIB menyediakan first-run setup untuk
+    membuat owner pertama dan profil bisnis bila belum ada owner.
+- **FR-AUTH-012** --- Sistem WAJIB membuat QR key otomatis saat
+    first-run setup dan menyimpannya di `.env`.
 
 ### Kriteria penerimaan
 

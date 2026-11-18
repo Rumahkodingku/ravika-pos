@@ -4,7 +4,7 @@
 
 POS self-hosted untuk kafe dan UMKM. Satu instalasi melayani satu bisnis, berjalan di komputer server lokal, dan diakses lewat LAN/Wi-Fi tanpa mewajibkan internet untuk transaksi.
 
-**Status:** Fase 1 sampai Fase 7 selesai. UI memakai API backend nyata: TanStack Query untuk server state, session cookie HttpOnly, guard berbasis permission, dan data SQLite melalui Drizzle. Mock data, mock auth, dan `/app/design-system` sudah dihapus. Backend menyediakan katalog, meja dan QR, order, pembayaran, refund penuh, KDS dengan SSE, laporan, lisensi, serta backup dan restore. Manual smoke pada database bersih dijalankan terpisah sebelum tag rilis.
+**Status:** Fase 1 sampai Fase 9 selesai sebagai release candidate `1.0.0-rc.1`. UI memakai API backend nyata: TanStack Query untuk server state, session cookie HttpOnly, guard berbasis permission, dan data SQLite melalui Drizzle. Mock data, mock auth, dan `/app/design-system` sudah dihapus. Backend menyediakan katalog, meja dan QR, order, pembayaran, refund penuh, KDS dengan SSE, laporan, lisensi, serta backup dan restore. Playwright E2E lokal dan dokumentasi operasional Ubuntu tersedia. Pilot dan hardware target belum dijalankan.
 
 ## Stack
 
@@ -35,6 +35,8 @@ Tidak dipakai: Zustand.
 
 ## Menjalankan
 
+Instalasi pertama dapat dilakukan lewat browser di `/setup`. Production seed tidak lagi mewajibkan env owner; jika env owner ada, ia tetap menjadi fallback.
+
 ```bash
 pnpm install
 cp .env.example .env
@@ -62,6 +64,10 @@ halaman login. Bootstrap produksi hanya membuat owner dari environment
 variable.
 
 ## Command
+
+- `pnpm test:e2e` - Playwright lokal terhadap production build
+- `pnpm perf:baseline` - baseline performa indikatif
+- `pnpm release:package` - tarball release dari HEAD
 
 ```bash
 pnpm dev        # development server

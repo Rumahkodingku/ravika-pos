@@ -1,6 +1,8 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
@@ -8,6 +10,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { useLoginMutation } from "@/features/auth/api";
+import { apiFetch } from "@/lib/api/client";
 
 const loginSchema = z.object({
   identity: z.string().min(1, "Email atau username wajib diisi."),
@@ -21,6 +24,26 @@ const genericError = "Email, username, atau kata sandi tidak cocok.";
 
 export function LoginForm() {
   const login = useLoginMutation();
+  const router = useRouter();
+
+  useEffect(() => {
+    let active = true;
+
+    void apiFetch<{ setupRequired: boolean }>("/setup/status")
+      .then((status) => {
+        if (active && status.setupRequired) {
+          router.replace("/setup");
+        }
+      })
+      .catch(() => {
+        // Keep login usable if setup status cannot be loaded.
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [router]);
+
   const {
     formState: { errors, isSubmitting },
     handleSubmit,

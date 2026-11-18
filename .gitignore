@@ -44,3 +44,9 @@ pnpm-debug.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# e2e and release artifacts
+/.e2e/
+/release/
+/playwright-report/
+/test-results/

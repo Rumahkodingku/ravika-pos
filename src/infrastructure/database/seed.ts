@@ -180,15 +180,11 @@ async function activeOwnerCount(db: AppDatabase, ownerRoleId: string) {
 }
 
 export async function seedDatabase(db: AppDatabase, mode: SeedMode) {
-  if (mode === "production") {
-    const email = process.env.RAVIKA_BOOTSTRAP_OWNER_EMAIL?.trim();
-    const password = process.env.RAVIKA_BOOTSTRAP_OWNER_PASSWORD;
+  const productionEmail = process.env.RAVIKA_BOOTSTRAP_OWNER_EMAIL?.trim();
+  const productionPassword = process.env.RAVIKA_BOOTSTRAP_OWNER_PASSWORD;
 
-    if (!email || !password) {
-      throw new Error(
-        "RAVIKA_BOOTSTRAP_OWNER_EMAIL dan RAVIKA_BOOTSTRAP_OWNER_PASSWORD wajib diisi pada instalasi produksi.",
-      );
-    }
+  if (mode === "production" && productionEmail && productionPassword) {
+    // Env bootstrap remains a fallback. The first-run wizard can create the owner when these are absent.
   }
 
   const now = new Date();
@@ -209,18 +205,18 @@ export async function seedDatabase(db: AppDatabase, mode: SeedMode) {
   const ownerCount = await activeOwnerCount(db, ownerRoleId);
 
   if (ownerCount === 0) {
-    if (mode === "production") {
+    if (mode === "production" && productionEmail && productionPassword) {
       await ensureUser(db, {
         id: "user-owner",
         businessId: businessRow.id,
         roleId: ownerRoleId,
         name: envOrDefault("RAVIKA_BOOTSTRAP_OWNER_NAME", "Pemilik"),
-        email: process.env.RAVIKA_BOOTSTRAP_OWNER_EMAIL ?? "",
+        email: productionEmail,
         username: "owner",
-        password: process.env.RAVIKA_BOOTSTRAP_OWNER_PASSWORD ?? "",
+        password: productionPassword,
         now,
       });
-    } else {
+    } else if (mode !== "production") {
       await ensureUser(db, {
         id: "user-owner",
         businessId: businessRow.id,

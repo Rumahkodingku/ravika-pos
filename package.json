@@ -1,6 +1,6 @@
 {
   "name": "ravika-pos",
-  "version": "0.1.0",
+  "version": "1.0.0-rc.1",
   "private": true,
   "packageManager": "pnpm@10.34.5",
   "engines": {
@@ -17,7 +17,11 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "db:generate": "drizzle-kit generate",
-    "format": "biome format --write"
+    "format": "biome format --write",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "perf:baseline": "node scripts/perf-baseline.mjs",
+    "release:package": "bash scripts/package-release.sh"
   },
   "dependencies": {
     "@hookform/resolvers": "^7.0.6",
@@ -34,6 +38,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "2.4.2",
+    "@playwright/test": "1.65.1",
     "@tailwindcss/turbopack": "4.3.3",
     "@testing-library/dom": "10.4.2",
     "@testing-library/react": "16.3.3",

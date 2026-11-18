@@ -738,7 +738,7 @@ export default function ProductsPage() {
             </div>
             {variantFields.fields.map((field, index) => (
               <div
-                className="grid gap-2 rounded-md border border-border p-3 sm:grid-cols-[1fr_120px_auto]"
+                className="grid gap-2 rounded-md border border-border p-3 "
                 key={field.id}
               >
                 <Field
@@ -777,15 +777,17 @@ export default function ProductsPage() {
                     />
                     Aktif
                   </label>
-                  <Button
-                    aria-label="Hapus varian"
-                    onClick={() => variantFields.remove(index)}
-                    size="icon"
-                    variant="ghost"
-                  >
-                    <Trash2 aria-hidden="true" className="h-4 w-4" />
-                  </Button>
                 </div>
+                <Button
+                  aria-label="Hapus varian"
+                  onClick={() => variantFields.remove(index)}
+                  size="lg"
+                  variant="danger"
+                  className="w-full"
+                >
+                  <Trash2 aria-hidden="true" className="h-4 w-4" /> Hapus
+                  Variant
+                </Button>
               </div>
             ))}
           </div>
@@ -837,7 +839,37 @@ export default function ProductsPage() {
                     ))}
                   </Select>
                 </Field>
-                <div className="grid gap-2 sm:grid-cols-[1fr_110px_110px_auto] sm:items-end">
+                <div className="grid gap-2  sm:items-end">
+                  <div className="grid grid-cols-2 gap-2 mt-2">
+                    <Field
+                      error={errors.addOns?.[index]?.minSelection?.message}
+                      htmlFor={`addon-min-${field.id}`}
+                      label="Minimal"
+                    >
+                      <Input
+                        id={`addon-min-${field.id}`}
+                        min={0}
+                        type="number"
+                        {...register(`addOns.${index}.minSelection`, {
+                          valueAsNumber: true,
+                        })}
+                      />
+                    </Field>
+                    <Field
+                      error={errors.addOns?.[index]?.maxSelection?.message}
+                      htmlFor={`addon-max-${field.id}`}
+                      label="Maksimal"
+                    >
+                      <Input
+                        id={`addon-max-${field.id}`}
+                        min={1}
+                        type="number"
+                        {...register(`addOns.${index}.maxSelection`, {
+                          valueAsNumber: true,
+                        })}
+                      />
+                    </Field>
+                  </div>
                   <label
                     className="flex min-h-11 items-center gap-2 text-caption text-foreground"
                     htmlFor={`addon-required-${field.id}`}
@@ -848,41 +880,15 @@ export default function ProductsPage() {
                     />
                     Wajib dipilih
                   </label>
-                  <Field
-                    error={errors.addOns?.[index]?.minSelection?.message}
-                    htmlFor={`addon-min-${field.id}`}
-                    label="Minimal"
-                  >
-                    <Input
-                      id={`addon-min-${field.id}`}
-                      min={0}
-                      type="number"
-                      {...register(`addOns.${index}.minSelection`, {
-                        valueAsNumber: true,
-                      })}
-                    />
-                  </Field>
-                  <Field
-                    error={errors.addOns?.[index]?.maxSelection?.message}
-                    htmlFor={`addon-max-${field.id}`}
-                    label="Maksimal"
-                  >
-                    <Input
-                      id={`addon-max-${field.id}`}
-                      min={1}
-                      type="number"
-                      {...register(`addOns.${index}.maxSelection`, {
-                        valueAsNumber: true,
-                      })}
-                    />
-                  </Field>
                   <Button
                     aria-label="Hapus add-on"
                     onClick={() => addOnFields.remove(index)}
-                    size="icon"
-                    variant="ghost"
+                    size="lg"
+                    className="w-full"
+                    variant="danger"
                   >
-                    <Trash2 aria-hidden="true" className="h-4 w-4" />
+                    <Trash2 aria-hidden="true" className="h-4 w-4" /> Hapus
+                    Add-on
                   </Button>
                 </div>
               </div>

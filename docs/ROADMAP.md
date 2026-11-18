@@ -779,33 +779,41 @@ lingkungan usaha lokal.
 
 ### Pengujian
 
-- [ ] Unit test untuk business logic.
-- [ ] Integration test untuk API dan database.
-- [ ] Playwright E2E untuk alur Owner.
-- [ ] Playwright E2E untuk alur Cashier.
-- [ ] Playwright E2E untuk alur Barista/KDS.
-- [ ] Playwright E2E untuk customer QR ordering.
-- [ ] Pengujian permission dan akses bisnis.
-- [ ] Pengujian pembayaran parsial dan status pembayaran.
-- [ ] Pengujian pembatalan dan transisi status order.
-- [ ] Pengujian reconnect SSE.
-- [ ] Pengujian backup dan restore.
-- [ ] Pengujian lisensi tanpa koneksi internet wajib.
-- [ ] Pengujian responsive dan light/dark theme.
+- [x] Unit test untuk business logic.
+- [x] Integration test untuk API dan database.
+- [x] Playwright E2E untuk alur Owner.
+- [x] Playwright E2E untuk alur Cashier.
+- [x] Playwright E2E untuk alur Barista/KDS.
+- [x] Playwright E2E untuk customer QR ordering.
+- [x] Pengujian permission dan akses bisnis.
+- [x] Pengujian pembayaran parsial dan status pembayaran.
+- [x] Pengujian pembatalan dan transisi status order.
+- [x] Pengujian reconnect SSE.
+- [x] Pengujian backup dan restore.
+- [x] Pengujian lisensi tanpa koneksi internet wajib.
+- [x] Pengujian responsive dan light/dark theme.
 - [ ] Pengujian performa pada perangkat target pilot.
 - [ ] Pengujian kondisi jaringan LAN terputus dan server restart.
 
 ### Operasional dan rilis
 
-- [ ] Dokumentasikan instalasi pada komputer server lokal.
-- [ ] Dokumentasikan akses client melalui LAN/Wi-Fi.
-- [ ] Dokumentasikan konfigurasi jaringan yang diperlukan.
-- [ ] Dokumentasikan prosedur backup terjadwal dan restore.
-- [ ] Rekomendasikan UPS untuk komputer server.
-- [ ] Siapkan panduan troubleshooting.
-- [ ] Siapkan proses update aplikasi dan database migration.
+- [x] Dokumentasikan instalasi pada komputer server lokal.
+- [x] Dokumentasikan akses client melalui LAN/Wi-Fi.
+- [x] Dokumentasikan konfigurasi jaringan yang diperlukan.
+- [x] Dokumentasikan prosedur backup terjadwal dan restore.
+- [x] Rekomendasikan UPS untuk komputer server.
+- [x] Siapkan panduan troubleshooting.
+- [x] Siapkan proses update aplikasi dan database migration.
 - [ ] Lakukan pilot pada lingkungan cafe.
 - [ ] Catat feedback pilot dan susun perbaikan pasca-MVP.
+
+### Status implementasi
+
+- Status: Release candidate siap; pilot dan hardware target belum dijalankan.
+- Versi: `1.0.0-rc.1`
+- Tag: `phase-8-release-candidate`
+- Verifikasi: `pnpm check`, `pnpm test`, `pnpm test:e2e`, `pnpm build`
+- Baseline performa indikatif tersedia di `docs/operations/performance-baseline.md`.
 
 ### Output
 
@@ -859,6 +867,9 @@ milestone ini disetujui.
 
 **Status M7:** Selesai dan terverifikasi. Baseline kode `5f9679f`; tag
 `phase-7-integration`.
+
+**Status M8:** Release candidate `1.0.0-rc.1`; tag `phase-8-release-candidate`.
+Pilot, hardware target, dan HTTPS belum dijalankan.
 
 ------------------------------------------------------------------------
 

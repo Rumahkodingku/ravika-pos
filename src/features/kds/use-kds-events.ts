@@ -15,6 +15,19 @@ const eventTypes = [
 export function useKdsEvents(): { status: ConnectionStatus } {
   const queryClient = useQueryClient();
   const [status, setStatus] = useState<ConnectionStatus>("reconnecting");
+  const [online, setOnline] = useState(true);
+
+  useEffect(() => {
+    const update = () => setOnline(navigator.onLine);
+    update();
+    window.addEventListener("online", update);
+    window.addEventListener("offline", update);
+
+    return () => {
+      window.removeEventListener("online", update);
+      window.removeEventListener("offline", update);
+    };
+  }, []);
 
   useEffect(() => {
     let hadError = false;
@@ -53,5 +66,5 @@ export function useKdsEvents(): { status: ConnectionStatus } {
     };
   }, [queryClient]);
 
-  return { status };
+  return { status: online ? status : "disconnected" };
 }

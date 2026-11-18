@@ -1,0 +1,15 @@
+[Unit]
+Description=RAVIKA POS
+After=network.target
+
+[Service]
+Type=simple
+User=ravika
+WorkingDirectory=/opt/ravika-pos
+EnvironmentFile=/opt/ravika-pos/.env
+ExecStart=/usr/local/bin/pnpm start -- -p 3000
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
