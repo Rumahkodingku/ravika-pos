@@ -3,7 +3,10 @@ export function landingPathForPermissions(permissions: string[]): string {
     return "/app";
   }
 
-  if (permissions.includes("orders.create")) {
+  if (
+    permissions.includes("orders.create") ||
+    permissions.includes("payments.view")
+  ) {
     return "/app/pos";
   }
 
