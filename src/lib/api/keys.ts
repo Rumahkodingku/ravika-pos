@@ -1,0 +1,42 @@
+import type {
+  CategoryListParams,
+  OrderListParams,
+  PaymentListParams,
+  ProductListParams,
+  SalesReportParams,
+  TableListParams,
+  TopProductsParams,
+  UserListParams,
+} from "@/types/api";
+
+export const queryKeys = {
+  business: ["business"] as const,
+  users: (filters: UserListParams) => ["users", filters] as const,
+  user: (id: string) => ["users", "detail", id] as const,
+  roles: ["roles"] as const,
+  roleOptions: ["roles", "options"] as const,
+  permissions: ["permissions"] as const,
+  categories: (filters: CategoryListParams) => ["categories", filters] as const,
+  products: (filters: ProductListParams) => ["products", filters] as const,
+  product: (id: string) => ["products", "detail", id] as const,
+  addOns: ["add-ons"] as const,
+  tables: (filters: TableListParams) => ["tables", filters] as const,
+  table: (id: string) => ["tables", "detail", id] as const,
+  orders: (filters: OrderListParams) => ["orders", filters] as const,
+  order: (id: string) => ["orders", "detail", id] as const,
+  orderHistory: (id: string) => ["orders", id, "history"] as const,
+  orderPayments: (id: string) => ["orders", id, "payments"] as const,
+  payableOrders: ["orders", "payable"] as const,
+  payments: (filters: PaymentListParams) => ["payments", filters] as const,
+  payment: (id: string) => ["payments", "detail", id] as const,
+  kds: ["kds"] as const,
+  reportSummary: (range: string) => ["reports", "summary", range] as const,
+  salesReport: (filters: SalesReportParams) =>
+    ["reports", "sales", filters] as const,
+  topProducts: (filters: TopProductsParams) =>
+    ["reports", "top-products", filters] as const,
+  license: ["license"] as const,
+  backups: ["backups"] as const,
+  publicMenu: (token: string) => ["public", "menu", token] as const,
+  publicOrder: (token: string) => ["public", "order", token] as const,
+};
