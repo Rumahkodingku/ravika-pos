@@ -2,11 +2,10 @@
 
 import { ChevronDown, KeyRound, LogOut, Menu } from "lucide-react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useMemo, useState } from "react";
 import { ShellTheme } from "@/components/shells/shell-theme";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -25,7 +24,7 @@ import {
   megaMenuGroups,
   quickActions,
   quickNavigation,
-} from "@/mocks/navigation";
+} from "@/lib/navigation";
 import type { NavItem } from "@/types/ui";
 
 function isActivePath(pathname: string, href: string) {
@@ -56,7 +55,6 @@ function QuickNavLink({ item, pathname }: { item: NavItem; pathname: string }) {
 
 export function ManagementShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const router = useRouter();
   const { user } = useSession();
   const { mutate: logout } = useLogoutMutation();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
@@ -161,18 +159,6 @@ export function ManagementShell({ children }: { children: React.ReactNode }) {
                       </span>
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      onSelect={() => router.push("/app/design-system")}
-                    >
-                      <span className="flex h-4 w-4 items-center justify-center text-caption font-semibold">
-                        UI
-                      </span>
-                      Design system
-                      <Badge className="ml-auto" tone="neutral">
-                        Internal
-                      </Badge>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
                     <DropdownMenuItem onSelect={() => setPasswordOpen(true)}>
                       <KeyRound aria-hidden="true" className="h-4 w-4" />
                       Ubah kata sandi
@@ -231,7 +217,7 @@ export function ManagementShell({ children }: { children: React.ReactNode }) {
         <footer className="border-t border-border py-4">
           <Container size="wide">
             <p className="text-caption text-muted-foreground">
-              Mode UI dengan data simulasi. Sesi: {user.roleLabel}.
+              RAVIKA POS. Sesi: {user.roleLabel}.
             </p>
           </Container>
         </footer>

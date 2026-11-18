@@ -2,38 +2,11 @@
 
 import { MapPin, Store } from "lucide-react";
 import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
 import { ShellTheme } from "@/components/shells/shell-theme";
-import { useManagementStore } from "@/mocks/management/hooks";
 
 export function CustomerShell({ children }: { children: React.ReactNode }) {
   const params = useParams<{ token?: string; publicToken?: string }>();
-  const tables = useManagementStore((state) => state.tables);
-  const orders = useManagementStore((state) => state.orders);
-  const business = useManagementStore((state) => state.business);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  const menuTable =
-    mounted && params.token
-      ? tables.find((table) => table.qrToken === params.token)
-      : null;
-  const order =
-    mounted && params.publicToken
-      ? orders.find((candidate) => candidate.publicToken === params.publicToken)
-      : null;
-  const orderTable = order?.tableId
-    ? tables.find((table) => table.id === order.tableId)
-    : null;
-  const table = menuTable ?? orderTable;
-  const contextLabel = table
-    ? `Dine-in, ${table.name}`
-    : order?.orderType === "TAKEAWAY"
-      ? "Takeaway"
-      : "Menu pelanggan";
+  const contextLabel = params.publicToken ? "Status pesanan" : "Menu pelanggan";
 
   return (
     <ShellTheme defaultTheme="light">
@@ -45,7 +18,7 @@ export function CustomerShell({ children }: { children: React.ReactNode }) {
             </span>
             <div className="flex min-w-0 flex-col">
               <span className="truncate text-body font-semibold text-foreground">
-                {business.name}
+                RAVIKA POS
               </span>
               <span className="flex items-center gap-1 text-caption text-muted-foreground">
                 <MapPin aria-hidden="true" className="h-3 w-3" />

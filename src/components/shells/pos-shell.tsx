@@ -49,7 +49,6 @@ function CartHeader() {
           {itemCount} item di keranjang
         </p>
       </div>
-      <Badge tone="neutral">Data contoh</Badge>
     </div>
   );
 }
