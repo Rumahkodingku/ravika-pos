@@ -151,12 +151,14 @@ export type Order = {
 export type Payment = {
   id: string;
   orderId: string;
+  orderNumber?: string;
   method: PaymentMethod;
   amount: number;
   status: "RECORDED" | "REFUNDED";
   reference: string;
   notes: string;
   recordedBy: string;
+  recordedByName?: string;
   paidAt: string;
   createdAt: string;
 };
@@ -167,6 +169,7 @@ export type OrderStatusHistory = {
   previousStatus: PreparationStatus | null;
   newStatus: PreparationStatus;
   changedBy: string | null;
+  changedByName?: string;
   reason: string;
   createdAt: string;
 };

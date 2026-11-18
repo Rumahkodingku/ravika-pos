@@ -144,12 +144,18 @@ export async function getOrderHistory(
     throw AppError.notFound("ORDER_NOT_FOUND", "Pesanan tidak ditemukan.");
   }
 
+  const users = await listUserRows(db, businessId);
+  const userNames = new Map(users.map((user) => [user.id, user.name]));
+
   return (await listStatusHistory(db, id)).map((history) => ({
     id: history.id,
     orderId: history.orderId,
     previousStatus: history.previousStatus,
     newStatus: history.newStatus,
     changedBy: history.changedBy,
+    changedByName: history.changedBy
+      ? userNames.get(history.changedBy)
+      : undefined,
     reason: history.reason,
     createdAt: toIso(history.createdAt),
   }));

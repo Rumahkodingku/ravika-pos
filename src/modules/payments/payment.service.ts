@@ -17,6 +17,7 @@ import {
   updateOrderRow,
 } from "@/modules/orders/order.repository";
 import type { PaymentCreateInput } from "@/modules/payments/payment.schemas";
+import { listUserRows } from "@/modules/users/user.repository";
 import { AppError } from "@/shared/errors/app-error";
 import { newId } from "@/shared/ids";
 import { pageOf, textMatch } from "@/shared/pagination";
@@ -25,16 +26,35 @@ import type { Payment, Refund } from "@/types/domain";
 
 type PaymentRow = Awaited<ReturnType<typeof listPaymentRows>>[number];
 
-function toPayment(row: PaymentRow): Payment {
+async function paymentLookup(db: AppDatabase, businessId: string) {
+  const orderRows = (await listOrderRows(db)).filter(
+    (row) => row.businessId === businessId,
+  );
+  const users = await listUserRows(db, businessId);
+
+  return {
+    orderNumbers: new Map(orderRows.map((row) => [row.id, row.orderNumber])),
+    userNames: new Map(users.map((user) => [user.id, user.name])),
+    orderRows,
+  };
+}
+
+function toPayment(
+  row: PaymentRow,
+  orderNumbers: Map<string, string>,
+  userNames: Map<string, string>,
+): Payment {
   return {
     id: row.id,
     orderId: row.orderId,
+    orderNumber: orderNumbers.get(row.orderId),
     method: row.method,
     amount: row.amount,
     status: row.status,
     reference: row.reference,
     notes: row.notes,
     recordedBy: row.recordedBy,
+    recordedByName: userNames.get(row.recordedBy),
     paidAt: row.paidAt.toISOString(),
     createdAt: row.createdAt.toISOString(),
   };
@@ -53,16 +73,17 @@ export async function listPayments(
     pageSize?: number;
   },
 ) {
-  const orderIds = new Set(
-    (await listOrderRows(db))
-      .filter((row) => row.businessId === businessId)
-      .map((row) => row.id),
+  const { orderNumbers, orderRows, userNames } = await paymentLookup(
+    db,
+    businessId,
   );
+  const orderIds = new Set(orderRows.map((row) => row.id));
   const rows = (await listPaymentRows(db))
     .filter(
       (row) =>
         orderIds.has(row.orderId) &&
-        (textMatch(row.reference, params.search) ||
+        (textMatch(orderNumbers.get(row.orderId) ?? "", params.search) ||
+          textMatch(row.reference, params.search) ||
           textMatch(row.notes, params.search)) &&
         (!params.method ||
           params.method === "all" ||
@@ -77,7 +98,11 @@ export async function listPayments(
       (left, right) => right.createdAt.getTime() - left.createdAt.getTime(),
     );
 
-  return pageOf(rows.map(toPayment), params.page, params.pageSize);
+  return pageOf(
+    rows.map((row) => toPayment(row, orderNumbers, userNames)),
+    params.page,
+    params.pageSize,
+  );
 }
 
 export async function getPayment(
@@ -92,7 +117,9 @@ export async function getPayment(
     throw AppError.notFound("PAYMENT_NOT_FOUND", "Pembayaran tidak ditemukan.");
   }
 
-  return toPayment(row);
+  const { orderNumbers, userNames } = await paymentLookup(db, businessId);
+
+  return toPayment(row, orderNumbers, userNames);
 }
 
 export async function listOrderPayments(
@@ -106,7 +133,11 @@ export async function listOrderPayments(
     throw AppError.notFound("ORDER_NOT_FOUND", "Pesanan tidak ditemukan.");
   }
 
-  return (await listPaymentRows(db, [orderId])).map(toPayment);
+  const { orderNumbers, userNames } = await paymentLookup(db, businessId);
+
+  return (await listPaymentRows(db, [orderId])).map((row) =>
+    toPayment(row, orderNumbers, userNames),
+  );
 }
 
 export async function recordPayment(
