@@ -6,17 +6,17 @@ import { EmptyState } from "@/components/feedback/empty-state";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Drawer } from "@/components/ui/drawer";
-import { useManagementStore } from "@/mocks/management/hooks";
+import { useTablesQuery } from "@/features/management/api/tables";
 
 function useAvailableTables() {
-  const tables = useManagementStore((state) => state.tables);
+  const { data } = useTablesQuery({ pageSize: 100 });
 
   return useMemo(
     () =>
-      tables
+      (data?.items ?? [])
         .filter((table) => table.isActive && table.status !== "INACTIVE")
         .sort((left, right) => left.name.localeCompare(right.name)),
-    [tables],
+    [data],
   );
 }
 
@@ -32,7 +32,6 @@ export function TablePickerDrawer({
   value: string | null;
 }) {
   const availableTables = useAvailableTables();
-  const orders = useManagementStore((state) => state.orders);
 
   return (
     <Drawer
@@ -50,44 +49,32 @@ export function TablePickerDrawer({
         />
       ) : (
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-          {availableTables.map((table) => {
-            const activeCount = orders.filter(
-              (order) =>
-                order.tableId === table.id &&
-                ["NEW", "ACCEPTED", "PREPARING", "READY"].includes(
-                  order.orderStatus,
-                ),
-            ).length;
-
-            return (
-              <button
-                aria-pressed={value === table.id}
-                className="flex min-h-11 items-center justify-between gap-3 rounded-md border border-border bg-surface p-3 text-left transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
-                key={table.id}
-                onClick={() => {
-                  onChange(table.id);
-                  onOpenChange(false);
-                }}
-                type="button"
-              >
-                <span className="flex flex-col">
-                  <span className="text-body font-medium text-foreground">
-                    {table.name}
-                  </span>
-                  <span className="text-caption text-muted-foreground">
-                    {activeCount > 0
-                      ? `${activeCount} pesanan aktif`
-                      : "Belum ada pesanan aktif"}
-                  </span>
+          {availableTables.map((table) => (
+            <button
+              aria-pressed={value === table.id}
+              className="flex min-h-11 items-center justify-between gap-3 rounded-md border border-border bg-surface p-3 text-left transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
+              key={table.id}
+              onClick={() => {
+                onChange(table.id);
+                onOpenChange(false);
+              }}
+              type="button"
+            >
+              <span className="flex flex-col">
+                <span className="text-body font-medium text-foreground">
+                  {table.name}
                 </span>
-                <Badge
-                  tone={table.status === "OCCUPIED" ? "warning" : "success"}
-                >
-                  {table.status === "OCCUPIED" ? "Terisi" : "Tersedia"}
-                </Badge>
-              </button>
-            );
-          })}
+                <span className="text-caption text-muted-foreground">
+                  {table.activeOrderCount > 0
+                    ? `${table.activeOrderCount} pesanan aktif`
+                    : "Belum ada pesanan aktif"}
+                </span>
+              </span>
+              <Badge tone={table.status === "OCCUPIED" ? "warning" : "success"}>
+                {table.status === "OCCUPIED" ? "Terisi" : "Tersedia"}
+              </Badge>
+            </button>
+          ))}
         </div>
       )}
     </Drawer>

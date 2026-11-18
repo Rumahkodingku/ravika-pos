@@ -25,6 +25,13 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useToast } from "@/components/ui/toast";
+import {
+  useCreateTableMutation,
+  useRegenerateTableQrMutation,
+  useTableQuery,
+  useTablesQuery,
+  useUpdateTableMutation,
+} from "@/features/management/api/tables";
 import { ConfirmDialog } from "@/features/management/confirm-dialog";
 import { DataTableToolbar } from "@/features/management/data-table-toolbar";
 import { FormDrawer } from "@/features/management/form-drawer";
@@ -36,9 +43,7 @@ import { ResponsiveList } from "@/features/management/responsive-list";
 import { TablePagination } from "@/features/management/table-pagination";
 import { TableQrCode } from "@/features/management/table-qr-code";
 import { TableSkeleton } from "@/features/management/table-skeleton";
-import { useAsyncData } from "@/mocks/management/hooks";
-import { managementService } from "@/mocks/management/service";
-import type { DiningTable, TableStatus } from "@/types/domain";
+import type { TableStatus, TableSummary } from "@/types/domain";
 
 const tableSchema = z.object({
   name: z.string().min(1, "Nama meja wajib diisi."),
@@ -60,6 +65,11 @@ const statusTones: Record<TableStatus, "success" | "warning" | "neutral"> = {
   INACTIVE: "neutral",
 };
 
+type TableEditFields = Pick<
+  TableSummary,
+  "id" | "name" | "status" | "isActive"
+>;
+
 const emptyTable: TableValues = {
   name: "",
   status: "AVAILABLE",
@@ -72,21 +82,21 @@ export default function TablesPage() {
   const [status, setStatus] = useState("all");
   const [page, setPage] = useState(1);
   const [formOpen, setFormOpen] = useState(false);
-  const [editing, setEditing] = useState<DiningTable | null>(null);
-  const [detail, setDetail] = useState<DiningTable | null>(null);
+  const [editing, setEditing] = useState<TableEditFields | null>(null);
+  const [detailId, setDetailId] = useState<string | null>(null);
   const [regenerateOpen, setRegenerateOpen] = useState(false);
-  const [isRegenerating, setIsRegenerating] = useState(false);
 
-  const { data, error, isLoading, refresh } = useAsyncData(
-    () =>
-      managementService.listTables({
-        search,
-        status,
-        page,
-        pageSize: 10,
-      }),
-    JSON.stringify([search, status, page]),
-  );
+  const { data, error, isLoading, refetch } = useTablesQuery({
+    search,
+    status,
+    page,
+    pageSize: 10,
+  });
+  const detailQuery = useTableQuery(detailId, { enabled: detailId !== null });
+  const createTable = useCreateTableMutation();
+  const updateTable = useUpdateTableMutation();
+  const regenerateQr = useRegenerateTableQrMutation();
+  const detail = detailQuery.data ?? null;
 
   const {
     formState: { errors, isDirty, isSubmitting },
@@ -105,28 +115,28 @@ export default function TablesPage() {
     setFormOpen(true);
   };
 
-  const openEdit = (table: DiningTable) => {
+  const openEdit = (table: TableEditFields) => {
     setEditing(table);
     reset({
       name: table.name,
       status: table.status,
       isActive: table.isActive,
     });
-    setDetail(null);
+    setDetailId(null);
     setFormOpen(true);
   };
 
   const onSubmit = handleSubmit(async (values) => {
     try {
       if (editing) {
-        await managementService.updateTable(editing.id, values);
+        await updateTable.mutateAsync({ id: editing.id, input: values });
         toast({ title: "Meja diperbarui", tone: "success" });
       } else {
-        await managementService.createTable(values);
+        const created = await createTable.mutateAsync(values);
+        setDetailId(created.id);
         toast({ title: "Meja ditambahkan", tone: "success" });
       }
       setFormOpen(false);
-      refresh();
     } catch (reason) {
       setError("root", {
         message:
@@ -147,7 +157,7 @@ export default function TablesPage() {
               </Button>
             </PermissionGate>
           }
-          description="Kelola meja dan pratinjau QR. Data simulasi."
+          description="Kelola meja dan pratinjau QR."
           title="Meja"
         />
 
@@ -188,7 +198,7 @@ export default function TablesPage() {
             {isLoading ? (
               <TableSkeleton columns={5} />
             ) : error ? (
-              <ErrorState onRetry={refresh} />
+              <ErrorState onRetry={() => void refetch()} />
             ) : !data || data.items.length === 0 ? (
               <EmptyState
                 action={
@@ -210,7 +220,7 @@ export default function TablesPage() {
                       <button
                         className="flex min-h-11 flex-col gap-2 rounded-md border border-border bg-surface p-3 text-left transition-colors hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
                         key={table.id}
-                        onClick={() => setDetail(table)}
+                        onClick={() => setDetailId(table.id)}
                         type="button"
                       >
                         <span className="flex items-start justify-between gap-2">
@@ -222,7 +232,8 @@ export default function TablesPage() {
                           </Badge>
                         </span>
                         <span className="text-caption text-muted-foreground">
-                          {table.isActive ? "Aktif" : "Nonaktif"}
+                          {table.isActive ? "Aktif" : "Nonaktif"} -{" "}
+                          {table.activeOrderCount} pesanan aktif
                         </span>
                       </button>
                     ))}
@@ -235,6 +246,9 @@ export default function TablesPage() {
                         <TableHead>Nama meja</TableHead>
                         <TableHead>Status</TableHead>
                         <TableHead>Aktif</TableHead>
+                        <TableHead className="text-right">
+                          Pesanan aktif
+                        </TableHead>
                         <TableHead className="text-right">Aksi</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -244,7 +258,7 @@ export default function TablesPage() {
                           <TableCell>
                             <button
                               className="min-h-11 text-left font-medium text-foreground underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
-                              onClick={() => setDetail(table)}
+                              onClick={() => setDetailId(table.id)}
                               type="button"
                             >
                               {table.name}
@@ -262,10 +276,13 @@ export default function TablesPage() {
                               {table.isActive ? "Aktif" : "Nonaktif"}
                             </Badge>
                           </TableCell>
+                          <TableCell className="text-right tabular-nums">
+                            {table.activeOrderCount}
+                          </TableCell>
                           <TableCell className="text-right">
                             <div className="flex justify-end gap-1">
                               <Button
-                                onClick={() => setDetail(table)}
+                                onClick={() => setDetailId(table.id)}
                                 size="sm"
                                 variant="ghost"
                               >
@@ -360,13 +377,15 @@ export default function TablesPage() {
           description="Informasi meja dan pratinjau QR ordering."
           onOpenChange={(open) => {
             if (!open) {
-              setDetail(null);
+              setDetailId(null);
             }
           }}
-          open={detail !== null}
+          open={detailId !== null}
           title={detail?.name ?? "Detail meja"}
         >
-          {detail ? (
+          {detailQuery.error ? (
+            <ErrorState onRetry={() => void detailQuery.refetch()} />
+          ) : detail ? (
             <div className="flex flex-col gap-4">
               <dl className="grid gap-2 text-body">
                 <div className="flex justify-between gap-3">
@@ -399,26 +418,25 @@ export default function TablesPage() {
                 </div>
               </PermissionGate>
             </div>
-          ) : null}
+          ) : (
+            <p className="text-body text-muted-foreground">
+              Memuat detail meja.
+            </p>
+          )}
         </Drawer>
 
         <ConfirmDialog
-          confirmLabel="Buat ulang token"
+          confirmLabel="Ya, buat ulang"
           description="Token lama tidak berlaku lagi. QR yang sudah dicetak harus diganti."
-          isLoading={isRegenerating}
+          isLoading={regenerateQr.isPending}
           onConfirm={async () => {
-            if (!detail) {
+            if (!detailId) {
               return;
             }
-            setIsRegenerating(true);
             try {
-              const token = await managementService.regenerateTableToken(
-                detail.id,
-              );
-              setDetail({ ...detail, qrToken: token });
+              await regenerateQr.mutateAsync(detailId);
               setRegenerateOpen(false);
               toast({ title: "Token meja diperbarui", tone: "success" });
-              refresh();
             } catch (reason) {
               toast({
                 title: "Token gagal diperbarui",
@@ -426,8 +444,6 @@ export default function TablesPage() {
                   reason instanceof Error ? reason.message : "Coba lagi.",
                 tone: "danger",
               });
-            } finally {
-              setIsRegenerating(false);
             }
           }}
           onOpenChange={setRegenerateOpen}

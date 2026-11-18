@@ -19,6 +19,7 @@ import { QuantityControl } from "@/components/ui/quantity-control";
 import { Textarea } from "@/components/ui/textarea";
 import { useLogoutMutation } from "@/features/auth/api";
 import { useSession } from "@/features/auth/session-provider";
+import { useTablesQuery } from "@/features/management/api/tables";
 import { OrderConfirmation } from "@/features/operational/order-confirmation";
 import { PosCheckoutDrawer } from "@/features/operational/pos-checkout-drawer";
 import { PosPayableOrderDrawer } from "@/features/operational/pos-payable-order-drawer";
@@ -57,8 +58,9 @@ function CartControls({
   onOpenTablePicker: () => void;
 }) {
   const { orderType, setOrderType, setTableId, tableId } = usePosCart();
-  const tables = useManagementStore((state) => state.tables);
-  const selectedTable = tables.find((table) => table.id === tableId) ?? null;
+  const { data: tableData } = useTablesQuery({ pageSize: 100 });
+  const selectedTable =
+    tableData?.items.find((table) => table.id === tableId) ?? null;
 
   return (
     <>
