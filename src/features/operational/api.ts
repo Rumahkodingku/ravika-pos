@@ -17,6 +17,8 @@ import {
 import { queryKeys } from "@/lib/api/keys";
 import type { Order, OrderType, Payment, PaymentMethod } from "@/types/domain";
 
+export { useBusinessQuery } from "@/features/management/api/business";
+
 export type CreateOrderInput = {
   orderType: OrderType;
   tableId: string | null;
@@ -39,13 +41,6 @@ export type RecordPaymentInput = {
   notes: string;
   verified: boolean;
 };
-
-export function useBusinessQuery() {
-  return useQuery({
-    queryFn: () => apiFetch<{ name: string }>("/business"),
-    queryKey: queryKeys.business,
-  });
-}
 
 export function usePosCatalogQuery() {
   const categories = useCategoriesQuery({ pageSize: 100 });

@@ -6,7 +6,6 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { ErrorState } from "@/components/feedback/error-state";
 import { useTheme } from "@/components/theme/theme-provider";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Field, FieldDescription } from "@/components/ui/field";
@@ -16,9 +15,11 @@ import { Select } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/toast";
+import {
+  useBusinessQuery,
+  useUpdateBusinessMutation,
+} from "@/features/management/api/business";
 import { RequirePermission } from "@/features/management/permission-gate";
-import { useAsyncData } from "@/mocks/management/hooks";
-import { managementService } from "@/mocks/management/service";
 
 const settingsSchema = z.object({
   name: z.string().min(1, "Nama bisnis wajib diisi."),
@@ -46,10 +47,8 @@ const emptySettings: SettingsValues = {
 export default function SettingsPage() {
   const { toast } = useToast();
   const { setTheme, theme } = useTheme();
-  const { data, error, isLoading, refresh } = useAsyncData(
-    () => managementService.getBusiness(),
-    "business",
-  );
+  const { data, error, isLoading, refetch } = useBusinessQuery();
+  const updateBusiness = useUpdateBusinessMutation();
 
   const themeRef = useRef(theme);
   themeRef.current = theme;
@@ -80,7 +79,7 @@ export default function SettingsPage() {
 
   const onSubmit = handleSubmit(async (values) => {
     try {
-      await managementService.updateBusiness({
+      await updateBusiness.mutateAsync({
         name: values.name,
         code: values.code,
         address: values.address,
@@ -88,7 +87,6 @@ export default function SettingsPage() {
       });
       setTheme(values.theme);
       toast({ title: "Pengaturan disimpan", tone: "success" });
-      refresh();
     } catch (reason) {
       setError("root", {
         message:
@@ -103,7 +101,6 @@ export default function SettingsPage() {
     <RequirePermission permission="settings.manage">
       <div className="flex flex-col gap-6">
         <PageHeader
-          actions={<Badge tone="neutral">Data simulasi</Badge>}
           description="Profil bisnis dan preferensi tampilan."
           title="Pengaturan"
         />
@@ -114,7 +111,7 @@ export default function SettingsPage() {
             <Skeleton className="h-72" />
           </div>
         ) : error ? (
-          <ErrorState onRetry={refresh} />
+          <ErrorState onRetry={() => void refetch()} />
         ) : (
           <form className="grid gap-4 lg:grid-cols-2" onSubmit={onSubmit}>
             <Card>
