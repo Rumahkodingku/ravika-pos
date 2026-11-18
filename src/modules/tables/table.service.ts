@@ -12,7 +12,7 @@ import { AppError } from "@/shared/errors/app-error";
 import { hashToken, newId, newToken } from "@/shared/ids";
 import { pageOf, textMatch } from "@/shared/pagination";
 import { now } from "@/shared/time";
-import type { DiningTable, Product } from "@/types/domain";
+import type { DiningTable, Product, TableSummary } from "@/types/domain";
 import {
   countActiveOrdersForTable,
   findTable,
@@ -25,9 +25,7 @@ import {
 } from "./table.repository";
 import type { TableInput } from "./table.schemas";
 
-export type TableSummary = Omit<DiningTable, "qrToken"> & {
-  activeOrderCount: number;
-};
+export type { TableSummary };
 export type TableWithToken = DiningTable;
 
 function toSummary(
