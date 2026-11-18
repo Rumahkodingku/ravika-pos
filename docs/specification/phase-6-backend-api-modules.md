@@ -11,46 +11,153 @@
 
 ## Daftar isi
 
-- [0. Agent quick start](#0-agent-quick-start)
-- [1. Ringkasan](#1-ringkasan)
-- [2. Goals, non-goals, dan anti-goals](#2-goals-non-goals-dan-anti-goals)
-- [3. Keputusan yang dikunci](#3-keputusan-yang-dikunci)
-- [4. Scope dan deliverable](#4-scope-dan-deliverable)
-- [5. Arsitektur dan aturan lapisan](#5-arsitektur-dan-aturan-lapisan)
-- [6. Struktur direktori](#6-struktur-direktori)
-- [7. Perubahan schema](#7-perubahan-schema)
-- [8. Infrastruktur bersama](#8-infrastruktur-bersama)
-- [9. Standar API](#9-standar-api)
-- [10. Modul API](#10-modul-api)
-  - [10.1 Business](#101-business)
-  - [10.2 Users, roles, permissions](#102-users-roles-permissions)
-  - [10.3 Catalog](#103-catalog)
-  - [10.4 Tables dan QR](#104-tables-dan-qr)
-  - [10.5 Orders](#105-orders)
-  - [10.6 Payments dan refund](#106-payments-dan-refund)
-  - [10.7 KDS dan SSE](#107-kds-dan-sse)
-  - [10.8 Reports](#108-reports)
-  - [10.9 License](#109-license)
-  - [10.10 Backup dan restore](#1010-backup-dan-restore)
-- [11. Aturan domain dan state machine](#11-aturan-domain-dan-state-machine)
-- [12. Idempotency](#12-idempotency)
-- [13. QR token encryption](#13-qr-token-encryption)
-- [14. Format lisensi](#14-format-lisensi)
-- [15. Backup dan restore](#15-backup-dan-restore)
-- [16. Seed data](#16-seed-data)
-- [17. Keamanan dan rate limit](#17-keamanan-dan-rate-limit)
-- [18. Testing](#18-testing)
-- [19. Verifikasi dan acceptance criteria](#19-verifikasi-dan-acceptance-criteria)
-- [20. Risiko dan mitigasi](#20-risiko-dan-mitigasi)
-- [21. Urutan implementasi](#21-urutan-implementasi)
-- [22. Definition of Done](#22-definition-of-done)
-- [23. Handoff ke Fase 7](#23-handoff-ke-fase-7)
-- [Appendix A: Daftar endpoint](#appendix-a-daftar-endpoint)
-- [Appendix B: Permission matrix](#appendix-b-permission-matrix)
-- [Appendix C: Error code](#appendix-c-error-code)
-- [Appendix D: Contoh request dan response](#appendix-d-contoh-request-dan-response)
-- [Appendix E: File map](#appendix-e-file-map)
-- [Appendix F: Checklist implementasi](#appendix-f-checklist-implementasi)
+- [RAVIKA POS - Spesifikasi Fase 6: Backend API Modules](#ravika-pos---spesifikasi-fase-6-backend-api-modules)
+  - [Daftar isi](#daftar-isi)
+  - [0. Agent quick start](#0-agent-quick-start)
+  - [1. Ringkasan](#1-ringkasan)
+  - [2. Goals, non-goals, dan anti-goals](#2-goals-non-goals-dan-anti-goals)
+    - [Goals](#goals)
+    - [Non-goals](#non-goals)
+    - [Anti-goals](#anti-goals)
+  - [3. Keputusan yang dikunci](#3-keputusan-yang-dikunci)
+  - [4. Scope dan deliverable](#4-scope-dan-deliverable)
+    - [Deliverable](#deliverable)
+    - [Dependency](#dependency)
+    - [Tidak termasuk](#tidak-termasuk)
+  - [5. Arsitektur dan aturan lapisan](#5-arsitektur-dan-aturan-lapisan)
+    - [Alur request](#alur-request)
+    - [Aturan lapisan](#aturan-lapisan)
+    - [Aturan wajib](#aturan-wajib)
+  - [6. Struktur direktori](#6-struktur-direktori)
+  - [7. Perubahan schema](#7-perubahan-schema)
+    - [7.1 `tables.qr_token_ciphertext`](#71-tablesqr_token_ciphertext)
+    - [7.2 `refunds`](#72-refunds)
+    - [7.3 `idempotency_keys`](#73-idempotency_keys)
+    - [7.4 `tables.qr_token_ciphertext` dan QR lama](#74-tablesqr_token_ciphertext-dan-qr-lama)
+    - [7.5 Tidak ada perubahan schema lain](#75-tidak-ada-perubahan-schema-lain)
+  - [8. Infrastruktur bersama](#8-infrastruktur-bersama)
+    - [8.1 Route wrapper dynamic params](#81-route-wrapper-dynamic-params)
+    - [8.2 Idempotency service](#82-idempotency-service)
+    - [8.3 Audit log service](#83-audit-log-service)
+    - [8.4 Realtime event bus](#84-realtime-event-bus)
+    - [8.5 Public rate limit](#85-public-rate-limit)
+    - [8.6 Stable JSON](#86-stable-json)
+  - [9. Standar API](#9-standar-api)
+    - [Runtime](#runtime)
+    - [Request](#request)
+    - [Response sukses](#response-sukses)
+    - [Response error](#response-error)
+    - [Header](#header)
+    - [Status code](#status-code)
+  - [10. Modul API](#10-modul-api)
+    - [10.1 Business](#101-business)
+    - [10.2 Users, roles, permissions](#102-users-roles-permissions)
+      - [Endpoint](#endpoint)
+      - [Aturan user](#aturan-user)
+      - [Aturan role](#aturan-role)
+      - [Response user](#response-user)
+    - [10.3 Catalog](#103-catalog)
+      - [Endpoint](#endpoint-1)
+      - [Aturan category](#aturan-category)
+      - [Aturan product](#aturan-product)
+    - [10.4 Tables dan QR](#104-tables-dan-qr)
+      - [Endpoint](#endpoint-2)
+      - [Aturan table](#aturan-table)
+      - [Public menu response](#public-menu-response)
+      - [Public order response](#public-order-response)
+    - [10.5 Orders](#105-orders)
+      - [Endpoint](#endpoint-3)
+      - [Create order body](#create-order-body)
+      - [Aturan create](#aturan-create)
+      - [Order number](#order-number)
+      - [Cancel](#cancel)
+      - [Detail order](#detail-order)
+    - [10.6 Payments dan refund](#106-payments-dan-refund)
+      - [Endpoint](#endpoint-4)
+      - [Payment](#payment)
+      - [Refund](#refund)
+    - [10.7 KDS dan SSE](#107-kds-dan-sse)
+      - [Endpoint](#endpoint-5)
+      - [KDS response](#kds-response)
+      - [Status transition](#status-transition)
+      - [SSE](#sse)
+    - [10.8 Reports](#108-reports)
+      - [Endpoint](#endpoint-6)
+      - [Summary response](#summary-response)
+      - [Sales response](#sales-response)
+      - [Aturan](#aturan)
+    - [10.9 License](#109-license)
+      - [Endpoint](#endpoint-7)
+      - [Input file](#input-file)
+      - [Verifikasi](#verifikasi)
+      - [Response](#response)
+    - [10.10 Backup dan restore](#1010-backup-dan-restore)
+      - [Endpoint](#endpoint-8)
+      - [Backup](#backup)
+      - [Restore](#restore)
+  - [11. Aturan domain dan state machine](#11-aturan-domain-dan-state-machine)
+    - [Order preparation](#order-preparation)
+    - [Payment](#payment-1)
+    - [Table](#table)
+    - [Order number](#order-number-1)
+  - [12. Idempotency](#12-idempotency)
+  - [13. QR token encryption](#13-qr-token-encryption)
+    - [Key](#key)
+    - [Format ciphertext](#format-ciphertext)
+    - [Alur](#alur)
+  - [14. Format lisensi](#14-format-lisensi)
+    - [Canonical payload](#canonical-payload)
+    - [Public key](#public-key)
+    - [Signature](#signature)
+    - [Status](#status)
+    - [Penyimpanan](#penyimpanan)
+  - [15. Backup dan restore](#15-backup-dan-restore)
+    - [Backup](#backup-1)
+    - [Restore](#restore-1)
+  - [16. Seed data](#16-seed-data)
+    - [Development](#development)
+    - [Production](#production)
+    - [Determinisme](#determinisme)
+  - [17. Keamanan dan rate limit](#17-keamanan-dan-rate-limit)
+  - [18. Testing](#18-testing)
+    - [Test wajib](#test-wajib)
+    - [Test data](#test-data)
+    - [Script](#script)
+  - [19. Verifikasi dan acceptance criteria](#19-verifikasi-dan-acceptance-criteria)
+    - [Perintah](#perintah)
+    - [Manual flow](#manual-flow)
+    - [Acceptance](#acceptance)
+  - [20. Risiko dan mitigasi](#20-risiko-dan-mitigasi)
+  - [21. Urutan implementasi](#21-urutan-implementasi)
+    - [Task 0: Spec dan baseline](#task-0-spec-dan-baseline)
+    - [Task 1: Migration](#task-1-migration)
+    - [Task 2: Shared infrastructure](#task-2-shared-infrastructure)
+    - [Task 3: Users, roles, permissions](#task-3-users-roles-permissions)
+    - [Task 4: Catalog](#task-4-catalog)
+    - [Task 5: Tables dan QR](#task-5-tables-dan-qr)
+    - [Task 6: Orders](#task-6-orders)
+    - [Task 7: Payments dan refund](#task-7-payments-dan-refund)
+    - [Task 8: KDS dan SSE](#task-8-kds-dan-sse)
+    - [Task 9: Reports](#task-9-reports)
+    - [Task 10: License](#task-10-license)
+    - [Task 11: Backup dan restore](#task-11-backup-dan-restore)
+    - [Task 12: Full seed](#task-12-full-seed)
+    - [Task 13: Verification dan docs](#task-13-verification-dan-docs)
+  - [22. Definition of Done](#22-definition-of-done)
+  - [23. Handoff ke Fase 7](#23-handoff-ke-fase-7)
+  - [Appendix A: Daftar endpoint](#appendix-a-daftar-endpoint)
+  - [Appendix B: Permission matrix](#appendix-b-permission-matrix)
+  - [Appendix C: Error code](#appendix-c-error-code)
+  - [Appendix D: Contoh request dan response](#appendix-d-contoh-request-dan-response)
+    - [Create order](#create-order)
+    - [Create payment](#create-payment)
+    - [Refund](#refund-1)
+    - [Public order](#public-order)
+  - [Appendix E: File map](#appendix-e-file-map)
+    - [Baru](#baru)
+    - [Diubah](#diubah)
+    - [Tidak diubah](#tidak-diubah)
+  - [Appendix F: Checklist implementasi](#appendix-f-checklist-implementasi)
 
 ## 0. Agent quick start
 
@@ -132,21 +239,21 @@ database, error, atau session.
 
 ## 3. Keputusan yang dikunci
 
-| ID     | Keputusan                                      | Alasan |
-| ------ | ---------------------------------------------- | ------ |
-| P6-01  | Refund penuh satu order                        | OPEN-008 diputuskan untuk full refund |
-| P6-02  | Refund hanya untuk order `PAID`                | Menghindari status parsial yang rumit |
-| P6-03  | Idempotency order, payment, refund             | Mencegah transaksi ganda |
-| P6-04  | Tabel `idempotency_keys`                       | Response replay dan request hash |
-| P6-05  | QR hash + ciphertext AES-256-GCM               | QR dapat ditampilkan ulang tanpa plaintext |
-| P6-06  | SSE in-process event bus                       | Satu proses Node, tanpa Redis |
-| P6-07  | License Ed25519 file via env                   | Validasi lokal nyata |
-| P6-08  | Backup nyata + restore restart                 | Aman untuk SQLite WAL |
-| P6-09  | Full demo seed development                     | Kebutuhan Fase 7 dan QA manual |
-| P6-10  | Add-on read-only API                           | UI hanya memilih add-on katalog |
-| P6-11  | UI tetap mock                                  | Integrasi adalah Fase 7 |
-| P6-12  | Takeaway QR tetap ditunda                      | OPEN-009 belum final |
-| P6-13  | Cash overpay tidak disimpan                    | Amount adalah nilai yang diterapkan |
+| ID    | Keputusan                          | Alasan                                     |
+| ----- | ---------------------------------- | ------------------------------------------ |
+| P6-01 | Refund penuh satu order            | OPEN-008 diputuskan untuk full refund      |
+| P6-02 | Refund hanya untuk order `PAID`    | Menghindari status parsial yang rumit      |
+| P6-03 | Idempotency order, payment, refund | Mencegah transaksi ganda                   |
+| P6-04 | Tabel `idempotency_keys`           | Response replay dan request hash           |
+| P6-05 | QR hash + ciphertext AES-256-GCM   | QR dapat ditampilkan ulang tanpa plaintext |
+| P6-06 | SSE in-process event bus           | Satu proses Node, tanpa Redis              |
+| P6-07 | License Ed25519 file via env       | Validasi lokal nyata                       |
+| P6-08 | Backup nyata + restore restart     | Aman untuk SQLite WAL                      |
+| P6-09 | Full demo seed development         | Kebutuhan Fase 7 dan QA manual             |
+| P6-10 | Add-on read-only API               | UI hanya memilih add-on katalog            |
+| P6-11 | UI tetap mock                      | Integrasi adalah Fase 7                    |
+| P6-12 | Takeaway QR tetap ditunda          | OPEN-009 belum final                       |
+| P6-13 | Cash overpay tidak disimpan        | Amount adalah nilai yang diterapkan        |
 
 ## 4. Scope dan deliverable
 
@@ -206,13 +313,13 @@ HTTP Request
 
 ### Aturan lapisan
 
-| Lapisan | Boleh | Tidak boleh |
-| --- | --- | --- |
-| Route Handler | Baca request, validasi, panggil service, bentuk response | Query database, business rule kompleks |
-| Application Service | Orkestrasi, transaksi, aturan use case | Detail HTTP, akses `cookies()` langsung |
-| Repository | Query Drizzle, mapping row | Response HTTP, validasi request |
-| Domain/Shared | Tipe, error, aturan murni | Akses database, `next/headers` |
-| Infrastructure | Database, event bus, QR crypto, backup | Komponen UI |
+| Lapisan             | Boleh                                                    | Tidak boleh                             |
+| ------------------- | -------------------------------------------------------- | --------------------------------------- |
+| Route Handler       | Baca request, validasi, panggil service, bentuk response | Query database, business rule kompleks  |
+| Application Service | Orkestrasi, transaksi, aturan use case                   | Detail HTTP, akses `cookies()` langsung |
+| Repository          | Query Drizzle, mapping row                               | Response HTTP, validasi request         |
+| Domain/Shared       | Tipe, error, aturan murni                                | Akses database, `next/headers`          |
+| Infrastructure      | Database, event bus, QR crypto, backup                   | Komponen UI                             |
 
 ### Aturan wajib
 
@@ -313,8 +420,8 @@ Struktur aktual boleh berbeda selama aturan lapisan tetap.
 
 Tambahkan kolom:
 
-| Kolom | Tipe | Aturan |
-| --- | --- | --- |
+| Kolom                 | Tipe | Aturan   |
+| --------------------- | ---- | -------- |
 | `qr_token_ciphertext` | text | nullable |
 
 - Format: `v1.<nonce>.<ciphertext>.<tag>` base64url.
@@ -324,32 +431,32 @@ Tambahkan kolom:
 
 ### 7.2 `refunds`
 
-| Kolom | Tipe | Aturan |
-| --- | --- | --- |
-| `id` | text | PK |
-| `order_id` | text | FK orders, unique, restrict |
-| `amount` | integer | not null, CHECK > 0 |
-| `reason` | text | not null |
-| `recorded_by` | text | FK users, restrict |
-| `created_at` | integer timestamp_ms | not null |
+| Kolom         | Tipe                 | Aturan                      |
+| ------------- | -------------------- | --------------------------- |
+| `id`          | text                 | PK                          |
+| `order_id`    | text                 | FK orders, unique, restrict |
+| `amount`      | integer              | not null, CHECK > 0         |
+| `reason`      | text                 | not null                    |
+| `recorded_by` | text                 | FK users, restrict          |
+| `created_at`  | integer timestamp_ms | not null                    |
 
 Unique `order_id` mencegah refund ganda.
 
 ### 7.3 `idempotency_keys`
 
-| Kolom | Tipe | Aturan |
-| --- | --- | --- |
-| `id` | text | PK |
-| `business_id` | text | FK business, restrict |
-| `key` | text | not null |
-| `operation` | text | not null |
-| `request_hash` | text | not null |
-| `resource_type` | text | not null |
-| `resource_id` | text | not null |
-| `response_status` | integer | not null |
-| `response_body` | text JSON | not null |
-| `created_at` | integer timestamp_ms | not null |
-| `expires_at` | integer timestamp_ms | not null |
+| Kolom             | Tipe                 | Aturan                |
+| ----------------- | -------------------- | --------------------- |
+| `id`              | text                 | PK                    |
+| `business_id`     | text                 | FK business, restrict |
+| `key`             | text                 | not null              |
+| `operation`       | text                 | not null              |
+| `request_hash`    | text                 | not null              |
+| `resource_type`   | text                 | not null              |
+| `resource_id`     | text                 | not null              |
+| `response_status` | integer              | not null              |
+| `response_body`   | text JSON            | not null              |
+| `created_at`      | integer timestamp_ms | not null              |
+| `expires_at`      | integer timestamp_ms | not null              |
 
 Unique: `(business_id, operation, key)`.
 Index: `expires_at`, `(resource_type, resource_id)`.
@@ -501,20 +608,20 @@ RFC 9457:
 
 ### Status code
 
-| Status | Penggunaan |
-| --- | --- |
-| 200 | Sukses |
-| 201 | Resource dibuat |
-| 204 | Sukses tanpa body |
-| 400 | Validasi |
-| 401 | Session |
-| 403 | Permission |
-| 404 | Resource |
-| 409 | Konflik state/idempotency |
-| 422 | Aturan bisnis |
-| 429 | Rate limit |
-| 500 | Internal |
-| 503 | Database/backup |
+| Status | Penggunaan                |
+| ------ | ------------------------- |
+| 200    | Sukses                    |
+| 201    | Resource dibuat           |
+| 204    | Sukses tanpa body         |
+| 400    | Validasi                  |
+| 401    | Session                   |
+| 403    | Permission                |
+| 404    | Resource                  |
+| 409    | Konflik state/idempotency |
+| 422    | Aturan bisnis             |
+| 429    | Rate limit                |
+| 500    | Internal                  |
+| 503    | Database/backup           |
 
 ## 10. Modul API
 
@@ -532,17 +639,17 @@ Tidak ada endpoint baru.
 
 #### Endpoint
 
-| Method | Endpoint | Permission | Body/Query |
-| --- | --- | --- | --- |
-| GET | `/api/users` | `users.view` | page, pageSize, search, role, active |
-| POST | `/api/users` | `users.manage` | name, email, username?, role, password, isActive |
-| GET | `/api/users/:id` | `users.view` | - |
-| PATCH | `/api/users/:id` | `users.manage` | name, email, username?, role, isActive |
-| GET | `/api/roles` | `roles.manage` | - |
-| POST | `/api/roles` | `roles.manage` | name, code, description, permissionCodes |
-| PATCH | `/api/roles/:id` | `roles.manage` | name, code?, description |
-| PUT | `/api/roles/:id/permissions` | `permissions.manage` | permissionCodes |
-| GET | `/api/permissions` | `permissions.manage` | - |
+| Method | Endpoint                     | Permission           | Body/Query                                       |
+| ------ | ---------------------------- | -------------------- | ------------------------------------------------ |
+| GET    | `/api/users`                 | `users.view`         | page, pageSize, search, role, active             |
+| POST   | `/api/users`                 | `users.manage`       | name, email, username?, role, password, isActive |
+| GET    | `/api/users/:id`             | `users.view`         | -                                                |
+| PATCH  | `/api/users/:id`             | `users.manage`       | name, email, username?, role, isActive           |
+| GET    | `/api/roles`                 | `roles.manage`       | -                                                |
+| POST   | `/api/roles`                 | `roles.manage`       | name, code, description, permissionCodes         |
+| PATCH  | `/api/roles/:id`             | `roles.manage`       | name, code?, description                         |
+| PUT    | `/api/roles/:id/permissions` | `permissions.manage` | permissionCodes                                  |
+| GET    | `/api/permissions`           | `permissions.manage` | -                                                |
 
 #### Aturan user
 
@@ -587,17 +694,17 @@ Tidak ada endpoint baru.
 
 #### Endpoint
 
-| Method | Endpoint | Permission | Body/Query |
-| --- | --- | --- | --- |
-| GET | `/api/categories` | `categories.view` | page, pageSize, search, active |
-| POST | `/api/categories` | `categories.manage` | name, description, sortOrder, isActive |
-| PATCH | `/api/categories/:id` | `categories.manage` | name, description, sortOrder, isActive |
-| POST | `/api/categories/:id/move` | `categories.manage` | direction: up/down |
-| GET | `/api/products` | `products.view` | page, pageSize, search, categoryId, active, availability, sort |
-| GET | `/api/products/:id` | `products.view` | - |
-| POST | `/api/products` | `products.manage` | name, description, categoryId, basePrice, isAvailable, isActive, variants, addOns |
-| PATCH | `/api/products/:id` | `products.manage` | field yang sama |
-| GET | `/api/add-ons` | `products.view` | - |
+| Method | Endpoint                   | Permission          | Body/Query                                                                        |
+| ------ | -------------------------- | ------------------- | --------------------------------------------------------------------------------- |
+| GET    | `/api/categories`          | `categories.view`   | page, pageSize, search, active                                                    |
+| POST   | `/api/categories`          | `categories.manage` | name, description, sortOrder, isActive                                            |
+| PATCH  | `/api/categories/:id`      | `categories.manage` | name, description, sortOrder, isActive                                            |
+| POST   | `/api/categories/:id/move` | `categories.manage` | direction: up/down                                                                |
+| GET    | `/api/products`            | `products.view`     | page, pageSize, search, categoryId, active, availability, sort                    |
+| GET    | `/api/products/:id`        | `products.view`     | -                                                                                 |
+| POST   | `/api/products`            | `products.manage`   | name, description, categoryId, basePrice, isAvailable, isActive, variants, addOns |
+| PATCH  | `/api/products/:id`        | `products.manage`   | field yang sama                                                                   |
+| GET    | `/api/add-ons`             | `products.view`     | -                                                                                 |
 
 #### Aturan category
 
@@ -623,16 +730,16 @@ Tidak ada endpoint baru.
 
 #### Endpoint
 
-| Method | Endpoint | Permission | Body/Query |
-| --- | --- | --- | --- |
-| GET | `/api/tables` | `tables.view` | page, pageSize, search, status |
-| GET | `/api/tables/:id` | `tables.view` | - |
-| POST | `/api/tables` | `tables.manage` | name, status, isActive |
-| PATCH | `/api/tables/:id` | `tables.manage` | name, status, isActive |
-| POST | `/api/tables/:id/regenerate-qr` | `tables.manage` | - |
-| GET | `/api/public/menu/:token` | Publik | - |
-| POST | `/api/public/orders` | Publik | tableToken, items, notes |
-| GET | `/api/public/orders/:publicToken` | Publik | - |
+| Method | Endpoint                          | Permission      | Body/Query                     |
+| ------ | --------------------------------- | --------------- | ------------------------------ |
+| GET    | `/api/tables`                     | `tables.view`   | page, pageSize, search, status |
+| GET    | `/api/tables/:id`                 | `tables.view`   | -                              |
+| POST   | `/api/tables`                     | `tables.manage` | name, status, isActive         |
+| PATCH  | `/api/tables/:id`                 | `tables.manage` | name, status, isActive         |
+| POST   | `/api/tables/:id/regenerate-qr`   | `tables.manage` | -                              |
+| GET    | `/api/public/menu/:token`         | Publik          | -                              |
+| POST   | `/api/public/orders`              | Publik          | tableToken, items, notes       |
+| GET    | `/api/public/orders/:publicToken` | Publik          | -                              |
 
 #### Aturan table
 
@@ -686,16 +793,16 @@ Jangan tampilkan user internal, order lain, atau token internal.
 
 #### Endpoint
 
-| Method | Endpoint | Permission | Body/Query |
-| --- | --- | --- | --- |
-| GET | `/api/orders` | `orders.view` | page, pageSize, search, orderStatus, paymentStatus, dateFrom, dateTo, sort |
-| POST | `/api/orders` | `orders.create` | orderType, tableId, notes, items |
-| GET | `/api/orders/:id` | `orders.view` | - |
-| GET | `/api/orders/:id/history` | `orders.view` | - |
-| GET | `/api/orders/:id/payments` | `payments.view` | - |
-| GET | `/api/orders/payable` | `payments.view` | - |
-| POST | `/api/orders/:id/cancel` | `orders.cancel` | reason |
-| POST | `/api/orders/:id/refund` | `payments.refund` | reason |
+| Method | Endpoint                   | Permission        | Body/Query                                                                 |
+| ------ | -------------------------- | ----------------- | -------------------------------------------------------------------------- |
+| GET    | `/api/orders`              | `orders.view`     | page, pageSize, search, orderStatus, paymentStatus, dateFrom, dateTo, sort |
+| POST   | `/api/orders`              | `orders.create`   | orderType, tableId, notes, items                                           |
+| GET    | `/api/orders/:id`          | `orders.view`     | -                                                                          |
+| GET    | `/api/orders/:id/history`  | `orders.view`     | -                                                                          |
+| GET    | `/api/orders/:id/payments` | `payments.view`   | -                                                                          |
+| GET    | `/api/orders/payable`      | `payments.view`   | -                                                                          |
+| POST   | `/api/orders/:id/cancel`   | `orders.cancel`   | reason                                                                     |
+| POST   | `/api/orders/:id/refund`   | `payments.refund` | reason                                                                     |
 
 #### Create order body
 
@@ -786,12 +893,12 @@ History dan payments memakai endpoint terpisah.
 
 #### Endpoint
 
-| Method | Endpoint | Permission | Body/Query |
-| --- | --- | --- | --- |
-| GET | `/api/payments` | `payments.view` | page, pageSize, search, method, status, dateFrom, dateTo |
-| GET | `/api/payments/:id` | `payments.view` | - |
-| POST | `/api/orders/:id/payments` | `payments.create` | method, amount, reference, notes, verified |
-| POST | `/api/orders/:id/refund` | `payments.refund` | reason |
+| Method | Endpoint                   | Permission        | Body/Query                                               |
+| ------ | -------------------------- | ----------------- | -------------------------------------------------------- |
+| GET    | `/api/payments`            | `payments.view`   | page, pageSize, search, method, status, dateFrom, dateTo |
+| GET    | `/api/payments/:id`        | `payments.view`   | -                                                        |
+| POST   | `/api/orders/:id/payments` | `payments.create` | method, amount, reference, notes, verified               |
+| POST   | `/api/orders/:id/refund`   | `payments.refund` | reason                                                   |
 
 #### Payment
 
@@ -832,11 +939,11 @@ PRD perlu diperbarui.
 
 #### Endpoint
 
-| Method | Endpoint | Permission |
-| --- | --- | --- |
-| GET | `/api/kds/orders` | `kds.view` |
-| POST | `/api/kds/orders/:id/status` | `kds.update_status` |
-| GET | `/api/events` | `kds.view` |
+| Method | Endpoint                     | Permission          |
+| ------ | ---------------------------- | ------------------- |
+| GET    | `/api/kds/orders`            | `kds.view`          |
+| POST   | `/api/kds/orders/:id/status` | `kds.update_status` |
+| GET    | `/api/events`                | `kds.view`          |
 
 #### KDS response
 
@@ -887,11 +994,11 @@ retry: 3000
 
 #### Endpoint
 
-| Method | Endpoint | Permission |
-| --- | --- | --- |
-| GET | `/api/reports/summary?range=today\|7d\|30d` | `reports.view` |
-| GET | `/api/reports/sales?dateFrom&dateTo` | `reports.view` |
-| GET | `/api/reports/top-products?dateFrom&dateTo&limit` | `reports.view` |
+| Method | Endpoint                                          | Permission     |
+| ------ | ------------------------------------------------- | -------------- |
+| GET    | `/api/reports/summary?range=today\|7d\|30d`       | `reports.view` |
+| GET    | `/api/reports/sales?dateFrom&dateTo`              | `reports.view` |
+| GET    | `/api/reports/top-products?dateFrom&dateTo&limit` | `reports.view` |
 
 #### Summary response
 
@@ -935,9 +1042,9 @@ Mengikuti `SalesReport`:
 
 #### Endpoint
 
-| Method | Endpoint | Permission |
-| --- | --- | --- |
-| GET | `/api/licensing/status` | `license.view` |
+| Method | Endpoint                | Permission     |
+| ------ | ----------------------- | -------------- |
+| GET    | `/api/licensing/status` | `license.view` |
 
 #### Input file
 
@@ -988,11 +1095,11 @@ Mengikuti `License`:
 
 #### Endpoint
 
-| Method | Endpoint | Permission | Body |
-| --- | --- | --- | --- |
-| GET | `/api/backup` | `backup.create` | - |
-| POST | `/api/backup` | `backup.create` | - |
-| POST | `/api/backup/restore` | `backup.restore` | backupId, confirm |
+| Method | Endpoint              | Permission       | Body              |
+| ------ | --------------------- | ---------------- | ----------------- |
+| GET    | `/api/backup`         | `backup.create`  | -                 |
+| POST   | `/api/backup`         | `backup.create`  | -                 |
+| POST   | `/api/backup/restore` | `backup.restore` | backupId, confirm |
 
 #### Backup
 
@@ -1196,9 +1303,9 @@ Payload yang ditandatangani adalah stable JSON tanpa spasi.
 - Permission registry.
 - Roles OWNER, CASHIER, BARISTA.
 - Users:
-  - owner@ravika.id / owner
-  - cashier@ravika.id / cashier
-  - barista@ravika.id / barista
+  - <owner@ravika.id> / owner
+  - <cashier@ravika.id> / cashier
+  - <barista@ravika.id> / barista
 - Password `demo123`.
 - 5 kategori.
 - 12 produk.
@@ -1249,20 +1356,20 @@ Payload yang ditandatangani adalah stable JSON tanpa spasi.
 
 ### Test wajib
 
-| Area | Kasus |
-| --- | --- |
-| Users | create, update, last-owner guard, duplicate email/username |
-| Roles | create, update, permission assignment, system code |
-| Catalog | category reorder, product create/update, variant/add-on validation |
-| Tables | create, QR regenerate, decrypt, invalid token |
-| Orders | cashier create, QR create, totals, snapshots, table occupancy, cancel guard, idempotency |
-| Payments | cash, digital verified, split, overpay rejected, status recalculation |
-| Refund | full refund, double refund, partial order rejected, permission |
-| KDS | valid/invalid transitions, completed, table sync |
-| SSE | subscriber receives event, cleanup |
-| Reports | totals, filters, top products |
-| License | valid, expiring, invalid signature, expired, business mismatch |
-| Backup | create, checksum, integrity, restore restart marker |
+| Area     | Kasus                                                                                    |
+| -------- | ---------------------------------------------------------------------------------------- |
+| Users    | create, update, last-owner guard, duplicate email/username                               |
+| Roles    | create, update, permission assignment, system code                                       |
+| Catalog  | category reorder, product create/update, variant/add-on validation                       |
+| Tables   | create, QR regenerate, decrypt, invalid token                                            |
+| Orders   | cashier create, QR create, totals, snapshots, table occupancy, cancel guard, idempotency |
+| Payments | cash, digital verified, split, overpay rejected, status recalculation                    |
+| Refund   | full refund, double refund, partial order rejected, permission                           |
+| KDS      | valid/invalid transitions, completed, table sync                                         |
+| SSE      | subscriber receives event, cleanup                                                       |
+| Reports  | totals, filters, top products                                                            |
+| License  | valid, expiring, invalid signature, expired, business mismatch                           |
+| Backup   | create, checksum, integrity, restore restart marker                                      |
 
 ### Test data
 
@@ -1339,18 +1446,18 @@ pnpm build
 
 ## 20. Risiko dan mitigasi
 
-| Risiko | Dampak | Mitigasi |
-| --- | --- | --- |
-| Refund API tanpa UI | Tidak bisa dipakai operator | Dokumentasikan; UI Fase 7 |
-| SSE in-process | Tidak multi-process | Single process; upgrade shared transport |
-| Restore menutup DB | Downtime | Restart procedure |
-| QR key hilang | QR tidak bisa decrypt | Backup env key |
-| License public key salah | License invalid | Validasi startup |
-| Full seed besar | Migration/seed lambat | Test idempotent |
-| Idempotency table tumbuh | Ukuran DB | TTL cleanup |
-| Public endpoint abuse | Spam order | Rate limit |
-| Report refunded order | Angka ambigu | Dokumentasikan gross vs paid |
-| Node 26 non-LTS | Risiko produksi | Uji mesin pilot |
+| Risiko                   | Dampak                      | Mitigasi                                 |
+| ------------------------ | --------------------------- | ---------------------------------------- |
+| Refund API tanpa UI      | Tidak bisa dipakai operator | Dokumentasikan; UI Fase 7                |
+| SSE in-process           | Tidak multi-process         | Single process; upgrade shared transport |
+| Restore menutup DB       | Downtime                    | Restart procedure                        |
+| QR key hilang            | QR tidak bisa decrypt       | Backup env key                           |
+| License public key salah | License invalid             | Validasi startup                         |
+| Full seed besar          | Migration/seed lambat       | Test idempotent                          |
+| Idempotency table tumbuh | Ukuran DB                   | TTL cleanup                              |
+| Public endpoint abuse    | Spam order                  | Rate limit                               |
+| Report refunded order    | Angka ambigu                | Dokumentasikan gross vs paid             |
+| Node 26 non-LTS          | Risiko produksi             | Uji mesin pilot                          |
 
 ## 21. Urutan implementasi
 
@@ -1569,77 +1676,77 @@ GET    /api/public/orders/:publicToken
 
 ## Appendix B: Permission matrix
 
-| Endpoint group | Permission |
-| --- | --- |
-| Users read | `users.view` |
-| Users write | `users.manage` |
-| Roles write | `roles.manage` |
+| Endpoint group    | Permission           |
+| ----------------- | -------------------- |
+| Users read        | `users.view`         |
+| Users write       | `users.manage`       |
+| Roles write       | `roles.manage`       |
 | Permissions write | `permissions.manage` |
-| Categories read | `categories.view` |
-| Categories write | `categories.manage` |
-| Products read | `products.view` |
-| Products write | `products.manage` |
-| Tables read | `tables.view` |
-| Tables write | `tables.manage` |
-| Orders read | `orders.view` |
-| Orders create | `orders.create` |
-| Orders cancel | `orders.cancel` |
-| Payments read | `payments.view` |
-| Payments create | `payments.create` |
-| Refund | `payments.refund` |
-| KDS read | `kds.view` |
-| KDS status | `kds.update_status` |
-| Reports | `reports.view` |
-| License | `license.view` |
-| Backup | `backup.create` |
-| Restore | `backup.restore` |
+| Categories read   | `categories.view`    |
+| Categories write  | `categories.manage`  |
+| Products read     | `products.view`      |
+| Products write    | `products.manage`    |
+| Tables read       | `tables.view`        |
+| Tables write      | `tables.manage`      |
+| Orders read       | `orders.view`        |
+| Orders create     | `orders.create`      |
+| Orders cancel     | `orders.cancel`      |
+| Payments read     | `payments.view`      |
+| Payments create   | `payments.create`    |
+| Refund            | `payments.refund`    |
+| KDS read          | `kds.view`           |
+| KDS status        | `kds.update_status`  |
+| Reports           | `reports.view`       |
+| License           | `license.view`       |
+| Backup            | `backup.create`      |
+| Restore           | `backup.restore`     |
 
 ## Appendix C: Error code
 
-| Code | Status | Arti |
-| --- | --- | --- |
-| `VALIDATION_FAILED` | 400 | Input invalid |
-| `AUTH_SESSION_REQUIRED` | 401 | Session tidak ada |
-| `AUTH_FORBIDDEN` | 403 | Permission kurang |
-| `ORIGIN_FORBIDDEN` | 403 | Origin mutasi |
-| `USER_NOT_FOUND` | 404 | User |
-| `USER_EMAIL_CONFLICT` | 409 | Email/username |
-| `LAST_OWNER_GUARD` | 409 | Owner terakhir |
-| `ROLE_NOT_FOUND` | 404 | Role |
-| `ROLE_CODE_IMMUTABLE` | 409 | Role system |
-| `PERMISSION_UNKNOWN` | 400 | Permission code |
-| `CATEGORY_NOT_FOUND` | 404 | Kategori |
-| `PRODUCT_NOT_FOUND` | 404 | Produk |
-| `PRODUCT_UNAVAILABLE` | 409 | Produk tidak tersedia |
-| `VARIANT_INVALID` | 400 | Varian |
-| `ADD_ON_INVALID` | 400 | Add-on |
-| `TABLE_NOT_FOUND` | 404 | Meja |
-| `TABLE_NOT_AVAILABLE` | 409 | Meja |
-| `QR_TOKEN_UNAVAILABLE` | 409 | Ciphertext null |
-| `QR_TOKEN_INVALID` | 404 | Token publik |
-| `ORDER_NOT_FOUND` | 404 | Order |
-| `ORDER_INVALID_STATE` | 409 | Status order |
-| `ORDER_EMPTY` | 400 | Item kosong |
-| `ORDER_TABLE_INVALID` | 400 | Tipe/meja |
-| `ORDER_NUMBER_CONFLICT` | 409 | Nomor order |
-| `PAYMENT_NOT_FOUND` | 404 | Payment |
-| `PAYMENT_EXCEEDS_REMAINING` | 409 | Nominal |
-| `PAYMENT_DIGITAL_UNVERIFIED` | 400 | Verifikasi digital |
-| `ORDER_NOT_PAID` | 409 | Refund |
-| `REFUND_ALREADY_EXISTS` | 409 | Refund ganda |
-| `REFUND_NOT_ALLOWED` | 409 | Refund |
-| `KDS_TRANSITION_INVALID` | 409 | Transisi |
-| `IDEMPOTENCY_KEY_REQUIRED` | 400 | Header |
-| `IDEMPOTENCY_KEY_REUSED` | 409 | Hash beda |
-| `RATE_LIMITED` | 429 | Rate limit |
-| `LICENSE_INVALID` | 409 | Lisensi |
-| `LICENSE_EXPIRED` | 409 | Lisensi |
-| `LICENSE_IDENTITY_MISMATCH` | 409 | Lisensi |
-| `BACKUP_NOT_FOUND` | 404 | Backup |
-| `BACKUP_INVALID` | 422 | Backup |
-| `RESTORE_CONFIRMATION_REQUIRED` | 400 | Confirm |
-| `DATABASE_UNAVAILABLE` | 503 | Database |
-| `INTERNAL_ERROR` | 500 | Internal |
+| Code                            | Status | Arti                  |
+| ------------------------------- | ------ | --------------------- |
+| `VALIDATION_FAILED`             | 400    | Input invalid         |
+| `AUTH_SESSION_REQUIRED`         | 401    | Session tidak ada     |
+| `AUTH_FORBIDDEN`                | 403    | Permission kurang     |
+| `ORIGIN_FORBIDDEN`              | 403    | Origin mutasi         |
+| `USER_NOT_FOUND`                | 404    | User                  |
+| `USER_EMAIL_CONFLICT`           | 409    | Email/username        |
+| `LAST_OWNER_GUARD`              | 409    | Owner terakhir        |
+| `ROLE_NOT_FOUND`                | 404    | Role                  |
+| `ROLE_CODE_IMMUTABLE`           | 409    | Role system           |
+| `PERMISSION_UNKNOWN`            | 400    | Permission code       |
+| `CATEGORY_NOT_FOUND`            | 404    | Kategori              |
+| `PRODUCT_NOT_FOUND`             | 404    | Produk                |
+| `PRODUCT_UNAVAILABLE`           | 409    | Produk tidak tersedia |
+| `VARIANT_INVALID`               | 400    | Varian                |
+| `ADD_ON_INVALID`                | 400    | Add-on                |
+| `TABLE_NOT_FOUND`               | 404    | Meja                  |
+| `TABLE_NOT_AVAILABLE`           | 409    | Meja                  |
+| `QR_TOKEN_UNAVAILABLE`          | 409    | Ciphertext null       |
+| `QR_TOKEN_INVALID`              | 404    | Token publik          |
+| `ORDER_NOT_FOUND`               | 404    | Order                 |
+| `ORDER_INVALID_STATE`           | 409    | Status order          |
+| `ORDER_EMPTY`                   | 400    | Item kosong           |
+| `ORDER_TABLE_INVALID`           | 400    | Tipe/meja             |
+| `ORDER_NUMBER_CONFLICT`         | 409    | Nomor order           |
+| `PAYMENT_NOT_FOUND`             | 404    | Payment               |
+| `PAYMENT_EXCEEDS_REMAINING`     | 409    | Nominal               |
+| `PAYMENT_DIGITAL_UNVERIFIED`    | 400    | Verifikasi digital    |
+| `ORDER_NOT_PAID`                | 409    | Refund                |
+| `REFUND_ALREADY_EXISTS`         | 409    | Refund ganda          |
+| `REFUND_NOT_ALLOWED`            | 409    | Refund                |
+| `KDS_TRANSITION_INVALID`        | 409    | Transisi              |
+| `IDEMPOTENCY_KEY_REQUIRED`      | 400    | Header                |
+| `IDEMPOTENCY_KEY_REUSED`        | 409    | Hash beda             |
+| `RATE_LIMITED`                  | 429    | Rate limit            |
+| `LICENSE_INVALID`               | 409    | Lisensi               |
+| `LICENSE_EXPIRED`               | 409    | Lisensi               |
+| `LICENSE_IDENTITY_MISMATCH`     | 409    | Lisensi               |
+| `BACKUP_NOT_FOUND`              | 404    | Backup                |
+| `BACKUP_INVALID`                | 422    | Backup                |
+| `RESTORE_CONFIRMATION_REQUIRED` | 400    | Confirm               |
+| `DATABASE_UNAVAILABLE`          | 503    | Database              |
+| `INTERNAL_ERROR`                | 500    | Internal              |
 
 ## Appendix D: Contoh request dan response
 

@@ -14,6 +14,12 @@ export async function findBusinessById(db: DbExecutor, id: string) {
   return rows[0] ?? null;
 }
 
+export async function findFirstBusiness(db: DbExecutor) {
+  const rows = await db.select().from(business).limit(1);
+
+  return rows[0] ?? null;
+}
+
 export async function findBusinessByCode(db: DbExecutor, code: string) {
   const rows = await db
     .select()

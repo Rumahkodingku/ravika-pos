@@ -1213,10 +1213,9 @@ Ketentuan:
 - Pembayaran yang gagal atau dibatalkan tidak dihitung sebagai
     pembayaran diterima.
 - Refund harus memiliki nominal, waktu, alasan, dan aktor.
-- Definisi refund penuh atau sebagian perlu direpresentasikan secara
-    konsisten pada model data. Jika refund sebagian diterapkan, status
-    perlu diperluas atau jumlah refund harus menjadi sumber kebenaran,
-    bukan hanya satu status sederhana.
+- Refund MVP adalah refund penuh satu order. Semua payment `RECORDED`
+    berubah menjadi `REFUNDED` dan status pembayaran order menjadi
+    `REFUNDED`. Refund sebagian tidak termasuk MVP.
 
 ## 8.3 Status meja
 
@@ -1332,11 +1331,11 @@ reference nullable - notes nullable - recorded_by - paid_at - created_at
 
 ### Refund
 
-Jika refund dimasukkan pada MVP, catat sebagai entitas terpisah agar
-audit dan nominal pengembalian jelas.
+Refund MVP hanya penuh per order dan hanya untuk order `PAID`. Catat
+sebagai entitas terpisah agar audit dan nominal pengembalian jelas.
 
-Atribut konseptual: - id - payment_id - amount - reason - status -
-recorded_by - created_at
+Atribut konseptual: - id - order_id - amount - reason - recorded_by -
+created_at
 
 ### OrderStatusHistory
 
@@ -1881,7 +1880,7 @@ POST   /api/public/orders
 ``` text
 GET    /api/orders/:id/payments
 POST   /api/orders/:id/payments
-POST   /api/payments/:id/refunds
+POST   /api/orders/:id/refund
 ```
 
 ## 13.8 KDS dan peristiwa
@@ -2221,15 +2220,14 @@ diam-diam.
                                                   aturan bisnis pilot
                                                   dikonfirmasi.
 
-  OPEN-007                Uang kembalian          Tentukan apakah nominal
-                                                  tunai boleh melebihi
-                                                  tagihan dan bagaimana
-                                                  nilai kembalian
-                                                  dicatat.
+  OPEN-007                Uang kembalian          Diputuskan Fase 6:
+                                                  nominal tunai tidak
+                                                  melebihi tagihan; amount
+                                                  adalah nilai diterapkan.
 
-  OPEN-008                Refund                  Tentukan apakah refund
-                                                  penuh saja atau refund
-                                                  sebagian masuk MVP.
+  OPEN-008                Refund                  Diputuskan Fase 6:
+                                                  refund penuh per order,
+                                                  hanya untuk order PAID.
 
   OPEN-009                Identitas takeaway QR   Tentukan apakah menu
                                                   takeaway menggunakan QR

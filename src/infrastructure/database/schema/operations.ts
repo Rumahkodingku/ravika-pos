@@ -37,6 +37,7 @@ export const diningTables = sqliteTable(
       .notNull()
       .default("AVAILABLE"),
     qrTokenHash: text("qr_token_hash").notNull().unique(),
+    qrTokenCiphertext: text("qr_token_ciphertext"),
     isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
     createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
     updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
@@ -209,4 +210,22 @@ export const orderStatusHistory = sqliteTable(
     index("order_status_history_order_id_idx").on(table.orderId),
     index("order_status_history_created_at_idx").on(table.createdAt),
   ],
+);
+
+export const refunds = sqliteTable(
+  "refunds",
+  {
+    id: text("id").primaryKey(),
+    orderId: text("order_id")
+      .notNull()
+      .unique()
+      .references(() => orders.id, { onDelete: "restrict" }),
+    amount: integer("amount").notNull(),
+    reason: text("reason").notNull(),
+    recordedBy: text("recorded_by")
+      .notNull()
+      .references(() => users.id, { onDelete: "restrict" }),
+    createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
+  },
+  (table) => [check("refunds_amount_check", sql`${table.amount} > 0`)],
 );

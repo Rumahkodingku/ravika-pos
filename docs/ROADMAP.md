@@ -617,78 +617,78 @@ jika hasil finalisasi domain menunjukkan dependency berbeda.
 
 ### 6.1 Business
 
-- [ ] Profil business.
-- [ ] Validasi batas data business.
+- [x] Profil business.
+- [x] Validasi batas data business.
 
 ### 6.2 Users, Roles, and Permissions
 
-- [ ] User CRUD dan status.
-- [ ] Role CRUD.
-- [ ] Permission registry dan assignment.
-- [ ] Role-permission management.
-- [ ] Authorization policy per endpoint/use case.
-- [ ] Seed built-in roles OWNER, CASHIER, BARISTA tanpa mengunci
+- [x] User CRUD dan status.
+- [x] Role CRUD.
+- [x] Permission registry dan assignment.
+- [x] Role-permission management.
+- [x] Authorization policy per endpoint/use case.
+- [x] Seed built-in roles OWNER, CASHIER, BARISTA tanpa mengunci
     desain agar role tetap dinamis.
 
 ### 6.3 Catalog
 
-- [ ] Category CRUD.
-- [ ] Product CRUD.
-- [ ] Variant dan add-on.
-- [ ] Harga dan status produk.
-- [ ] Validasi relasi produk-kategori.
-- [ ] Data snapshot untuk order item.
+- [x] Category CRUD.
+- [x] Product CRUD.
+- [x] Variant dan add-on.
+- [x] Harga dan status produk.
+- [x] Validasi relasi produk-kategori.
+- [x] Data snapshot untuk order item.
 
 ### 6.4 Tables and QR
 
-- [ ] Table CRUD.
-- [ ] Table status.
-- [ ] Pembuatan dan validasi token QR yang tidak mudah ditebak.
-- [ ] Validasi token saat QR ordering.
+- [x] Table CRUD.
+- [x] Table status.
+- [x] Pembuatan dan validasi token QR yang tidak mudah ditebak.
+- [x] Validasi token saat QR ordering.
 
 ### 6.5 Orders
 
-- [ ] Pembuatan order dine-in dan takeaway.
-- [ ] Nomor order unik.
-- [ ] Order items dan snapshot data produk.
-- [ ] Order detail dan history.
-- [ ] Pembatalan dengan permission.
-- [ ] Validasi transisi status.
-- [ ] Transaction boundary untuk proses pembuatan order.
+- [x] Pembuatan order dine-in dan takeaway.
+- [x] Nomor order unik.
+- [x] Order items dan snapshot data produk.
+- [x] Order detail dan history.
+- [x] Pembatalan dengan permission.
+- [x] Validasi transisi status.
+- [x] Transaction boundary untuk proses pembuatan order.
 
 ### 6.6 Payments
 
-- [ ] Pencatatan pembayaran.
-- [ ] Multiple payment records/split payment.
-- [ ] Metode cash, QRIS, transfer, dan e-wallet.
-- [ ] Verifikasi manual untuk pembayaran digital pada MVP.
-- [ ] Perhitungan status UNPAID, PARTIALLY_PAID, PAID, dan REFUNDED.
-- [ ] Refund/correction sesuai aturan PRD dan permission.
+- [x] Pencatatan pembayaran.
+- [x] Multiple payment records/split payment.
+- [x] Metode cash, QRIS, transfer, dan e-wallet.
+- [x] Verifikasi manual untuk pembayaran digital pada MVP.
+- [x] Perhitungan status UNPAID, PARTIALLY_PAID, PAID, dan REFUNDED.
+- [x] Refund/correction sesuai aturan PRD dan permission.
 
 ### 6.7 KDS
 
-- [ ] Daftar order untuk KDS.
-- [ ] Transisi NEW, ACCEPTED, PREPARING, READY, COMPLETED, CANCELLED.
-- [ ] Validasi transisi status.
-- [ ] SSE event untuk pembaruan KDS.
-- [ ] Reconnect dan refetch saat koneksi SSE terputus.
+- [x] Daftar order untuk KDS.
+- [x] Transisi NEW, ACCEPTED, PREPARING, READY, COMPLETED, CANCELLED.
+- [x] Validasi transisi status.
+- [x] SSE event untuk pembaruan KDS.
+- [x] Reconnect dan refetch saat koneksi SSE terputus.
 
 ### 6.8 Reporting
 
-- [ ] Ringkasan penjualan.
-- [ ] Jumlah transaksi.
-- [ ] Ringkasan status order.
-- [ ] Produk terlaris.
-- [ ] Filter periode.
-- [ ] Validasi konsistensi perhitungan laporan.
+- [x] Ringkasan penjualan.
+- [x] Jumlah transaksi.
+- [x] Ringkasan status order.
+- [x] Produk terlaris.
+- [x] Filter periode.
+- [x] Validasi konsistensi perhitungan laporan.
 
 ### 6.9 License and Backup
 
-- [ ] Validasi license token lokal menggunakan public key.
-- [ ] Status dan informasi lisensi.
-- [ ] Backup database.
-- [ ] Restore database dengan validasi keamanan dan integritas.
-- [ ] Dokumentasi prosedur backup/restore.
+- [x] Validasi license token lokal menggunakan public key.
+- [x] Status dan informasi lisensi.
+- [x] Backup database.
+- [x] Restore database dengan validasi keamanan dan integritas.
+- [x] Dokumentasi prosedur backup/restore.
 
 ### Output
 

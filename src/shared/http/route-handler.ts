@@ -46,20 +46,27 @@ export async function parseJson<T>(request: Request, schema: ZodType<T>) {
   return parsed.data;
 }
 
-type Handler = (
+type RouteContext = Record<string, unknown>;
+
+type Handler<TContext extends RouteContext> = (
   request: Request,
-  context: { requestId: string },
+  context: TContext & { requestId: string },
 ) => Promise<Response>;
 
-export function withApi(handler: Handler) {
-  return async (request: Request) => {
+export function withApi<TContext extends RouteContext = RouteContext>(
+  handler: Handler<TContext>,
+) {
+  return async (request: Request, context?: TContext) => {
     const requestId =
       request.headers.get("x-request-id") ?? crypto.randomUUID();
     const startedAt = performance.now();
     let status = 500;
 
     try {
-      const response = await handler(request, { requestId });
+      const response = await handler(request, {
+        ...(context ?? ({} as TContext)),
+        requestId,
+      });
       status = response.status;
       response.headers.set("x-request-id", requestId);
       return response;

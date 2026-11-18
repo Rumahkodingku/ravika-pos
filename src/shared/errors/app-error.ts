@@ -69,6 +69,15 @@ export class AppError extends Error {
     });
   }
 
+  static unprocessable(code: string, detail: string) {
+    return new AppError({
+      code,
+      detail,
+      status: 422,
+      title: "Aturan bisnis tidak terpenuhi",
+    });
+  }
+
   static rateLimited() {
     return new AppError({
       code: "RATE_LIMITED",

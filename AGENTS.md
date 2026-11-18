@@ -1,6 +1,6 @@
 # RAVIKA POS
 
-Self-hosted, LAN-first POS for cafes. Phase 1 foundation, Phase 1.5 operational UI, Phase 2 management UI, Phase 3 operational UI, and Phase 5 backend foundation are implemented. UI still uses mock data and mock auth until Phase 7. The backend provides SQLite/Drizzle, database-backed sessions, RBAC, and auth/health/business APIs.
+Self-hosted, LAN-first POS for cafes. Phase 1 foundation, Phase 1.5 operational UI, Phase 2 management UI, Phase 3 operational UI, Phase 5 backend foundation, and Phase 6 backend API modules are implemented. UI still uses mock data and mock auth until Phase 7. The backend provides SQLite/Drizzle, database-backed sessions, RBAC, catalog, tables and QR, orders, payments, full-order refund, KDS with SSE, reports, license, and backup/restore APIs.
 
 ## Commands
 
@@ -50,12 +50,12 @@ Self-hosted, LAN-first POS for cafes. Phase 1 foundation, Phase 1.5 operational 
 - Product behavior and business rules live in `docs/PRD.md`. Read PRD plus `docs/design/*` before new pages or shared components.
 - Do not invent business rules, fields, states, or permissions.
 - Management and operational data in the UI live in one in-memory mock store and reset on reload. Mutations go through `managementService`.
-- Store changes sync across tabs through `BroadcastChannel`. There is no SSE yet.
+- Mock store changes sync across tabs through `BroadcastChannel`. The backend exposes SSE for KDS; the mock UI does not use it yet.
 - The real backend uses SQLite, Drizzle, database-backed sessions, scrypt passwords, and RBAC. It is not integrated into the UI until Phase 7.
 - POS order flow: create `NEW`/`UNPAID`, then record payment from POS. Management Payments stays read-only.
 - KDS only moves `NEW -> ACCEPTED -> PREPARING -> READY -> COMPLETED`. Cancel stays in management Orders.
 - Dine-in tables become `OCCUPIED` automatically and return to `AVAILABLE` when no active order remains.
-- Cancel is blocked when a recorded payment exists. Refund is not implemented.
+- Cancel is blocked when a recorded payment exists. The backend supports full-order refund only for `PAID` orders; there is no refund UI yet.
 - Mock auth uses `sessionStorage` key `ravika-session-user-id`. Demo accounts: `owner@ravika.id`, `cashier@ravika.id`, `barista@ravika.id`, password `demo123`.
 - POS cart uses sessionStorage key `ravika-pos-cart`. QR table tokens and order public tokens are separate.
 - QR table codes are scannable. Product images remain neutral placeholders with no upload.
@@ -91,8 +91,11 @@ If docs conflict with config or scripts, trust the executable source. If a requi
 - The order status route uses `export const instant = false` to avoid the `cacheComponents` URL-data prerender warning; review before removing.
 - Customer menu uses `useParams` in a client page and does not need `instant = false`.
 - No automated browser tests yet. Vitest covers backend foundation. Use `/app/design-system` for component QA.
-- Do not add Zustand, TanStack Query, or SSE until the relevant integration phase.
+- Do not add Zustand, TanStack Query, or client SSE until the relevant integration phase. The backend SSE route already exists.
 - Database file lives in `data/` by default and is ignored. Bootstrap owner production requires env variables from `.env.example`.
+- Phase 6 backend rules: order/payment/refund/public-order mutations require `Idempotency-Key`. Refund endpoint is `POST /api/orders/:id/refund` and is full-order only.
+- QR tokens require `RAVIKA_QR_TOKEN_KEY` (base64 32 bytes) in production. License verification uses `RAVIKA_LICENSE_FILE`, `RAVIKA_LICENSE_PUBLIC_KEY`, and `RAVIKA_INSTALLATION_ID`. Backup goes to `data/backups/`; restore requires a process restart.
+- Backend SSE is in-process only. Do not add Redis or a worker for it without an architecture decision.
 
 <!-- BEGIN:nextjs-agent-rules -->
 
