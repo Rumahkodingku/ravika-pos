@@ -36,6 +36,7 @@ export function usePublicMenuQuery(token: string) {
     queryFn: () =>
       apiFetch<PublicMenuResponse>(`/public/menu/${encodeURIComponent(token)}`),
     queryKey: queryKeys.publicMenu(token),
+    staleTime: 60_000,
   });
 }
 

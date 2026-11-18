@@ -1306,12 +1306,9 @@ Deviasi minor dari dokumen ini:
 1. Landing path juga mengarahkan pengguna dengan `payments.view` ke
    `/app/pos`, meskipun tanpa `orders.create`. Ini menutup operator
    pembayaran agar tidak berakhir di halaman terlarang.
-2. Logout membersihkan cache query dan mengarahkan ke `/login`, tetapi
-   tidak menghapus isi `ravika-pos-cart` di sessionStorage. Keranjang
-   tetap ada sampai dihapus manual atau checkout.
-3. Public menu memakai stale time default 30 detik, bukan 60 detik.
-4. UI tidak memakai `staleTime` operasional terpisah; semua query
-   memakai default 30 detik kecuali public status yang polling 10 detik.
+2. UI tidak memakai `staleTime` operasional terpisah; semua query
+   memakai default 30 detik kecuali public status yang polling 10 detik
+   dan public menu yang memakai 60 detik.
 
 Tidak ada deviasi kontrak API lain, migration baru, atau dependency di
 luar daftar.
