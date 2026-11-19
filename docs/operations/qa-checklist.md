@@ -27,6 +27,7 @@
 - [ ] Instalasi systemd di Ubuntu fisik
 - [ ] LAN access dari ponsel fisik
 - [ ] Installer Windows 11 x64
+- [ ] Shortcut Start Menu muncul di Windows Search
 - [ ] Windows service start setelah reboot
 - [ ] Windows firewall rule TCP 3000 dan UDP 5353
 - [ ] Network Settings menampilkan IP, URL, dan QR

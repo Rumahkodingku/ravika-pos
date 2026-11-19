@@ -33,6 +33,15 @@ Name: "{commonappdata}\RAVIKA POS\config"; Permissions: users-modify
 Name: "{commonappdata}\RAVIKA POS\backups"; Permissions: users-modify
 Name: "{commonappdata}\RAVIKA POS\logs"; Permissions: users-modify
 
+[Tasks]
+Name: "desktopicon"; Description: "Buat shortcut RAVIKA POS di Desktop"; GroupDescription: "Shortcut:"
+
+[Icons]
+Name: "{group}\RAVIKA POS"; Filename: "http://127.0.0.1:3000"; IconFilename: "{sys}\shell32.dll"; IconIndex: 13
+Name: "{group}\Pengaturan Jaringan"; Filename: "http://127.0.0.1:3000/app/settings/network"; IconFilename: "{sys}\shell32.dll"; IconIndex: 13
+Name: "{group}\Uninstall RAVIKA POS"; Filename: "{uninstallexe}"
+Name: "{autodesktop}\RAVIKA POS"; Filename: "http://127.0.0.1:3000"; IconFilename: "{sys}\shell32.dll"; IconIndex: 13; Tasks: desktopicon
+
 [Run]
 Filename: "{app}\service\ravika-pos-service.exe"; Parameters: "install"; Flags: runhidden waituntilterminated
 Filename: "{sys}\sc.exe"; Parameters: "config {#ServiceId} obj= ""NT SERVICE\RAVIKA_POS"""; Flags: runhidden waituntilterminated

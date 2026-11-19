@@ -1315,6 +1315,7 @@ Content-Type: application/json
 - [x] D6 Node runtime bundle
 - [x] D6 firewall rules
 - [x] D6 service account ACL
+- [x] D6 Start Menu dan Desktop shortcut
 - [x] D7 setup restart
 - [x] D7 pre-upgrade backup
 - [x] D7 rollback
