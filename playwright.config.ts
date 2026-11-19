@@ -13,9 +13,12 @@ export default defineConfig({
   webServer: {
     command: "node scripts/e2e-server.mjs",
     env: {
+      RAVIKA_BOOTSTRAP_OWNER_EMAIL: "owner@ravika.id",
+      RAVIKA_BOOTSTRAP_OWNER_NAME: "Pemilik",
+      RAVIKA_BOOTSTRAP_OWNER_PASSWORD: "demo123",
       RAVIKA_DB_PATH: ".e2e/ravika.sqlite",
-      RAVIKA_SEED_MODE: "development",
       RAVIKA_QR_TOKEN_KEY: "AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE=",
+      RAVIKA_SEED_MODE: "production",
     },
     reuseExistingServer: !process.env.CI,
     timeout: 180_000,

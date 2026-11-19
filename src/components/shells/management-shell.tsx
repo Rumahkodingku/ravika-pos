@@ -4,6 +4,7 @@ import { ChevronDown, KeyRound, LogOut, Menu } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useMemo, useState } from "react";
+import { BrandLogo } from "@/components/brand/brand-logo";
 import { ShellTheme } from "@/components/shells/shell-theme";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { Button } from "@/components/ui/button";
@@ -109,9 +110,10 @@ export function ManagementShell({ children }: { children: React.ReactNode }) {
           <Container size="wide">
             <div className="flex h-[var(--ravika-header-height)] items-center gap-2">
               <Link
-                className="flex shrink-0 items-baseline gap-1.5 rounded-md px-1 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
+                className="flex shrink-0 items-center gap-2 rounded-md px-1 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
                 href="/app"
               >
+                <BrandLogo priority size="sm" />
                 <span className="text-lg font-bold tracking-tight text-foreground">
                   RAVIKA
                 </span>

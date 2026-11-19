@@ -3,6 +3,7 @@
 import { X } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useId, useRef } from "react";
+import { BrandLogo } from "@/components/brand/brand-logo";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/cn";
 import type { NavGroup, QuickAction } from "@/types/ui";
@@ -75,7 +76,8 @@ export function MobileMenuSheet({
       ref={dialogRef}
     >
       <div className="flex items-center justify-between gap-4 border-b border-border px-4 py-3">
-        <div className="flex items-baseline gap-1.5">
+        <div className="flex items-center gap-2">
+          <BrandLogo size="sm" />
           <span className="text-lg font-bold tracking-tight text-foreground">
             RAVIKA
           </span>

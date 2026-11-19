@@ -5,14 +5,38 @@ test("barista advances an order and recovers from SSE disconnect", async ({
   context,
   page,
 }) => {
-  await loginAs(page, "cashier");
+  await loginAs(page, "owner");
+
+  const categoryResponse = await page.request.post("/api/categories", {
+    data: {
+      description: "",
+      isActive: true,
+      name: "E2E Kategori",
+      sortOrder: 0,
+    },
+  });
+  const category = await categoryResponse.json();
+
+  const productResponse = await page.request.post("/api/products", {
+    data: {
+      basePrice: 18000,
+      categoryId: category.id,
+      description: "",
+      isActive: true,
+      isAvailable: true,
+      name: "Kopi KDS",
+      variants: [],
+    },
+  });
+  const product = await productResponse.json();
+
   const created = await page.request.post("/api/orders", {
     data: {
       items: [
         {
           addOnIds: [],
           notes: "",
-          productId: "product-kopi-susu",
+          productId: product.id,
           quantity: 1,
           variantId: null,
         },
@@ -26,7 +50,7 @@ test("barista advances an order and recovers from SSE disconnect", async ({
   expect(created.ok()).toBeTruthy();
   const order = (await created.json()) as { orderNumber: string };
 
-  await loginAs(page, "barista");
+  await loginAs(page, "owner");
   await page.goto("/kds");
 
   const ticket = page

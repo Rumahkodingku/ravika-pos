@@ -3,6 +3,7 @@
 import { Armchair, LogOut, ShoppingCart, Trash2, Wallet } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
+import { BrandLogo } from "@/components/brand/brand-logo";
 import { ConnectionIndicator } from "@/components/feedback/connection-indicator";
 import { EmptyState } from "@/components/feedback/empty-state";
 import {
@@ -299,9 +300,10 @@ function PosShellContent({
       <header className="sticky top-0 z-[var(--z-sticky)] border-b border-border bg-surface">
         <div className="flex min-h-[var(--ravika-header-height)] flex-wrap items-center gap-3 px-4 py-2 sm:px-6">
           <Link
-            className="flex shrink-0 items-baseline gap-1.5 rounded-md py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
+            className="flex shrink-0 items-center gap-2 rounded-md py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
             href="/app/pos"
           >
+            <BrandLogo priority size="sm" />
             <span className="text-lg font-bold tracking-tight text-foreground">
               RAVIKA
             </span>

@@ -343,7 +343,7 @@ Aturan:
 - Jika env owner ada, buat owner seperti sebelumnya.
 - Jika env owner tidak ada, seed tetap membuat permissions, roles, dan business.
 - Jangan throw.
-- Development seed tetap membuat demo data.
+- Seed hanya membuat data master dan owner bootstrap; tidak ada demo data.
 - Seed tetap idempotent.
 
 ### 7.2 Setup service

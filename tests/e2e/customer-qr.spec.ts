@@ -3,9 +3,46 @@ import { expect, test } from "@playwright/test";
 test("customer orders from QR menu and opens public status", async ({
   page,
 }) => {
-  await page.goto("/menu/demo-qr-token-table-1");
-  await page.getByRole("button", { name: "Tambah Kopi Susu" }).first().click();
-  await page.getByRole("button", { name: "Tambah ke keranjang" }).click();
+  await page.request.post("/api/auth/login", {
+    data: { identity: "owner@ravika.id", password: "demo123", remember: false },
+  });
+
+  const categoryResponse = await page.request.post("/api/categories", {
+    data: {
+      description: "",
+      isActive: true,
+      name: "E2E Kategori",
+      sortOrder: 0,
+    },
+  });
+  const category = await categoryResponse.json();
+
+  await page.request.post("/api/products", {
+    data: {
+      basePrice: 18000,
+      categoryId: category.id,
+      description: "",
+      isActive: true,
+      isAvailable: true,
+      name: "Kopi Customer",
+      variants: [],
+    },
+  });
+
+  const tableResponse = await page.request.post("/api/tables", {
+    data: {
+      isActive: true,
+      name: `Meja E2E ${Date.now()}`,
+      status: "AVAILABLE",
+    },
+  });
+  const table = await tableResponse.json();
+
+  await page.goto(`/menu/${table.qrToken}`);
+  await page
+    .getByRole("button", { name: "Tambah Kopi Customer" })
+    .first()
+    .click();
   await page.getByRole("button", { name: "Lihat keranjang" }).first().click();
   await page.getByRole("button", { name: "Kirim pesanan" }).click();
 

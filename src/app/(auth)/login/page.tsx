@@ -1,6 +1,7 @@
 "use client";
 
 import { HardDrive, Monitor, Wifi } from "lucide-react";
+import { BrandLogo } from "@/components/brand/brand-logo";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { LoginForm } from "@/features/auth/login-form";
 
@@ -24,7 +25,8 @@ export default function LoginPage() {
     <div className="grid min-h-dvh lg:grid-cols-2">
       <aside className="hidden flex-col justify-between gap-10 border-r border-border bg-surface-inverse p-10 text-inverse-foreground lg:flex xl:p-14">
         <div className="flex flex-col gap-10">
-          <div className="flex items-baseline gap-2">
+          <div className="flex items-center gap-2">
+            <BrandLogo priority size="lg" />
             <span className="text-2xl font-bold tracking-tight">RAVIKA</span>
             <span className="text-caption font-semibold text-inverse-foreground/70">
               POS
@@ -66,6 +68,7 @@ export default function LoginPage() {
 
         <div className="mx-auto flex w-full max-w-md flex-1 flex-col justify-start gap-8 px-6 py-16 sm:px-8 lg:justify-center">
           <div className="flex items-center gap-2 lg:hidden">
+            <BrandLogo size="md" />
             <span className="text-xl font-bold tracking-tight text-foreground">
               RAVIKA
             </span>

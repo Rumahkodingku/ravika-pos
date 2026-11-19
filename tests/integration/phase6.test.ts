@@ -1,11 +1,5 @@
-import { createHash, generateKeyPairSync, sign } from "node:crypto";
-import {
-  mkdtempSync,
-  readFileSync,
-  rmSync,
-  statSync,
-  writeFileSync,
-} from "node:fs";
+import { createHash } from "node:crypto";
+import { mkdtempSync, readFileSync, rmSync, statSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
@@ -14,7 +8,6 @@ import {
   type DatabaseBundle,
 } from "@/infrastructure/database/client";
 import { payments as paymentsTable } from "@/infrastructure/database/schema";
-import { seedDatabase } from "@/infrastructure/database/seed";
 import { formatDateKey } from "@/lib/format";
 import {
   createBackup,
@@ -49,7 +42,7 @@ import {
   regenerateTableToken,
 } from "@/modules/tables/table.service";
 import { createUser, updateUserById } from "@/modules/users/user.service";
-import { stableStringify } from "@/shared/stable-json";
+import { seedTestDatabase } from "../helpers/test-fixtures";
 
 const originalDbPath = process.env.RAVIKA_DB_PATH;
 let bundle: DatabaseBundle;
@@ -57,7 +50,7 @@ const businessId = "business-ravika";
 
 beforeEach(async () => {
   bundle = await createDatabase(":memory:", { bootstrap: false });
-  await seedDatabase(bundle.db, "development");
+  await seedTestDatabase(bundle);
 });
 
 afterEach(() => {
@@ -582,7 +575,7 @@ describe("phase 6 backup", () => {
     const backupPath = "";
 
     try {
-      await seedDatabase(sourceBundle.db, "development");
+      await seedTestDatabase(sourceBundle);
       const record = await createBackup(sourceBundle, businessId, "user-owner");
 
       process.env.RAVIKA_DB_PATH = target;

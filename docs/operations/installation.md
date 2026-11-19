@@ -43,9 +43,6 @@ RAVIKA_BOOTSTRAP_OWNER_NAME=Pemilik
 RAVIKA_BOOTSTRAP_OWNER_EMAIL=owner@example.com
 RAVIKA_BOOTSTRAP_OWNER_PASSWORD=<password-kuat>
 RAVIKA_QR_TOKEN_KEY=<base64-32-byte>
-RAVIKA_INSTALLATION_ID=installation-ravika
-RAVIKA_LICENSE_FILE=/opt/ravika-pos/data/license.json
-RAVIKA_LICENSE_PUBLIC_KEY=<public-key-der-spki-base64>
 ```
 
 Build:

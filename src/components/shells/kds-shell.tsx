@@ -1,7 +1,8 @@
 "use client";
 
-import { ChefHat, LogOut } from "lucide-react";
+import { LogOut } from "lucide-react";
 import Link from "next/link";
+import { BrandLogo } from "@/components/brand/brand-logo";
 import { ConnectionIndicator } from "@/components/feedback/connection-indicator";
 import { ShellTheme } from "@/components/shells/shell-theme";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
@@ -22,9 +23,7 @@ export function KdsShell({ children }: { children: React.ReactNode }) {
               className="flex min-h-11 shrink-0 items-center gap-2 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
               href="/kds"
             >
-              <span className="flex h-9 w-9 items-center justify-center rounded-md bg-primary text-primary-foreground">
-                <ChefHat aria-hidden="true" className="h-5 w-5" />
-              </span>
+              <BrandLogo className="brightness-0 invert" size="md" />
               <span className="flex flex-col leading-tight">
                 <span className="text-label font-semibold text-foreground">
                   RAVIKA KDS

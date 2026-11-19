@@ -31,6 +31,7 @@ import {
   PermissionGate,
   RequirePermission,
 } from "@/features/management/permission-gate";
+import { useNow } from "@/features/operational/use-now";
 import {
   formatCompactCurrency,
   formatCurrency,
@@ -43,6 +44,7 @@ import { preparationStatusConfig } from "@/lib/status";
 
 export default function DashboardPage() {
   const [range, setRange] = useState("today");
+  const now = useNow();
   const { data, error, isLoading, refetch } = useDashboardQuery(range);
 
   const totalActive =
@@ -68,7 +70,7 @@ export default function DashboardPage() {
             </PermissionGate>
           }
           description="Ringkasan operasional sesuai periode."
-          eyebrow={formatDate(new Date())}
+          eyebrow={now ? formatDate(now) : ""}
           title="Dashboard"
         />
 
@@ -224,7 +226,9 @@ export default function DashboardPage() {
                                 {order.orderType === "DINE_IN"
                                   ? `Dine-in, ${order.tableName ?? "Tanpa meja"}`
                                   : "Takeaway"}
-                                , {formatElapsed(order.createdAt)}
+                                {now
+                                  ? `, ${formatElapsed(order.createdAt, now)}`
+                                  : ""}
                               </span>
                             </div>
                             <StatusBadge

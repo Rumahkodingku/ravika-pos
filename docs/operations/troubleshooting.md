@@ -19,10 +19,6 @@ Ganti port `pnpm start -- -p <port>` dan sesuaikan firewall serta systemd.
 
 Cek koneksi browser, status indikator, dan log service. Reconnect akan memicu refetch. SSE hanya berjalan pada satu proses.
 
-## Lisensi invalid
-
-Cek `RAVIKA_LICENSE_FILE`, public key, installation ID, signature, dan tanggal expired. Pesan aman tampil di halaman lisensi.
-
 ## Restore macet
 
 Restart service setelah restore. Jangan melanjutkan transaksi sebelum health 200.

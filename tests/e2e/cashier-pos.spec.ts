@@ -2,17 +2,47 @@ import { expect, test } from "@playwright/test";
 import { loginAs } from "./helpers/auth";
 
 test("cashier creates an order and records split payment", async ({ page }) => {
-  await loginAs(page, "cashier");
+  await loginAs(page, "owner");
+
+  const categoryResponse = await page.request.post("/api/categories", {
+    data: {
+      description: "",
+      isActive: true,
+      name: "E2E Kategori",
+      sortOrder: 0,
+    },
+  });
+  const category = await categoryResponse.json();
+
+  await page.request.post("/api/products", {
+    data: {
+      basePrice: 18000,
+      categoryId: category.id,
+      description: "",
+      isActive: true,
+      isAvailable: true,
+      name: "Kopi Susu",
+      variants: [{ isActive: true, name: "Large", priceAdjustment: 5000 }],
+    },
+  });
+
+  const tableSuffix = String(Date.now()).slice(-5);
+
+  await page.request.post("/api/tables", {
+    data: {
+      isActive: true,
+      name: `Meja ${tableSuffix}`,
+      status: "AVAILABLE",
+    },
+  });
+
   await page.goto("/app/pos");
 
   await page.getByRole("button", { name: "Tambah Kopi Susu" }).first().click();
   await page.getByRole("button", { name: "Tambahkan" }).click();
 
   await page.getByRole("button", { name: /Pilih meja/ }).click();
-  await page
-    .getByRole("button", { name: /Meja 01/ })
-    .first()
-    .click();
+  await page.getByRole("button", { name: /Meja/ }).first().click();
   await page.getByRole("button", { name: "Lanjut ke konfirmasi" }).click();
   await page.getByRole("button", { name: "Konfirmasi pesanan" }).click();
   await expect(

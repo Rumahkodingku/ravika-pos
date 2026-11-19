@@ -17,9 +17,44 @@ async function expectNoOverflow(page: import("@playwright/test").Page) {
 test("public pages stay usable across viewports and themes", async ({
   page,
 }) => {
+  await page.request.post("/api/auth/login", {
+    data: { identity: "owner@ravika.id", password: "demo123", remember: false },
+  });
+
+  const categoryResponse = await page.request.post("/api/categories", {
+    data: {
+      description: "",
+      isActive: true,
+      name: "E2E Kategori",
+      sortOrder: 0,
+    },
+  });
+  const category = await categoryResponse.json();
+
+  await page.request.post("/api/products", {
+    data: {
+      basePrice: 18000,
+      categoryId: category.id,
+      description: "",
+      isActive: true,
+      isAvailable: true,
+      name: "Kopi Susu",
+      variants: [],
+    },
+  });
+
+  const tableResponse = await page.request.post("/api/tables", {
+    data: {
+      isActive: true,
+      name: `Meja E2E ${Date.now()}`,
+      status: "AVAILABLE",
+    },
+  });
+  const table = await tableResponse.json();
+
   for (const viewport of viewports) {
     await page.setViewportSize(viewport);
-    await page.goto("/menu/demo-qr-token-table-1");
+    await page.goto(`/menu/${table.qrToken}`);
     await expect(page.getByRole("heading", { name: "Menu" })).toBeVisible();
     await expectNoOverflow(page);
   }
@@ -32,7 +67,7 @@ test("public pages stay usable across viewports and themes", async ({
 });
 
 test("kds stays usable on a tablet viewport", async ({ page }) => {
-  await loginAs(page, "barista");
+  await loginAs(page, "owner");
   await page.setViewportSize({ height: 1180, width: 820 });
   await page.goto("/kds");
   await expect(

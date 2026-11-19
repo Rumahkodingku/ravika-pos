@@ -376,7 +376,6 @@ Contoh kode permission:
 - `backup.create`
 - `backup.restore`
 - `settings.manage`
-- `license.view`
 
 Daftar permission dapat disempurnakan ketika desain modul dan kebijakan
 operasional ditetapkan. Jangan membuat permission terlalu umum jika
@@ -1379,12 +1378,6 @@ changed_by nullable - reason nullable - created_at
 Atribut konseptual: - id - business_id - actor_user_id nullable -
 action - resource_type - resource_id - metadata yang aman - created_at
 
-### License
-
-Atribut konseptual: - id - license_key atau license_payload -
-business_identifier - issued_at - expires_at nullable sesuai model
-lisensi - signature - validation_status
-
 ### BackupRecord
 
 Atribut konseptual: - id - file_name - file_path - file_size -
@@ -1517,7 +1510,6 @@ Ketentuan:
 - `payments`
 - `kds`
 - `reporting`
-- `licensing`
 - `backup`
 
 ## 10.4 Rancangan struktur direktori awal
@@ -1550,7 +1542,6 @@ ravika-pos/
 │   │   ├── payments/
 │   │   ├── kds/
 │   │   ├── reporting/
-│   │   ├── licensing/
 │   │   └── backup/
 │   ├── infrastructure/
 │   │   ├── database/
@@ -1596,7 +1587,6 @@ Contoh kelompok endpoint:
 /api/payments/*
 /api/kds/*
 /api/reports/*
-/api/licensing/*
 /api/backup/*
 /api/events/*
 ```

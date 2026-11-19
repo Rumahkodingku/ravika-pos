@@ -3,20 +3,20 @@ import {
   createDatabase,
   type DatabaseBundle,
 } from "@/infrastructure/database/client";
-import { seedDatabase } from "@/infrastructure/database/seed";
 import { createOrder, getOrderHistory } from "@/modules/orders/order.service";
 import {
   listOrderPayments,
   listPayments,
   recordPayment,
 } from "@/modules/payments/payment.service";
+import { seedTestDatabase } from "../helpers/test-fixtures";
 
 const businessId = "business-ravika";
 let bundle: DatabaseBundle;
 
 beforeEach(async () => {
   bundle = await createDatabase(":memory:", { bootstrap: false });
-  await seedDatabase(bundle.db, "development");
+  await seedTestDatabase(bundle);
 });
 
 afterEach(() => {

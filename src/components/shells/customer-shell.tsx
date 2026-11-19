@@ -1,7 +1,8 @@
 "use client";
 
-import { MapPin, Store } from "lucide-react";
+import { MapPin } from "lucide-react";
 import { useParams } from "next/navigation";
+import { BrandLogo } from "@/components/brand/brand-logo";
 import { ShellTheme } from "@/components/shells/shell-theme";
 
 export function CustomerShell({ children }: { children: React.ReactNode }) {
@@ -13,9 +14,7 @@ export function CustomerShell({ children }: { children: React.ReactNode }) {
       <div className="flex min-h-dvh flex-col bg-surface-subtle">
         <header className="border-b border-border bg-surface">
           <div className="mx-auto flex w-full max-w-[480px] items-center gap-3 px-4 py-4">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-              <Store aria-hidden="true" className="h-5 w-5" />
-            </span>
+            <BrandLogo size="md" />
             <div className="flex min-w-0 flex-col">
               <span className="truncate text-body font-semibold text-foreground">
                 RAVIKA POS

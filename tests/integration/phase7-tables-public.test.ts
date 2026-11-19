@@ -5,15 +5,15 @@ import {
   type DatabaseBundle,
 } from "@/infrastructure/database/client";
 import { addOns } from "@/infrastructure/database/schema";
-import { seedDatabase } from "@/infrastructure/database/seed";
 import { getPublicMenu, listTables } from "@/modules/tables/table.service";
+import { seedTestDatabase } from "../helpers/test-fixtures";
 
 const businessId = "business-ravika";
 let bundle: DatabaseBundle;
 
 beforeEach(async () => {
   bundle = await createDatabase(":memory:", { bootstrap: false });
-  await seedDatabase(bundle.db, "development");
+  await seedTestDatabase(bundle);
 });
 
 afterEach(() => {

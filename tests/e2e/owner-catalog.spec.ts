@@ -15,20 +15,26 @@ test("owner manages catalog, add-on, product image, and table QR", async ({
   await expect(page).toHaveURL(/\/app$/);
 
   await page.goto("/app/categories");
-  await page.getByRole("button", { name: "Tambah kategori" }).click();
+  await page
+    .getByRole("button", { exact: true, name: "Tambah kategori" })
+    .click();
   await page.getByLabel(/^Nama kategori/).fill(categoryName);
   await page.getByRole("button", { name: "Simpan" }).click();
   await expect(page.getByText(categoryName).first()).toBeVisible();
 
   await page.goto("/app/add-ons");
-  await page.getByRole("button", { name: "Tambah add-on" }).click();
+  await page
+    .getByRole("button", { exact: true, name: "Tambah add-on" })
+    .click();
   await page.getByLabel(/^Nama add-on/).fill(addOnName);
   await page.getByLabel(/^Harga/).fill("3000");
   await page.getByRole("button", { name: "Simpan" }).click();
   await expect(page.getByText(addOnName).first()).toBeVisible();
 
   await page.goto("/app/products");
-  await page.getByRole("button", { name: "Tambah produk" }).click();
+  await page
+    .getByRole("button", { exact: true, name: "Tambah produk" })
+    .click();
   await page.getByLabel(/^Nama produk/).fill(productName);
   await page.getByLabel(/^Kategori/).selectOption({ label: categoryName });
   await page.getByLabel(/^Harga dasar/).fill("20000");
@@ -65,7 +71,7 @@ test("owner manages catalog, add-on, product image, and table QR", async ({
   ).toBeVisible();
 
   await page.goto("/app/tables");
-  await page.getByRole("button", { name: "Tambah meja" }).click();
+  await page.getByRole("button", { exact: true, name: "Tambah meja" }).click();
   await page.getByLabel(/^Nama atau nomor meja/).fill(tableName);
   await page.getByRole("button", { name: "Simpan" }).click();
   await expect(page.getByRole("dialog", { name: "Tambah meja" })).toBeHidden();

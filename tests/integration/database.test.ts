@@ -1,8 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import type { DatabaseBundle } from "@/infrastructure/database/client";
-import { seedDatabase } from "@/infrastructure/database/seed";
 import { permissionGroups } from "@/shared/permissions";
 import { createTestDatabase } from "../helpers/test-db";
+import { seedTestDatabase } from "../helpers/test-fixtures";
 
 let bundle: DatabaseBundle;
 
@@ -47,7 +47,6 @@ describe("database", () => {
         "payments",
         "order_status_history",
         "audit_logs",
-        "licenses",
         "backup_records",
       ]),
     );
@@ -58,7 +57,7 @@ describe("database", () => {
   });
 
   it("seeds idempotently", async () => {
-    await seedDatabase(bundle.db, "development");
+    await seedTestDatabase(bundle);
 
     const expectedPermissions = permissionGroups.flatMap(
       (group) => group.permissions,

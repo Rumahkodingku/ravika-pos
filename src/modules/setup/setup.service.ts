@@ -92,7 +92,6 @@ export async function runSetup(
       updatedAt: timestamp,
       username,
     });
-
   });
 
   return { restartRequired: true, setupComplete: true as const };

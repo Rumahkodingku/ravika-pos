@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { BrandLogo } from "@/components/brand/brand-logo";
 import { ErrorState } from "@/components/feedback/error-state";
 import { LoadingState } from "@/components/feedback/loading-state";
 import { Button } from "@/components/ui/button";
@@ -106,6 +107,12 @@ export default function SetupPage() {
 
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-2xl flex-col justify-center gap-6 px-6 py-10">
+      <div className="flex items-center gap-3">
+        <BrandLogo priority size="lg" />
+        <span className="text-2xl font-bold tracking-tight text-foreground">
+          RAVIKA POS
+        </span>
+      </div>
       <PageHeader
         description="Buat akun pemilik dan profil bisnis untuk memulai."
         title="Instalasi awal RAVIKA POS"
@@ -114,8 +121,7 @@ export default function SetupPage() {
         <CardContent className="flex flex-col gap-4 p-5">
           <p className="text-body text-muted-foreground">
             Kunci QR dibuat otomatis dan disimpan di .env. Restart aplikasi
-            setelah instalasi selesai. Status lisensi akan diperiksa setelah
-            instalasi.
+            setelah instalasi selesai.
           </p>
           <form className="flex flex-col gap-4" onSubmit={onSubmit}>
             <Field

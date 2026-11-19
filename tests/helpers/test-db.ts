@@ -1,8 +1,8 @@
 import { createDatabase } from "@/infrastructure/database/client";
-import { seedDatabase } from "@/infrastructure/database/seed";
+import { seedTestDatabase } from "./test-fixtures";
 
 export async function createTestDatabase() {
   const bundle = await createDatabase(":memory:", { bootstrap: false });
-  await seedDatabase(bundle.db, "development");
+  await seedTestDatabase(bundle);
   return bundle;
 }
