@@ -43,7 +43,9 @@ jobs:
           $required = @(
             ".next\standalone\server.js",
             ".next\standalone\drizzle\meta\_journal.json",
-            ".next\standalone\public"
+            ".next\standalone\public",
+            "release\app\server.js",
+            "release\app\node_modules\@swc\helpers\_\_interop_require_default\package.json"
           )
           foreach ($path in $required) {
             if (!(Test-Path $path)) {

@@ -20,7 +20,7 @@ WizardStyle=modern
 UninstallDisplayName={#AppName}
 
 [Files]
-Source: "..\.next\standalone\*"; DestDir: "{app}\app"; Flags: recursesubdirs createallsubdirs ignoreversion
+Source: "..\release\app\*"; DestDir: "{app}\app"; Flags: recursesubdirs createallsubdirs ignoreversion
 Source: "runtime\node.exe"; DestDir: "{app}\runtime"; Flags: ignoreversion
 Source: "ravika-pos-service.xml"; DestDir: "{app}\service"; Flags: ignoreversion
 Source: "winsw.exe"; DestDir: "{app}\service"; DestName: "ravika-pos-service.exe"; Flags: ignoreversion
