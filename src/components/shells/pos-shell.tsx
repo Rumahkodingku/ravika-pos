@@ -6,6 +6,7 @@ import { useState } from "react";
 import { BrandLogo } from "@/components/brand/brand-logo";
 import { ConnectionIndicator } from "@/components/feedback/connection-indicator";
 import { EmptyState } from "@/components/feedback/empty-state";
+import { AppHeader } from "@/components/shells/app-header";
 import {
   PosCartProvider,
   usePosCart,
@@ -36,6 +37,7 @@ import {
 import { useConnectionStatus } from "@/features/operational/use-connection-status";
 import { cn } from "@/lib/cn";
 import { formatCurrency } from "@/lib/format";
+import { hasManagementAccess } from "@/lib/navigation";
 import type { SessionUser } from "@/types/auth";
 import type { Order } from "@/types/domain";
 
@@ -294,74 +296,109 @@ function PosShellContent({
   const [payableOpen, setPayableOpen] = useState(false);
 
   const payableCount = payableOrders.length;
+  const showManagementHeader = hasManagementAccess(cashier.permissions);
 
   return (
     <div className="flex min-h-dvh flex-col bg-surface-subtle">
-      <header className="sticky top-0 z-[var(--z-sticky)] border-b border-border bg-surface">
-        <div className="flex min-h-[var(--ravika-header-height)] flex-wrap items-center gap-3 px-4 py-2 sm:px-6">
-          <Link
-            className="flex shrink-0 items-center gap-2 rounded-md py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
-            href="/app/pos"
-          >
-            <BrandLogo priority size="sm" />
-            <span className="text-lg font-bold tracking-tight text-foreground">
-              RAVIKA
-            </span>
-            <span className="text-caption font-semibold text-primary-strong">
-              POS
-            </span>
-          </Link>
-          <div className="hidden min-w-0 flex-col sm:flex">
-            <span className="truncate text-label font-medium text-foreground">
-              {business?.name ?? "RAVIKA"}
-            </span>
-            <span className="truncate text-caption text-muted-foreground">
-              Kasir: {cashier.name}
-            </span>
-          </div>
-          <div className="ml-auto flex items-center gap-2">
-            <div className="sm:hidden">
-              <ConnectionIndicator compact status={connectionStatus} />
+      {showManagementHeader ? (
+        <AppHeader
+          actions={
+            <>
+              <div className="sm:hidden">
+                <ConnectionIndicator compact status={connectionStatus} />
+              </div>
+              <div className="hidden sm:block">
+                <ConnectionIndicator status={connectionStatus} />
+              </div>
+              <Button
+                aria-label="Pesanan perlu dibayar"
+                onClick={() => setPayableOpen(true)}
+                variant="outline"
+              >
+                <Wallet aria-hidden="true" className="h-4 w-4" />
+                <span className="hidden sm:inline">Pesanan</span>
+                {payableCount > 0 ? (
+                  <Badge tone="warning">{payableCount}</Badge>
+                ) : null}
+              </Button>
+            </>
+          }
+          fullWidth
+          logoutLabel="Keluar POS"
+          onLogout={() => {
+            clearCart();
+            onLogout();
+          }}
+        />
+      ) : (
+        <header className="sticky top-0 z-[var(--z-sticky)] border-b border-border bg-surface">
+          <div className="flex min-h-[var(--ravika-header-height)] flex-wrap items-center gap-3 px-4 py-2 sm:px-6">
+            <Link
+              className="flex shrink-0 items-center gap-2 rounded-md py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
+              href="/app/pos"
+            >
+              <BrandLogo priority size="sm" />
+              <span className="text-lg font-bold tracking-tight text-foreground">
+                RAVIKA
+              </span>
+              <span className="text-caption font-semibold text-primary-strong">
+                POS
+              </span>
+            </Link>
+            <div className="hidden min-w-0 flex-col sm:flex">
+              <span className="truncate text-label font-medium text-foreground">
+                {business?.name ?? "RAVIKA"}
+              </span>
+              <span className="truncate text-caption text-muted-foreground">
+                Kasir: {cashier.name}
+              </span>
             </div>
-            <div className="hidden sm:block">
-              <ConnectionIndicator status={connectionStatus} />
+            <div className="ml-auto flex items-center gap-2">
+              <div className="sm:hidden">
+                <ConnectionIndicator compact status={connectionStatus} />
+              </div>
+              <div className="hidden sm:block">
+                <ConnectionIndicator status={connectionStatus} />
+              </div>
+              <ThemeToggle />
+              <Button
+                aria-label="Pesanan perlu dibayar"
+                onClick={() => setPayableOpen(true)}
+                variant="outline"
+              >
+                <Wallet aria-hidden="true" className="h-4 w-4" />
+                <span className="hidden sm:inline">Pesanan</span>
+                {payableCount > 0 ? (
+                  <Badge tone="warning">{payableCount}</Badge>
+                ) : null}
+              </Button>
+              <Button
+                aria-label="Buka keranjang"
+                className="lg:hidden"
+                onClick={() => setCartOpen(true)}
+                variant="outline"
+              >
+                <ShoppingCart aria-hidden="true" className="h-4 w-4" />
+                <span className="hidden sm:inline">Keranjang</span>
+                {itemCount > 0 ? (
+                  <Badge tone="primary">{itemCount}</Badge>
+                ) : null}
+              </Button>
+              <Button
+                aria-label="Keluar POS"
+                onClick={() => {
+                  clearCart();
+                  onLogout();
+                }}
+                variant="outline"
+              >
+                <LogOut aria-hidden="true" className="h-4 w-4" />
+                <span className="hidden sm:inline">Keluar POS</span>
+              </Button>
             </div>
-            <ThemeToggle />
-            <Button
-              aria-label="Pesanan perlu dibayar"
-              onClick={() => setPayableOpen(true)}
-              variant="outline"
-            >
-              <Wallet aria-hidden="true" className="h-4 w-4" />
-              <span className="hidden sm:inline">Pesanan</span>
-              {payableCount > 0 ? (
-                <Badge tone="warning">{payableCount}</Badge>
-              ) : null}
-            </Button>
-            <Button
-              aria-label="Buka keranjang"
-              className="lg:hidden"
-              onClick={() => setCartOpen(true)}
-              variant="outline"
-            >
-              <ShoppingCart aria-hidden="true" className="h-4 w-4" />
-              <span className="hidden sm:inline">Keranjang</span>
-              {itemCount > 0 ? <Badge tone="primary">{itemCount}</Badge> : null}
-            </Button>
-            <Button
-              aria-label="Keluar POS"
-              onClick={() => {
-                clearCart();
-                onLogout();
-              }}
-              variant="outline"
-            >
-              <LogOut aria-hidden="true" className="h-4 w-4" />
-              <span className="hidden sm:inline">Keluar POS</span>
-            </Button>
           </div>
-        </div>
-      </header>
+        </header>
+      )}
 
       <div className="flex min-h-0 flex-1">
         <main className="min-w-0 flex-1 p-4 pb-28 sm:p-6 lg:pb-6">

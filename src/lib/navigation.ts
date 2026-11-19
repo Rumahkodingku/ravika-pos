@@ -184,3 +184,16 @@ export const quickActions: QuickAction[] = [
 ];
 
 export const managementNavigation = megaMenuGroups;
+
+const managementAccessPermissions = [
+  "users.view",
+  "reports.view",
+  "settings.manage",
+  "backup.create",
+];
+
+export function hasManagementAccess(permissions: string[]) {
+  return managementAccessPermissions.some((permission) =>
+    permissions.includes(permission),
+  );
+}

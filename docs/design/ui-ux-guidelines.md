@@ -67,13 +67,15 @@ Struktur desktop:
 - Persistent cart/order summary region.
 - Checkout action yang jelas.
 
+Owner dan pengguna dengan izin management memakai header management yang sama dengan shell management. Header tersebut menyediakan quick navigation, `Menu Lainnya`, dan user menu. Aksi POS seperti koneksi dan pesanan perlu dibayar tetap tersedia di header.
+
 Responsive:
 
 - Tablet: optimalkan target sentuh dan pertahankan cart access.
 - Mobile: product list menjadi fokus; cart dibuka melalui drawer atau halaman/panel khusus.
 - Jangan mengecilkan dua panel desktop menjadi dua kolom sempit.
 
-POS shell tidak menampilkan navigasi dashboard yang tidak relevan. Perpindahan keluar dari mode POS harus jelas dan tidak menghilangkan cart tanpa penanganan.
+Staf POS tetap memakai compact header tanpa navigasi management agar fokus transaksi. Pengguna management boleh berpindah modul dari POS. Cart tersimpan di `sessionStorage`; logout dari POS harus membersihkan cart.
 
 ### 3.3 KDS shell
 
@@ -86,10 +88,12 @@ Struktur:
 - Ticket dengan informasi pesanan dan tindakan status.
 - Secondary/history view bila disediakan sesuai PRD.
 
+Owner dan pengguna dengan izin management memakai header management dengan indikator koneksi KDS. Staf KDS tetap memakai header ringkas.
+
 Rules:
 
 - Prioritaskan keterbacaan dari jarak operasional.
-- Hindari menu dan kontrol yang tidak dibutuhkan.
+- Hindari menu dan kontrol yang tidak dibutuhkan oleh staf.
 - Ticket tidak boleh berubah posisi secara mengejutkan saat update.
 - Gunakan indikator koneksi dan reconnect.
 - READY tetap terlihat sampai diambil atau diselesaikan.
