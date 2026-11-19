@@ -155,11 +155,15 @@ export async function createCategory(
 ) {
   const timestamp = now();
   const id = newId();
+  const rows = await listCategoryRows(db, businessId);
+  const sortOrder =
+    rows.reduce((highest, row) => Math.max(highest, row.sortOrder), -1) + 1;
 
   await insertCategory(db, {
     id,
     businessId,
     ...input,
+    sortOrder,
     createdAt: timestamp,
     updatedAt: timestamp,
   });

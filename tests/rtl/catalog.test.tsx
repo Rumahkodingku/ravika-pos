@@ -216,6 +216,7 @@ describe("ProductsPage", () => {
 
     await user.click(screen.getByRole("button", { name: "Varian" }));
     await user.type(screen.getByLabelText(/^Nama varian/), "Large");
+    await user.type(screen.getByLabelText(/^Tambahan harga/), "5000");
 
     await user.click(screen.getByRole("button", { name: "Add-on" }));
     await user.selectOptions(
@@ -244,7 +245,10 @@ describe("ProductsPage", () => {
       name: "Kopi Susu",
     });
     expect(body.variants).toHaveLength(1);
-    expect(body.variants[0]).toMatchObject({ name: "Large" });
+    expect(body.variants[0]).toMatchObject({
+      name: "Large",
+      priceAdjustment: 5000,
+    });
     expect(body.addOns).toEqual([
       {
         addOnId: "addon-extra-shot",

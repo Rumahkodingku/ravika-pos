@@ -25,6 +25,13 @@ export function formatCurrency(value: number | null | undefined) {
   return currencyFormatter.format(value);
 }
 
+// Number inputs change value on mouse wheel; parse digits from text instead.
+export function parseCurrencyInput(value: unknown) {
+  const digits = String(value ?? "").replace(/\D/g, "");
+
+  return digits ? Number(digits) : 0;
+}
+
 export function formatNumber(value: number | null | undefined) {
   if (value === null || value === undefined || Number.isNaN(value)) {
     return EMPTY_VALUE;

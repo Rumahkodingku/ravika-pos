@@ -12,7 +12,6 @@ test("customer orders from QR menu and opens public status", async ({
       description: "",
       isActive: true,
       name: "E2E Kategori",
-      sortOrder: 0,
     },
   });
   const category = await categoryResponse.json();

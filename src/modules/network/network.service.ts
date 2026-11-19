@@ -148,6 +148,24 @@ export async function setPreferredInterface(interfaceId: string) {
   return getNetworkStatus(true);
 }
 
+export async function getPreferredLanUrl(path = "/") {
+  try {
+    const status = await getNetworkStatus(true);
+    const address =
+      status.addresses.find((entry) => entry.preferred)?.address ??
+      status.addresses[0]?.address;
+
+    if (!address) {
+      return null;
+    }
+
+    return `http://${address}:${status.server.port}${path}`;
+  } catch {
+    // Setup must not fail because network detection failed.
+    return null;
+  }
+}
+
 export function startNetworkMonitor() {
   if (monitor) {
     return;

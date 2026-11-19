@@ -48,7 +48,7 @@ import { ResponsiveList } from "@/features/management/responsive-list";
 import { SortableTableHead } from "@/features/management/sortable-table-head";
 import { TablePagination } from "@/features/management/table-pagination";
 import { TableSkeleton } from "@/features/management/table-skeleton";
-import { formatCurrency } from "@/lib/format";
+import { formatCurrency, parseCurrencyInput } from "@/lib/format";
 import { compressProductImage, PRODUCT_IMAGE_ACCEPT } from "@/lib/image";
 import type { Product } from "@/types/domain";
 
@@ -688,10 +688,11 @@ export default function ProductsPage() {
               >
                 <Input
                   id="product-price"
-                  min={0}
-                  step={1}
-                  type="number"
-                  {...register("basePrice", { valueAsNumber: true })}
+                  inputMode="numeric"
+                  type="text"
+                  {...register("basePrice", {
+                    setValueAs: parseCurrencyInput,
+                  })}
                 />
               </Field>
             </div>
@@ -758,11 +759,10 @@ export default function ProductsPage() {
                 >
                   <Input
                     id={`variant-price-${field.id}`}
-                    min={0}
-                    step={1}
-                    type="number"
+                    inputMode="numeric"
+                    type="text"
                     {...register(`variants.${index}.priceAdjustment`, {
-                      valueAsNumber: true,
+                      setValueAs: parseCurrencyInput,
                     })}
                   />
                 </Field>

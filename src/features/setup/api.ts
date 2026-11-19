@@ -28,7 +28,11 @@ export function useSetupStatusQuery() {
 export function useSetupMutation() {
   return useMutation({
     mutationFn: (input: SetupInput) =>
-      apiFetch<{ restartRequired: boolean; setupComplete: boolean }>("/setup", {
+      apiFetch<{
+        redirectUrl: string | null;
+        restartRequired: boolean;
+        setupComplete: boolean;
+      }>("/setup", {
         body: input,
         method: "POST",
       }),

@@ -28,7 +28,6 @@ function listPath(path: string, params: Record<string, unknown>) {
 export type CategoryInput = {
   name: string;
   description: string;
-  sortOrder: number;
   isActive: boolean;
 };
 
@@ -194,7 +193,6 @@ export function useSetCategoryActiveMutation() {
         body: {
           name: category.name,
           description: category.description,
-          sortOrder: category.sortOrder,
           isActive,
         },
         method: "PATCH",

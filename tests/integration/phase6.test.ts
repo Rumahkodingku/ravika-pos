@@ -15,6 +15,7 @@ import {
   restoreBackup,
 } from "@/modules/backup/backup.service";
 import {
+  createCategory,
   createProduct,
   listCategories,
   moveCategory,
@@ -162,6 +163,23 @@ describe("phase 6 users and roles", () => {
 });
 
 describe("phase 6 catalog", () => {
+  it("assigns the next sort order when creating a category", async () => {
+    const before = await listCategories(bundle.db, businessId, {});
+    const highest = before.items.at(-1)?.sortOrder ?? -1;
+
+    const created = await createCategory(bundle.db, businessId, {
+      name: "Roti",
+      description: "",
+      isActive: true,
+    });
+
+    expect(created.sortOrder).toBe(highest + 1);
+
+    const after = await listCategories(bundle.db, businessId, {});
+
+    expect(after.items.at(-1)?.name).toBe("Roti");
+  });
+
   it("moves a category by swapping sort order", async () => {
     const before = await listCategories(bundle.db, businessId, {});
     const beforeNames = before.items.map((category) => category.name);

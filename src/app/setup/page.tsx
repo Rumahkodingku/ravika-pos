@@ -15,7 +15,10 @@ import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/layout";
 import { Textarea } from "@/components/ui/textarea";
 import { useSetupMutation, useSetupStatusQuery } from "@/features/setup/api";
-import { useRestartRequired } from "@/features/system/restart-required";
+import {
+  POST_SETUP_URL_KEY,
+  useRestartRequired,
+} from "@/features/system/restart-required";
 
 const setupSchema = z
   .object({
@@ -84,7 +87,14 @@ export default function SetupPage() {
 
   const onSubmit = handleSubmit(async (values) => {
     try {
-      await setup.mutateAsync(values);
+      const result = await setup.mutateAsync(values);
+
+      if (result.redirectUrl) {
+        window.localStorage.setItem(POST_SETUP_URL_KEY, result.redirectUrl);
+      } else {
+        window.localStorage.removeItem(POST_SETUP_URL_KEY);
+      }
+
       requireRestart();
     } catch (reason) {
       setError("root", {

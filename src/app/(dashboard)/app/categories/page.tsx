@@ -48,7 +48,6 @@ import type { Category } from "@/types/domain";
 const categorySchema = z.object({
   name: z.string().min(1, "Nama kategori wajib diisi."),
   description: z.string(),
-  sortOrder: z.number().int().min(0, "Urutan minimal 0."),
   isActive: z.boolean(),
 });
 
@@ -57,7 +56,6 @@ type CategoryValues = z.infer<typeof categorySchema>;
 const emptyCategory: CategoryValues = {
   name: "",
   description: "",
-  sortOrder: 0,
   isActive: true,
 };
 
@@ -109,7 +107,6 @@ export default function CategoriesPage() {
     reset({
       name: category.name,
       description: category.description,
-      sortOrder: category.sortOrder,
       isActive: category.isActive,
     });
     setFormOpen(true);
@@ -426,19 +423,6 @@ export default function CategoriesPage() {
             label="Deskripsi"
           >
             <Textarea id="category-description" {...register("description")} />
-          </Field>
-          <Field
-            error={errors.sortOrder?.message}
-            htmlFor="category-order"
-            label="Urutan"
-            required
-          >
-            <Input
-              id="category-order"
-              min={0}
-              type="number"
-              {...register("sortOrder", { valueAsNumber: true })}
-            />
           </Field>
           <label
             className="flex min-h-11 items-center gap-2 text-body text-foreground"

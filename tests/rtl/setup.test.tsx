@@ -65,12 +65,16 @@ describe("SetupPage", () => {
           init?.method === "POST"
         ) {
           return jsonResponse(
-            { restartRequired: true, setupComplete: true },
+            {
+              redirectUrl: "http://10.0.0.5:3000/login",
+              restartRequired: true,
+              setupComplete: true,
+            },
             201,
           );
         }
         if (url.startsWith("/api/health")) {
-          return new Response(null, { status: 200 });
+          return new Response(null, { status: 503 });
         }
         return jsonResponse({}, 404);
       },
@@ -112,6 +116,9 @@ describe("SetupPage", () => {
     expect(body.businessName).toBe("Setup Cafe");
     expect(body.ownerEmail).toBe("owner.setup@ravika.id");
     expect(screen.getByText("Restart diperlukan")).toBeTruthy();
+    expect(window.localStorage.getItem("ravika-post-setup-url")).toBe(
+      "http://10.0.0.5:3000/login",
+    );
   });
 
   it("blocks mismatched password confirmation", async () => {

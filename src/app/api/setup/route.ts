@@ -1,4 +1,5 @@
 import { getDb } from "@/infrastructure/database/client";
+import { getPreferredLanUrl } from "@/modules/network/network.service";
 import { setupSchema } from "@/modules/setup/setup.schemas";
 import { runSetup } from "@/modules/setup/setup.service";
 import { AppError } from "@/shared/errors/app-error";
@@ -17,11 +18,12 @@ export const POST = withApi(async (request) => {
   const input = await parseJson(request, setupSchema);
   const { db } = await getDb();
   const result = await runSetup(db, configFilePath(), input);
+  const redirectUrl = await getPreferredLanUrl("/login");
 
   // The service wrapper restarts a failed process; dev mode stays alive.
   if (process.env.RAVIKA_SERVICE_RESTART === "1") {
     setTimeout(() => process.exit(1), 1000);
   }
 
-  return json(result, { status: 201 });
+  return json({ ...result, redirectUrl }, { status: 201 });
 });

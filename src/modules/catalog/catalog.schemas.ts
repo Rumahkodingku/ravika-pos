@@ -4,7 +4,6 @@ export const categorySchema = z
   .object({
     name: z.string().trim().min(1, "Nama kategori wajib diisi.").max(80),
     description: z.string().trim().max(240).default(""),
-    sortOrder: z.number().int().min(0).default(0),
     isActive: z.boolean().default(true),
   })
   .strict();

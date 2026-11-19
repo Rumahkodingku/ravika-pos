@@ -161,6 +161,40 @@ describe("restore restart screen", () => {
     expect(window.localStorage.getItem("ravika-restart-required")).toBeNull();
   });
 
+  it("redirects to the setup LAN URL after health returns", async () => {
+    const replace = vi.fn();
+    const reload = vi.fn();
+
+    Object.defineProperty(window, "location", {
+      configurable: true,
+      value: { reload, replace },
+    });
+
+    window.localStorage.setItem("ravika-restart-required", "1");
+    window.localStorage.setItem(
+      "ravika-post-setup-url",
+      "http://10.0.0.5:3000/login",
+    );
+    fetchMock.mockImplementation(async (input: RequestInfo | URL) =>
+      String(input) === "/api/health"
+        ? jsonResponse({ status: "ok" })
+        : jsonResponse({}, 404),
+    );
+
+    renderWithProviders(
+      <RestartRequiredProvider>
+        <p>Aplikasi</p>
+      </RestartRequiredProvider>,
+      { user: owner },
+    );
+
+    await waitFor(() => {
+      expect(replace).toHaveBeenCalledWith("http://10.0.0.5:3000/login");
+    });
+    expect(reload).not.toHaveBeenCalled();
+    expect(window.localStorage.getItem("ravika-post-setup-url")).toBeNull();
+  });
+
   it("polls health every three seconds until the server answers", async () => {
     vi.useFakeTimers();
     const reload = stubReload();

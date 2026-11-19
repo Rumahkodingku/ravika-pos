@@ -12,7 +12,6 @@ test("barista advances an order and recovers from SSE disconnect", async ({
       description: "",
       isActive: true,
       name: "E2E Kategori",
-      sortOrder: 0,
     },
   });
   const category = await categoryResponse.json();

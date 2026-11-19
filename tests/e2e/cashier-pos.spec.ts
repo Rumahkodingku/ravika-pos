@@ -9,7 +9,6 @@ test("cashier creates an order and records split payment", async ({ page }) => {
       description: "",
       isActive: true,
       name: "E2E Kategori",
-      sortOrder: 0,
     },
   });
   const category = await categoryResponse.json();

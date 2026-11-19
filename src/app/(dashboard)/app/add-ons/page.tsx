@@ -39,7 +39,7 @@ import {
 import { ResponsiveList } from "@/features/management/responsive-list";
 import { TablePagination } from "@/features/management/table-pagination";
 import { TableSkeleton } from "@/features/management/table-skeleton";
-import { formatCurrency } from "@/lib/format";
+import { formatCurrency, parseCurrencyInput } from "@/lib/format";
 import type { AddOn } from "@/types/domain";
 
 const addOnSchema = z.object({
@@ -352,10 +352,9 @@ export default function AddOnsPage() {
           >
             <Input
               id="addon-price"
-              min={0}
-              step={1}
-              type="number"
-              {...register("price", { valueAsNumber: true })}
+              inputMode="numeric"
+              type="text"
+              {...register("price", { setValueAs: parseCurrencyInput })}
             />
           </Field>
           <label

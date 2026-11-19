@@ -12,6 +12,7 @@ import {
 } from "react";
 
 const STORAGE_KEY = "ravika-restart-required";
+export const POST_SETUP_URL_KEY = "ravika-post-setup-url";
 const HEALTH_INTERVAL_MS = 3000;
 
 type RestartRequiredContextValue = {
@@ -88,7 +89,15 @@ export function RestartRequiredProvider({
           if (stopped) {
             return;
           }
+          const postSetupUrl = window.localStorage.getItem(POST_SETUP_URL_KEY);
           window.localStorage.removeItem(STORAGE_KEY);
+          window.localStorage.removeItem(POST_SETUP_URL_KEY);
+
+          if (postSetupUrl) {
+            window.location.replace(postSetupUrl);
+            return;
+          }
+
           window.location.reload();
           return;
         }
