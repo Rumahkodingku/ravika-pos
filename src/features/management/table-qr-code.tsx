@@ -28,9 +28,18 @@ export function TableQrCode({
     );
   }, []);
 
-  const menuUrl = `${origin || ""}/menu/${token}`;
+  const menuUrl = origin && token ? `${origin}/menu/${token}` : "";
 
   const copyLink = async () => {
+    if (!menuUrl) {
+      toast({
+        title: "Tautan belum siap",
+        description: "Muat ulang halaman lalu coba lagi.",
+        tone: "danger",
+      });
+      return;
+    }
+
     let copied = false;
 
     try {
@@ -45,7 +54,9 @@ export function TableQrCode({
         textarea.style.position = "fixed";
         textarea.style.top = "0";
         document.body.appendChild(textarea);
+        textarea.focus();
         textarea.select();
+        textarea.setSelectionRange(0, menuUrl.length);
         copied = document.execCommand("copy");
         document.body.removeChild(textarea);
       }
@@ -88,6 +99,13 @@ export function TableQrCode({
           <p className="max-w-xs break-all text-caption text-muted-foreground">
             {menuUrl}
           </p>
+          <input
+            aria-label="URL menu pelanggan"
+            className="w-full max-w-xs rounded-md border border-border bg-surface px-2 py-1 text-center text-caption text-foreground"
+            onFocus={(event) => event.currentTarget.select()}
+            readOnly
+            value={menuUrl}
+          />
           {isLocalhost ? (
             <p className="max-w-xs text-caption font-medium text-warning-strong">
               QR memakai localhost. Buka aplikasi lewat IP LAN agar bisa
