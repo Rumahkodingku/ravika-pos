@@ -31,14 +31,35 @@ export function TableQrCode({
   const menuUrl = `${origin || ""}/menu/${token}`;
 
   const copyLink = async () => {
+    let copied = false;
+
     try {
-      await navigator.clipboard.writeText(menuUrl);
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(menuUrl);
+        copied = true;
+      } else {
+        const textarea = document.createElement("textarea");
+        textarea.value = menuUrl;
+        textarea.setAttribute("readonly", "");
+        textarea.style.left = "-9999px";
+        textarea.style.position = "fixed";
+        textarea.style.top = "0";
+        document.body.appendChild(textarea);
+        textarea.select();
+        copied = document.execCommand("copy");
+        document.body.removeChild(textarea);
+      }
+    } catch {
+      copied = false;
+    }
+
+    if (copied) {
       toast({
         title: "Tautan menu disalin",
         description: "Buka tautan ini di browser pelanggan.",
         tone: "success",
       });
-    } catch {
+    } else {
       toast({
         title: "Tautan gagal disalin",
         description: `Salin manual: ${menuUrl}`,
