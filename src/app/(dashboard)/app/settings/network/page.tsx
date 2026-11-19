@@ -50,22 +50,50 @@ export default function NetworkSettingsPage() {
   const [showIpQr, setShowIpQr] = useState(false);
   const [showQr, setShowQr] = useState(false);
 
-  const copyUrl = async () => {
-    if (!data?.preferredAccess.url) {
+  const domainUrl = data
+    ? `http://${data.mdns.hostname}:${data.server.port}`
+    : null;
+  const ipUrl = data?.addresses[0]?.address
+    ? `http://${data.addresses[0].address}:${data.server.port}`
+    : null;
+
+  const copyDomainUrl = async () => {
+    if (!domainUrl) {
       return;
     }
 
     try {
-      await navigator.clipboard.writeText(data.preferredAccess.url);
+      await navigator.clipboard.writeText(domainUrl);
       toast({
-        title: "Alamat disalin",
+        title: "Alamat domain disalin",
         description: "Buka alamat ini dari perangkat di jaringan yang sama.",
         tone: "success",
       });
     } catch {
       toast({
         title: "Alamat gagal disalin",
-        description: `Salin manual: ${data.preferredAccess.url}`,
+        description: `Salin manual: ${domainUrl}`,
+        tone: "danger",
+      });
+    }
+  };
+
+  const copyIpUrl = async () => {
+    if (!ipUrl) {
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(ipUrl);
+      toast({
+        title: "Alamat IP disalin",
+        description: "Buka alamat ini dari perangkat di jaringan yang sama.",
+        tone: "success",
+      });
+    } catch {
+      toast({
+        title: "Alamat gagal disalin",
+        description: `Salin manual: ${ipUrl}`,
         tone: "danger",
       });
     }
@@ -134,13 +162,22 @@ export default function NetworkSettingsPage() {
                 </div>
                 <div className="flex flex-wrap gap-2">
                   <Button
-                    disabled={!data.preferredAccess.url}
-                    onClick={copyUrl}
+                    disabled={!domainUrl || !data.mdns.enabled}
+                    onClick={copyDomainUrl}
                     size="sm"
                     variant="outline"
                   >
                     <Copy aria-hidden="true" className="h-4 w-4" />
-                    Salin alamat
+                    Salin domain
+                  </Button>
+                  <Button
+                    disabled={!ipUrl}
+                    onClick={copyIpUrl}
+                    size="sm"
+                    variant="outline"
+                  >
+                    <Copy aria-hidden="true" className="h-4 w-4" />
+                    Salin IP
                   </Button>
                   <Button
                     disabled={!data.preferredAccess.url}
