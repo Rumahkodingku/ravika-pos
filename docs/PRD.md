@@ -513,13 +513,20 @@ ditentukan sebelum fitur Service Worker diandalkan.
 6. Sistem menampilkan nama bisnis dan konteks meja.
 7. Pelanggan memilih produk, varian, dan add-on.
 8. Pelanggan meninjau keranjang.
-9. Pelanggan mengirim pesanan.
-10. Server memvalidasi produk, harga, ketersediaan, dan konteks meja.
-11. Sistem menyimpan pesanan.
-12. Pesanan muncul di KDS dan dapat dilihat kasir.
-13. Pelanggan melihat nomor dan status pesanan sesuai kemampuan halaman
+9. Pelanggan memilih `Tunai, siapkan kembalian` atau `Bayar di kasir`.
+10. Jika tunai, pelanggan mengisi nominal minimal sebesar total dan
+    melihat kembalian.
+11. Pelanggan mengirim pesanan.
+12. Server memvalidasi produk, harga, ketersediaan, konteks meja, dan
+    nominal tunai.
+13. Sistem menyimpan pesanan dengan status pembayaran `UNPAID`.
+14. Pesanan muncul di KDS dan dapat dilihat kasir.
+15. Kasir melihat nominal tunai dan kembalian pada daftar pesanan perlu
+    dibayar.
+16. Kasir membawa kembalian, menerima uang, lalu mencatat pembayaran.
+17. Pelanggan melihat nomor dan status pesanan sesuai kemampuan halaman
     pelacakan.
-14. Untuk MVP, pembayaran dapat dilakukan di kasir. QR ordering tidak
+18. Untuk MVP, pembayaran dapat dilakukan di kasir. QR ordering tidak
     berarti pembayaran digital otomatis.
 
 ## 5.3 Alur takeaway dari QR
@@ -846,6 +853,14 @@ dan atribut Secure dikontrol environment.
     yang wajar.
 - **FR-QRO-015** --- Sistem tidak mempercayai harga atau total yang
     dikirim browser.
+- **FR-QRO-016** --- Pelanggan dapat memilih pembayaran tunai dengan
+    kembalian atau pembayaran di kasir.
+- **FR-QRO-017** --- Nominal tunai wajib minimal sebesar total pesanan
+    dan sistem menampilkan kembalian.
+- **FR-QRO-018** --- Nominal tunai adalah deklarasi pelanggan, bukan
+    catatan pembayaran.
+- **FR-QRO-019** --- Pesanan dengan nominal tunai tetap `UNPAID` sampai
+    kasir mencatat pembayaran setelah serah-terima.
 
 ### Kriteria penerimaan
 
@@ -857,6 +872,11 @@ dan atribut Secure dikontrol environment.
     dengan pesanan kasir.
 - **AC-QRO-005** --- Pelanggan tidak dapat mengakses detail pesanan
     lain hanya dengan menebak nomor pesanan.
+- **AC-QRO-006** --- Nominal tunai di bawah total ditolak server.
+- **AC-QRO-007** --- Kembalian tidak dicatat sebagai pembayaran atau
+    pendapatan.
+- **AC-QRO-008** --- Kasir dapat melihat nominal tunai dan kembalian
+    sebelum mencatat pembayaran.
 
 ## 6.9 Pembayaran
 
@@ -889,6 +909,10 @@ dan atribut Secure dikontrol environment.
     karena pelanggan memilih metode digital.
 - **FR-PAY-016** --- Sistem tidak mengintegrasikan payment gateway
     pada MVP.
+
+Nominal tunai yang dideklarasikan pelanggan QR bukan payment record.
+Pembayaran baru dicatat setelah kasir menerima uang. Nominal pembayaran
+tetap dibatasi sisa tagihan dan tidak memasukkan kembalian.
 
 ### Status pembayaran
 

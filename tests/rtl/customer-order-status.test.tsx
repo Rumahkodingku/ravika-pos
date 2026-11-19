@@ -27,6 +27,7 @@ function statusPayload(orderStatus: "NEW" | "PREPARING") {
     orderStatus,
     paymentStatus: "UNPAID",
     grandTotal: 30000,
+    cashTendered: null,
     tableName: "Meja 05",
     createdAt: "2026-11-18T08:00:00.000Z",
     items: [
@@ -84,6 +85,19 @@ describe("customer order status", () => {
 
     expect(statusReads()).toBe(2);
     expect(screen.getAllByText("Disiapkan").length).toBeGreaterThan(0);
+  });
+
+  it("shows declared cash and change", async () => {
+    fetchMock.mockImplementation(async () =>
+      jsonResponse({ ...statusPayload("NEW"), cashTendered: 35000 }),
+    );
+
+    renderWithProviders(<CustomerOrderStatus publicToken="public-200" />);
+    await flush();
+
+    expect(
+      screen.getByText(/Meja 05\. Tunai Rp\s35\.000, kembalian Rp\s5\.000/),
+    ).toBeDefined();
   });
 
   it("shows the empty state for an unknown public token", async () => {

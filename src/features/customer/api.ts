@@ -16,12 +16,14 @@ export type PublicOrderCreated = {
   orderNumber: string;
   publicToken: string;
   grandTotal: number;
+  cashTendered: number | null;
   tableName: string | null;
 };
 
 export type PublicOrderInput = {
   tableToken: string;
   notes: string;
+  cashTendered: number | null;
   items: Array<{
     productId: string;
     variantId: string | null;
@@ -45,6 +47,7 @@ export type PublicOrderStatus = {
   orderStatus: PreparationStatus;
   paymentStatus: PaymentStatus;
   grandTotal: number;
+  cashTendered: number | null;
   tableName: string | null;
   createdAt: string;
   items: Array<{

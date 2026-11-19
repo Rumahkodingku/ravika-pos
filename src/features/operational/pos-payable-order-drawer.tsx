@@ -74,6 +74,17 @@ export function PosPayableOrderDrawer({
                   Total {formatCurrency(order.grandTotal)}
                 </span>
               </div>
+              {order.cashTendered !== null ? (
+                <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-body">
+                  <span className="text-foreground">
+                    Tunai disiapkan {formatCurrency(order.cashTendered)}
+                  </span>
+                  <span className="tabular-nums text-muted-foreground">
+                    Kembalian{" "}
+                    {formatCurrency(order.cashTendered - order.grandTotal)}
+                  </span>
+                </div>
+              ) : null}
               <Button
                 onClick={() => {
                   onOpenChange(false);

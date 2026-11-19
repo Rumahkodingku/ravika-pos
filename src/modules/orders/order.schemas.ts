@@ -23,6 +23,7 @@ export const publicOrderCreateSchema = z
   .object({
     tableToken: z.string().min(1),
     notes: z.string().trim().max(500).default(""),
+    cashTendered: z.number().int().positive().nullable().default(null),
     items: z.array(orderItemSchema).min(1, "Pesanan minimal satu item."),
   })
   .strict();

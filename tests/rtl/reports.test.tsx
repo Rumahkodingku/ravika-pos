@@ -51,6 +51,7 @@ const order: Order = {
   publicToken: null,
   subtotal: 50000,
   grandTotal: 50000,
+  cashTendered: null,
   notes: "",
   createdBy: "user-cashier",
   createdAt: "2026-11-18T08:00:00.000Z",

@@ -21,6 +21,7 @@ export const GET = withApi<Context>(async (request, context) => {
     orderStatus: order.orderStatus,
     paymentStatus: order.paymentStatus,
     grandTotal: order.grandTotal,
+    cashTendered: order.cashTendered,
     tableName: order.tableName ?? null,
     createdAt: order.createdAt,
     items: order.items.map((item) => ({

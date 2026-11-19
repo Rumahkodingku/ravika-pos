@@ -10,7 +10,8 @@ import { LoadingState } from "@/components/feedback/loading-state";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
 import { Drawer } from "@/components/ui/drawer";
-import { SearchInput } from "@/components/ui/input";
+import { Field } from "@/components/ui/field";
+import { Input, SearchInput } from "@/components/ui/input";
 import { ProductCard } from "@/components/ui/product-card";
 import { QuantityControl } from "@/components/ui/quantity-control";
 import { useToast } from "@/components/ui/toast";
@@ -24,8 +25,10 @@ import {
   type ProductConfiguratorResult,
 } from "@/features/operational/product-configurator";
 import { ApiError } from "@/lib/api/errors";
-import { formatCurrency } from "@/lib/format";
+import { formatCurrency, parseCurrencyInput } from "@/lib/format";
 import type { AddOn, Product } from "@/types/domain";
+
+type PaymentChoice = "CASH" | "COUNTER";
 
 type CustomerCartItem = {
   key: string;
@@ -55,6 +58,10 @@ export default function MenuPage() {
   const [category, setCategory] = useState("Semua");
   const [cart, setCart] = useState<CustomerCartItem[]>([]);
   const [cartOpen, setCartOpen] = useState(false);
+  const [paymentChoice, setPaymentChoice] = useState<PaymentChoice | null>(
+    null,
+  );
+  const [cashInput, setCashInput] = useState("");
   const [configProduct, setConfigProduct] = useState<Product | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [createdOrder, setCreatedOrder] = useState<PublicOrderCreated | null>(
@@ -133,6 +140,11 @@ export default function MenuPage() {
 
   const itemCount = lines.reduce((total, line) => total + line.quantity, 0);
   const subtotal = lines.reduce((total, line) => total + line.lineTotal, 0);
+  const cashTendered =
+    paymentChoice === "CASH" ? parseCurrencyInput(cashInput) : null;
+  const change = cashTendered !== null ? cashTendered - subtotal : 0;
+  const cashValid = paymentChoice !== "CASH" || (cashTendered ?? 0) >= subtotal;
+  const canSubmit = paymentChoice !== null && cashValid && lines.length > 0;
 
   const categoryName = (categoryId: string) =>
     categories.find((item) => item.id === categoryId)?.name ?? "Tanpa kategori";
@@ -189,7 +201,7 @@ export default function MenuPage() {
   };
 
   const submitOrder = async () => {
-    if (!menu || lines.length === 0) {
+    if (!menu || !canSubmit) {
       return;
     }
 
@@ -199,6 +211,7 @@ export default function MenuPage() {
       const order = await createOrder.mutateAsync({
         tableToken: token,
         notes: "",
+        cashTendered: paymentChoice === "CASH" ? cashTendered : null,
         items: lines.map((line) => ({
           productId: line.productId,
           variantId: line.variantId,
@@ -208,6 +221,8 @@ export default function MenuPage() {
         })),
       });
       setCart([]);
+      setPaymentChoice(null);
+      setCashInput("");
       setCartOpen(false);
       setCreatedOrder(order);
       toast({
@@ -320,11 +335,11 @@ export default function MenuPage() {
       </div>
 
       <Drawer
-        description="Periksa pesanan sebelum dikirim. Pembayaran dilakukan di kasir."
+        description="Periksa pesanan dan pilih metode pembayaran."
         footer={
           <Button
             className="w-full"
-            disabled={lines.length === 0}
+            disabled={!canSubmit}
             isLoading={createOrder.isPending}
             onClick={submitOrder}
           >
@@ -411,6 +426,66 @@ export default function MenuPage() {
               <span>Total</span>
               <span className="tabular-nums">{formatCurrency(subtotal)}</span>
             </div>
+
+            <fieldset className="flex flex-col gap-2">
+              <legend className="text-label font-medium text-foreground">
+                Metode pembayaran
+              </legend>
+              <label className="flex min-h-11 items-center gap-2 rounded-md border border-border px-3 text-body">
+                <input
+                  checked={paymentChoice === "CASH"}
+                  name="payment-choice"
+                  onChange={() => setPaymentChoice("CASH")}
+                  type="radio"
+                  value="CASH"
+                />
+                Tunai, siapkan kembalian
+              </label>
+              <label className="flex min-h-11 items-center gap-2 rounded-md border border-border px-3 text-body">
+                <input
+                  checked={paymentChoice === "COUNTER"}
+                  name="payment-choice"
+                  onChange={() => setPaymentChoice("COUNTER")}
+                  type="radio"
+                  value="COUNTER"
+                />
+                Bayar di kasir
+              </label>
+              {paymentChoice === null ? (
+                <p className="text-caption text-muted-foreground">
+                  Pilih metode pembayaran sebelum mengirim pesanan.
+                </p>
+              ) : null}
+            </fieldset>
+
+            {paymentChoice === "CASH" ? (
+              <>
+                <Field htmlFor="customer-cash" label="Uang tunai">
+                  <Input
+                    id="customer-cash"
+                    inputMode="numeric"
+                    onChange={(event) => setCashInput(event.target.value)}
+                    placeholder="Contoh: 55000"
+                    type="text"
+                    value={cashInput}
+                  />
+                </Field>
+                {cashValid ? (
+                  <div className="flex items-center justify-between rounded-md border border-border bg-surface-subtle px-3 py-2 text-body">
+                    <span className="text-muted-foreground">Kembalian</span>
+                    <span className="font-medium tabular-nums text-foreground">
+                      {formatCurrency(change)}
+                    </span>
+                  </div>
+                ) : (
+                  <p className="text-caption font-medium text-danger-strong">
+                    Nominal kurang{" "}
+                    {formatCurrency(subtotal - (cashTendered ?? 0))}.
+                  </p>
+                )}
+              </>
+            ) : null}
+
             {submitError ? (
               <p
                 className="rounded-md border border-danger/20 bg-danger-subtle px-3 py-2 text-body text-danger-strong"
@@ -466,7 +541,10 @@ export default function MenuPage() {
               </p>
             </div>
             <p className="text-body text-muted-foreground">
-              Pembayaran dilakukan di kasir. Pesanan ini masuk ke antrean KDS.
+              {createdOrder.cashTendered !== null
+                ? `Kasir akan membawa kembalian ${formatCurrency(createdOrder.cashTendered - createdOrder.grandTotal)} ke meja.`
+                : "Pembayaran dilakukan di kasir."}{" "}
+              Pesanan ini masuk ke antrean KDS.
             </p>
           </div>
         ) : null}

@@ -13,6 +13,7 @@ import {
 } from "vitest";
 import { PosCartProvider } from "@/components/shells/pos-cart-context";
 import { PosCheckoutDrawer } from "@/features/operational/pos-checkout-drawer";
+import { PosPayableOrderDrawer } from "@/features/operational/pos-payable-order-drawer";
 import { PosPaymentDrawer } from "@/features/operational/pos-payment-drawer";
 import type { Order, Product } from "@/types/domain";
 import { renderWithProviders } from "../helpers/render";
@@ -50,6 +51,7 @@ const order: Order = {
   publicToken: null,
   subtotal: 28000,
   grandTotal: 28000,
+  cashTendered: null,
   notes: "",
   createdBy: "user-cashier",
   createdAt: "2026-11-15T08:00:00.000Z",
@@ -331,6 +333,63 @@ describe("POS payment", () => {
     expect(idempotencyKey(call)).toBeTruthy();
     expect(await screen.findByText("Pembayaran lunas")).toBeDefined();
     await waitFor(() => expect(paymentReads).toBeGreaterThan(1));
+  });
+
+  it("prefills declared cash and records only the bill amount", async () => {
+    const user = userEvent.setup();
+    const cashOrder = { ...order, cashTendered: 30000 };
+
+    fetchMock.mockImplementation(
+      async (input: RequestInfo | URL, init?: RequestInit) => {
+        const url = String(input);
+
+        if (url === "/api/orders/order-1/payments" && !init?.method) {
+          return jsonResponse([]);
+        }
+        if (url === "/api/orders/order-1/payments" && init?.method === "POST") {
+          return jsonResponse({}, 201);
+        }
+        return mockCatalogResponse(url, init);
+      },
+    );
+
+    renderWithProviders(
+      <PosPaymentDrawer onOpenChange={vi.fn()} open order={cashOrder} />,
+    );
+
+    const amountInput = (await screen.findByLabelText(
+      /^Uang diterima/,
+    )) as HTMLInputElement;
+
+    await waitFor(() => expect(amountInput.value).toBe("30000"));
+    expect(screen.getByText("Kembalian").parentElement?.textContent).toContain(
+      "2.000",
+    );
+    expect(screen.getByText(/Pelanggan menyiapkan/)).toBeDefined();
+
+    await user.click(screen.getByRole("button", { name: "Catat pembayaran" }));
+    await waitFor(() => expect(paymentPosts()).toHaveLength(1));
+
+    const body = JSON.parse(
+      (paymentPosts()[0][1] as RequestInit).body as string,
+    );
+
+    expect(body).toMatchObject({ method: "CASH", amount: 28000 });
+  });
+
+  it("shows declared cash and change in the payable list", async () => {
+    fetchMock.mockImplementation(async (input: RequestInfo | URL) =>
+      String(input) === "/api/orders/payable"
+        ? jsonResponse([{ ...order, cashTendered: 30000 }])
+        : jsonResponse({}, 404),
+    );
+
+    renderWithProviders(
+      <PosPayableOrderDrawer onOpenChange={vi.fn()} onPay={vi.fn()} open />,
+    );
+
+    expect(await screen.findByText(/Tunai disiapkan/)).toBeDefined();
+    expect(screen.getByText(/Kembalian/).textContent).toContain("2.000");
   });
 });
 

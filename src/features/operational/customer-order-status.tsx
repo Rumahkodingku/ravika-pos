@@ -58,6 +58,16 @@ export function CustomerOrderStatus({ publicToken }: { publicToken: string }) {
   }
 
   const currentIndex = statusOrder.indexOf(order.orderStatus);
+  const paymentDescription =
+    order.cashTendered !== null
+      ? `${order.tableName ? `${order.tableName}. ` : ""}Tunai ${formatCurrency(order.cashTendered)}, kembalian ${formatCurrency(order.cashTendered - order.grandTotal)}.${
+          order.paymentStatus === "PAID"
+            ? ""
+            : " Pembayaran dicatat kasir setelah serah-terima."
+        }`
+      : order.tableName
+        ? `${order.tableName}. Pembayaran dilakukan di kasir.`
+        : "Pembayaran dilakukan di kasir.";
   const steps: ServiceFlowStep[] =
     order.orderStatus === "CANCELLED"
       ? [
@@ -99,11 +109,7 @@ export function CustomerOrderStatus({ publicToken }: { publicToken: string }) {
               {order.tableName ? "Dine-in" : "Takeaway"}
             </Badge>
           }
-          description={
-            order.tableName
-              ? `${order.tableName}. Pembayaran dilakukan di kasir.`
-              : "Pembayaran dilakukan di kasir."
-          }
+          description={paymentDescription}
           title="Ringkasan pesanan"
         />
         <CardContent className="flex flex-col gap-4">

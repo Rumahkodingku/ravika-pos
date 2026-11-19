@@ -95,7 +95,16 @@ beforeEach(() => {
       }
 
       if (url === "/api/public/orders" && init?.method === "POST") {
-        return jsonResponse(createdOrder, 201);
+        const body = JSON.parse(String(init.body));
+
+        return jsonResponse(
+          {
+            ...createdOrder,
+            cashTendered: body.cashTendered ?? null,
+            grandTotal: 30000,
+          },
+          201,
+        );
       }
 
       return jsonResponse({}, 404);
@@ -127,6 +136,7 @@ describe("customer menu", () => {
     );
 
     await user.click(screen.getByRole("button", { name: "Lihat keranjang" }));
+    await user.click(screen.getByRole("radio", { name: "Bayar di kasir" }));
     await user.click(screen.getByRole("button", { name: "Kirim pesanan" }));
 
     await waitFor(() => expect(orderPosts()).toHaveLength(1));
@@ -137,6 +147,7 @@ describe("customer menu", () => {
     expect(body).toMatchObject({
       tableToken: "token-meja",
       notes: "",
+      cashTendered: null,
       items: [
         {
           productId: "product-kopi-susu",
@@ -151,6 +162,67 @@ describe("customer menu", () => {
       new Headers((call[1] as RequestInit).headers).get("Idempotency-Key"),
     ).toBeTruthy();
     expect(await screen.findByText("RVK-900")).toBeDefined();
+  });
+
+  it("shows change and submits declared cash", async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<MenuPage />);
+
+    await user.click(
+      await screen.findByRole("button", { name: "Tambah Kopi Susu" }),
+    );
+    await user.click(await screen.findByRole("checkbox"));
+    await user.click(
+      screen.getByRole("button", { name: "Tambah ke keranjang" }),
+    );
+    await user.click(screen.getByRole("button", { name: "Lihat keranjang" }));
+    await user.click(
+      screen.getByRole("radio", { name: "Tunai, siapkan kembalian" }),
+    );
+    await user.type(screen.getByLabelText("Uang tunai"), "35000");
+
+    expect(screen.getByText("Kembalian")).toBeDefined();
+    expect(screen.getByText("Kembalian").parentElement?.textContent).toContain(
+      "5.000",
+    );
+
+    await user.click(screen.getByRole("button", { name: "Kirim pesanan" }));
+
+    await waitFor(() => expect(orderPosts()).toHaveLength(1));
+
+    const [call] = orderPosts();
+    const body = JSON.parse((call[1] as RequestInit).body as string);
+
+    expect(body.cashTendered).toBe(35000);
+    expect(await screen.findByText(/kembalian Rp\s5\.000/i)).toBeDefined();
+  });
+
+  it("blocks cash below the total", async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<MenuPage />);
+
+    await user.click(
+      await screen.findByRole("button", { name: "Tambah Kopi Susu" }),
+    );
+    await user.click(await screen.findByRole("checkbox"));
+    await user.click(
+      screen.getByRole("button", { name: "Tambah ke keranjang" }),
+    );
+    await user.click(screen.getByRole("button", { name: "Lihat keranjang" }));
+    await user.click(
+      screen.getByRole("radio", { name: "Tunai, siapkan kembalian" }),
+    );
+    await user.type(screen.getByLabelText("Uang tunai"), "25000");
+
+    expect(
+      (
+        screen.getByRole("button", {
+          name: "Kirim pesanan",
+        }) as HTMLButtonElement
+      ).disabled,
+    ).toBe(true);
+    expect(screen.getByText(/Nominal kurang/)).toBeDefined();
+    expect(orderPosts()).toHaveLength(0);
   });
 
   it("renders an invalid QR state for an unknown token", async () => {

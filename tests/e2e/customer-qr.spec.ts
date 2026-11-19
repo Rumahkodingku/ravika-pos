@@ -43,6 +43,9 @@ test("customer orders from QR menu and opens public status", async ({
     .first()
     .click();
   await page.getByRole("button", { name: "Lihat keranjang" }).first().click();
+  await page.getByRole("radio", { name: "Tunai, siapkan kembalian" }).click();
+  await page.getByLabel("Uang tunai").fill("20000");
+  await expect(page.getByText(/2\.000/)).toBeVisible();
   await page.getByRole("button", { name: "Kirim pesanan" }).click();
 
   await expect(

@@ -77,6 +77,7 @@ export async function mapOrders(
     publicToken: row.publicToken,
     subtotal: row.subtotal,
     grandTotal: row.grandTotal,
+    cashTendered: row.cashTendered,
     notes: row.notes,
     createdBy: row.createdBy,
     createdAt: toIso(row.createdAt),
@@ -353,6 +354,7 @@ async function createOrderInternal(
     tableToken?: string;
     publicToken?: boolean;
     publicResponse?: boolean;
+    cashTendered?: number | null;
     idempotency?: {
       key: string;
       hash: string;
@@ -401,6 +403,17 @@ async function createOrderInternal(
 
   const items = await buildItems(db, businessId, input.items);
   const subtotal = items.reduce((total, item) => total + item.lineTotal, 0);
+  const cashTendered = options.cashTendered ?? null;
+
+  if (cashTendered !== null && cashTendered < subtotal) {
+    throw AppError.validation([
+      {
+        path: "cashTendered",
+        message: "Nominal tunai kurang dari total pesanan.",
+      },
+    ]);
+  }
+
   const timestamp = now();
   const orderId = newId();
   const orderNumberValue = await orderNumber(db);
@@ -418,6 +431,7 @@ async function createOrderInternal(
     publicToken,
     subtotal,
     grandTotal: subtotal,
+    cashTendered,
     notes: input.notes,
     createdBy,
     createdAt: timestamp.toISOString(),
@@ -449,6 +463,7 @@ async function createOrderInternal(
       subtotal,
       discountTotal: 0,
       grandTotal: subtotal,
+      cashTendered,
       notes: input.notes,
       createdBy,
       idempotencyKey: options.idempotency?.key ?? null,
@@ -526,6 +541,7 @@ async function createOrderInternal(
               orderNumber: orderNumberValue,
               publicToken,
               grandTotal: subtotal,
+              cashTendered,
               tableName: table?.name ?? null,
             }
           : orderBody,
@@ -564,7 +580,7 @@ export function createOrder(
 export function createPublicOrder(
   db: AppDatabase,
   businessId: string,
-  input: OrderCreateInput,
+  input: OrderCreateInput & { cashTendered: number | null },
   tableToken: string,
   idempotency?: {
     key: string;
@@ -575,6 +591,7 @@ export function createPublicOrder(
     tableToken,
     publicToken: true,
     publicResponse: true,
+    cashTendered: input.cashTendered,
     idempotency: idempotency
       ? { ...idempotency, operation: "CREATE_PUBLIC_ORDER" }
       : undefined,

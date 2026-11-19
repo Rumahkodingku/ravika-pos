@@ -73,6 +73,7 @@ export const orders = sqliteTable(
     subtotal: integer("subtotal").notNull().default(0),
     discountTotal: integer("discount_total").notNull().default(0),
     grandTotal: integer("grand_total").notNull().default(0),
+    cashTendered: integer("cash_tendered"),
     notes: text("notes").notNull().default(""),
     createdBy: text("created_by").references(() => users.id, {
       onDelete: "restrict",
@@ -104,6 +105,10 @@ export const orders = sqliteTable(
     check("orders_subtotal_check", sql`${table.subtotal} >= 0`),
     check("orders_discount_check", sql`${table.discountTotal} >= 0`),
     check("orders_grand_total_check", sql`${table.grandTotal} >= 0`),
+    check(
+      "orders_cash_tendered_check",
+      sql`${table.cashTendered} IS NULL OR ${table.cashTendered} >= ${table.grandTotal}`,
+    ),
   ],
 );
 

@@ -142,6 +142,7 @@ export type Order = {
   publicToken: string | null;
   subtotal: number;
   grandTotal: number;
+  cashTendered: number | null;
   notes: string;
   createdBy: string | null;
   createdAt: string;

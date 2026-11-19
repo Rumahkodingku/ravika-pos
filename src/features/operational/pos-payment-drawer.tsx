@@ -60,6 +60,8 @@ export function PosPaymentDrawer({
     0,
   );
   const remaining = Math.max(0, (order?.grandTotal ?? 0) - paid);
+  const suggestedCash =
+    paid === 0 ? (order?.cashTendered ?? remaining) : remaining;
 
   const {
     formState: { errors },
@@ -67,11 +69,12 @@ export function PosPaymentDrawer({
     register,
     reset,
     setError,
+    setValue,
     watch,
   } = useForm<PaymentValues>({
     defaultValues: {
       method: "CASH",
-      amount: remaining,
+      amount: suggestedCash,
       reference: "",
       notes: "",
       verified: false,
@@ -86,15 +89,24 @@ export function PosPaymentDrawer({
 
     reset({
       method: "CASH",
-      amount: remaining,
+      amount: suggestedCash,
       reference: "",
       notes: "",
       verified: false,
     });
-  }, [open, order, remaining, reset]);
+  }, [open, order, reset, suggestedCash]);
 
   const method = watch("method");
   const amount = watch("amount");
+
+  useEffect(() => {
+    if (!open || !order) {
+      return;
+    }
+
+    setValue("amount", method === "CASH" ? suggestedCash : remaining);
+  }, [method, open, order, remaining, setValue, suggestedCash]);
+
   const tendered = Number.isFinite(amount) ? amount : 0;
   const applied = Math.min(tendered, remaining);
   const change = method === "CASH" ? Math.max(0, tendered - remaining) : 0;
@@ -288,6 +300,13 @@ export function PosPaymentDrawer({
                   {...register("amount", { valueAsNumber: true })}
                 />
               </Field>
+
+              {order.cashTendered !== null && paid === 0 ? (
+                <p className="text-caption text-muted-foreground">
+                  Pelanggan menyiapkan {formatCurrency(order.cashTendered)}.
+                  Konfirmasi setelah uang diterima.
+                </p>
+              ) : null}
 
               {method === "CASH" ? (
                 <div className="flex items-center justify-between rounded-md border border-border bg-surface-subtle px-3 py-2 text-body">

@@ -25,6 +25,7 @@ import { findIdempotentResponse } from "@/modules/idempotency/idempotency.servic
 import {
   cancelOrder,
   createOrder,
+  createPublicOrder,
   getOrder,
   listKdsOrders,
   updateKdsStatus,
@@ -279,6 +280,54 @@ describe("phase 6 orders", () => {
     ).toMatchObject({
       status: "OCCUPIED",
     });
+  });
+
+  it("stores declared cash and rejects cash below the total", async () => {
+    const input = {
+      orderType: "DINE_IN" as const,
+      tableId: null,
+      notes: "",
+      cashTendered: 70000,
+      items: [
+        {
+          productId: "product-espresso",
+          variantId: "variant-espresso-large",
+          addOnIds: ["addon-extra-shot"],
+          quantity: 2,
+          notes: "",
+        },
+      ],
+    };
+
+    const order = await createPublicOrder(
+      bundle.db,
+      businessId,
+      input,
+      "demo-qr-token-table-1",
+      { key: "idem-public-cash", hash: "hash-public-cash" },
+    );
+
+    expect(order.grandTotal).toBe(64000);
+    expect(order.cashTendered).toBe(70000);
+    expect(order.paymentStatus).toBe("UNPAID");
+
+    const replay = await findIdempotentResponse(bundle.db, {
+      businessId,
+      key: "idem-public-cash",
+      operation: "CREATE_PUBLIC_ORDER",
+      hash: "hash-public-cash",
+    });
+
+    expect(replay?.body).toMatchObject({ cashTendered: 70000 });
+
+    await expect(
+      createPublicOrder(
+        bundle.db,
+        businessId,
+        { ...input, cashTendered: 10000 },
+        "demo-qr-token-table-2",
+      ),
+    ).rejects.toMatchObject({ code: "VALIDATION_FAILED" });
   });
 
   it("cancels allowed states and rejects orders with payments", async () => {
