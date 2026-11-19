@@ -29,6 +29,25 @@ export function useCreateBackupMutation() {
   });
 }
 
+export function useUploadBackupMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (file: File) => {
+      const body = new FormData();
+      body.set("file", file);
+
+      return apiFetch<BackupRecord>("/backup/upload", {
+        body,
+        method: "POST",
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.backups });
+    },
+  });
+}
+
 export function useRestoreBackupMutation() {
   const { requireRestart } = useRestartRequired();
 

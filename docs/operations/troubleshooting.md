@@ -19,6 +19,10 @@ Ganti port `pnpm start -- -p <port>` dan sesuaikan firewall serta systemd.
 
 Cek koneksi browser, status indikator, dan log service. Reconnect akan memicu refetch. SSE hanya berjalan pada satu proses.
 
+## Backup gagal
+
+Periksa ruang disk, izin tulis `data/backups/`, dan log service. Backup terjadwal hanya berjalan saat server aktif. Backup manual tetap tersedia.
+
 ## Restore macet
 
 Restart service setelah restore. Jangan melanjutkan transaksi sebelum health 200.

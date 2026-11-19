@@ -69,6 +69,15 @@ export class AppError extends Error {
     });
   }
 
+  static tooLarge(detail: string) {
+    return new AppError({
+      code: "PAYLOAD_TOO_LARGE",
+      detail,
+      status: 413,
+      title: "File terlalu besar",
+    });
+  }
+
   static unprocessable(code: string, detail: string) {
     return new AppError({
       code,

@@ -18,6 +18,9 @@
 - [x] Login via `127.0.0.1` setelah perbaikan origin check
 - [x] Product image upload dan serving
 - [x] Backup/restore dan restart health
+- [ ] Download backup
+- [ ] Upload backup valid dan invalid
+- [ ] Backup harian dan retensi
 - [x] License missing/invalid ditampilkan aman
 - [x] `pnpm audit --prod` - no known vulnerabilities
 - [x] Backup contains image BLOB; restore + restart; image returned 200

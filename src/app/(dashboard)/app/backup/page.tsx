@@ -1,10 +1,10 @@
 "use client";
 
-import { DatabaseBackup, RotateCcw } from "lucide-react";
-import { useState } from "react";
+import { DatabaseBackup, Download, RotateCcw, Upload } from "lucide-react";
+import { type ChangeEvent, useRef, useState } from "react";
 import { ErrorState } from "@/components/feedback/error-state";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/layout";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -21,6 +21,7 @@ import {
   useBackupsQuery,
   useCreateBackupMutation,
   useRestoreBackupMutation,
+  useUploadBackupMutation,
 } from "@/features/management/api/system";
 import { ConfirmDialog } from "@/features/management/confirm-dialog";
 import {
@@ -28,6 +29,7 @@ import {
   RequirePermission,
 } from "@/features/management/permission-gate";
 import { ResponsiveList } from "@/features/management/responsive-list";
+import { useNow } from "@/features/operational/use-now";
 import { formatDateTime } from "@/lib/format";
 import type { BackupRecord } from "@/types/domain";
 
@@ -44,6 +46,39 @@ export default function BackupPage() {
   const { data, error, isLoading, refetch } = useBackupsQuery();
   const createBackup = useCreateBackupMutation();
   const restoreBackup = useRestoreBackupMutation();
+  const uploadBackup = useUploadBackupMutation();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const now = useNow();
+  const lastBackup = data?.[0];
+  const stale =
+    lastBackup && now
+      ? now.getTime() - new Date(lastBackup.createdAt).getTime() >
+        24 * 60 * 60 * 1000
+      : false;
+
+  const handleUploadBackup = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+
+    if (!file) {
+      return;
+    }
+
+    try {
+      await uploadBackup.mutateAsync(file);
+      toast({
+        title: "Backup diunggah",
+        description: "File backup berhasil disimpan.",
+        tone: "success",
+      });
+    } catch (reason) {
+      toast({
+        title: "Upload gagal",
+        description: reason instanceof Error ? reason.message : "Coba lagi.",
+        tone: "danger",
+      });
+    }
+  };
 
   const handleCreateBackup = async () => {
     try {
@@ -67,15 +102,34 @@ export default function BackupPage() {
       <div className="flex flex-col gap-6">
         <PageHeader
           actions={
-            <PermissionGate permission="backup.create">
-              <Button
-                isLoading={createBackup.isPending}
-                onClick={handleCreateBackup}
-              >
-                <DatabaseBackup aria-hidden="true" className="h-4 w-4" />
-                Buat backup
-              </Button>
-            </PermissionGate>
+            <>
+              <PermissionGate permission="backup.restore">
+                <Button
+                  isLoading={uploadBackup.isPending}
+                  onClick={() => fileInputRef.current?.click()}
+                  variant="outline"
+                >
+                  <Upload aria-hidden="true" className="h-4 w-4" />
+                  Unggah backup
+                </Button>
+                <input
+                  accept=".sqlite"
+                  className="sr-only"
+                  onChange={handleUploadBackup}
+                  ref={fileInputRef}
+                  type="file"
+                />
+              </PermissionGate>
+              <PermissionGate permission="backup.create">
+                <Button
+                  isLoading={createBackup.isPending}
+                  onClick={handleCreateBackup}
+                >
+                  <DatabaseBackup aria-hidden="true" className="h-4 w-4" />
+                  Buat backup
+                </Button>
+              </PermissionGate>
+            </>
           }
           description="Cadangkan dan pulihkan data lokal."
           title="Backup"
@@ -85,6 +139,14 @@ export default function BackupPage() {
           Simpan salinan backup ke media terpisah. Backup di perangkat yang sama
           tidak melindungi dari kerusakan perangkat.
         </div>
+
+        {data && (!lastBackup || stale) ? (
+          <div className="rounded-lg border border-border bg-surface p-4 text-body text-foreground">
+            {!lastBackup
+              ? "Belum ada backup. Buat backup pertama sebelum data operasional bertambah."
+              : "Backup terakhir lebih dari 24 jam. Buat backup baru atau periksa jadwal backup."}
+          </div>
+        ) : null}
 
         {isLoading ? (
           <Skeleton className="h-72" />
@@ -139,16 +201,31 @@ export default function BackupPage() {
                       <span className="break-all text-caption text-muted-foreground">
                         Checksum {backup.checksum}
                       </span>
-                      <PermissionGate permission="backup.restore">
-                        <Button
-                          onClick={() => setRestoreTarget(backup)}
-                          size="sm"
-                          variant="outline"
-                        >
-                          <RotateCcw aria-hidden="true" className="h-4 w-4" />
-                          Restore
-                        </Button>
-                      </PermissionGate>
+                      <div className="flex flex-wrap gap-2">
+                        {backup.status === "READY" ? (
+                          <a
+                            className={buttonVariants({
+                              size: "sm",
+                              variant: "outline",
+                            })}
+                            download
+                            href={`/api/backup/${backup.id}/download`}
+                          >
+                            <Download aria-hidden="true" className="h-4 w-4" />
+                            Download
+                          </a>
+                        ) : null}
+                        <PermissionGate permission="backup.restore">
+                          <Button
+                            onClick={() => setRestoreTarget(backup)}
+                            size="sm"
+                            variant="outline"
+                          >
+                            <RotateCcw aria-hidden="true" className="h-4 w-4" />
+                            Restore
+                          </Button>
+                        </PermissionGate>
+                      </div>
                     </div>
                   ))}
                   table={
@@ -196,19 +273,37 @@ export default function BackupPage() {
                               {backup.checksum}
                             </TableCell>
                             <TableCell className="text-right">
-                              <PermissionGate permission="backup.restore">
-                                <Button
-                                  onClick={() => setRestoreTarget(backup)}
-                                  size="sm"
-                                  variant="outline"
-                                >
-                                  <RotateCcw
-                                    aria-hidden="true"
-                                    className="h-4 w-4"
-                                  />
-                                  Restore
-                                </Button>
-                              </PermissionGate>
+                              <div className="inline-flex gap-2">
+                                {backup.status === "READY" ? (
+                                  <a
+                                    className={buttonVariants({
+                                      size: "sm",
+                                      variant: "outline",
+                                    })}
+                                    download
+                                    href={`/api/backup/${backup.id}/download`}
+                                  >
+                                    <Download
+                                      aria-hidden="true"
+                                      className="h-4 w-4"
+                                    />
+                                    Download
+                                  </a>
+                                ) : null}
+                                <PermissionGate permission="backup.restore">
+                                  <Button
+                                    onClick={() => setRestoreTarget(backup)}
+                                    size="sm"
+                                    variant="outline"
+                                  >
+                                    <RotateCcw
+                                      aria-hidden="true"
+                                      className="h-4 w-4"
+                                    />
+                                    Restore
+                                  </Button>
+                                </PermissionGate>
+                              </div>
                             </TableCell>
                           </TableRow>
                         ))}
