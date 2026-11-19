@@ -11,13 +11,19 @@ let bonjour: Bonjour | null = null;
 let service: Service | null = null;
 let publishedKey = "";
 let status: MdnsStatus = "disabled";
+let message: string | null = null;
 
 export function isMdnsEnabled() {
   return process.env.RAVIKA_MDNS_ENABLED !== "false";
 }
 
 export function getMdnsSnapshot() {
-  return { enabled: isMdnsEnabled(), hostname: MDNS_HOSTNAME, status };
+  return {
+    enabled: isMdnsEnabled(),
+    hostname: MDNS_HOSTNAME,
+    message,
+    status,
+  };
 }
 
 function stopCurrent() {
@@ -36,18 +42,20 @@ export function publishMdns(port: number, address: string | null) {
   if (!isMdnsEnabled()) {
     stopCurrent();
     status = "disabled";
+    message = "mDNS dimatikan.";
     return getMdnsSnapshot();
   }
 
   if (!address) {
     stopCurrent();
     status = "degraded";
+    message = "Tidak ada alamat LAN yang dapat dipakai.";
     return getMdnsSnapshot();
   }
 
   const key = `${port}:${address}`;
 
-  if (service && publishedKey === key) {
+  if (service && publishedKey === key && status === "published") {
     return getMdnsSnapshot();
   }
 
@@ -56,6 +64,7 @@ export function publishMdns(port: number, address: string | null) {
   try {
     bonjour = new Bonjour({}, (error: unknown) => {
       status = "error";
+      message = "mDNS gagal berjalan.";
       logger.error("mDNS error", {
         error: error instanceof Error ? error.message : String(error),
       });
@@ -70,8 +79,10 @@ export function publishMdns(port: number, address: string | null) {
     });
     publishedKey = key;
     status = "published";
+    message = null;
     service.on("error", (error: unknown) => {
       status = "error";
+      message = "mDNS gagal dipublikasikan.";
       logger.error("mDNS publish failed", {
         error: error instanceof Error ? error.message : String(error),
       });
@@ -79,6 +90,7 @@ export function publishMdns(port: number, address: string | null) {
   } catch (error) {
     stopCurrent();
     status = "error";
+    message = "mDNS gagal dipublikasikan.";
     logger.error("mDNS publish failed", {
       error: error instanceof Error ? error.message : String(error),
     });
@@ -90,4 +102,5 @@ export function publishMdns(port: number, address: string | null) {
 export function stopMdns() {
   stopCurrent();
   status = "disabled";
+  message = "mDNS dimatikan.";
 }

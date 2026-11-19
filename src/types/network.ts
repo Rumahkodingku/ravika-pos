@@ -33,8 +33,9 @@ export type NetworkStatus = {
   excluded: ExcludedNetworkAddress[];
   mdns: {
     enabled: boolean;
-    status: "published" | "disabled" | "degraded" | "error";
     hostname: string;
+    message: string | null;
+    status: "published" | "disabled" | "degraded" | "error";
   };
   updatedAt: string;
 };

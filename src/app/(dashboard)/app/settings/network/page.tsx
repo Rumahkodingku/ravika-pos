@@ -1,6 +1,6 @@
 "use client";
 
-import { Copy, Network, QrCode } from "lucide-react";
+import { Copy, Network, QrCode, RefreshCw } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { useState } from "react";
 import { ErrorState } from "@/components/feedback/error-state";
@@ -139,6 +139,14 @@ export default function NetworkSettingsPage() {
                     <QrCode aria-hidden="true" className="h-4 w-4" />
                     {showQr ? "Sembunyikan QR" : "Tampilkan QR"}
                   </Button>
+                  <Button
+                    onClick={() => void refetch()}
+                    size="sm"
+                    variant="outline"
+                  >
+                    <RefreshCw aria-hidden="true" className="h-4 w-4" />
+                    Perbarui
+                  </Button>
                 </div>
                 {showQr && data.preferredAccess.url ? (
                   <div className="flex flex-col items-center gap-2 rounded-lg border border-border bg-surface-subtle p-4">
@@ -182,7 +190,13 @@ export default function NetworkSettingsPage() {
                 </dl>
                 {data.mdns.status !== "published" && data.mdns.enabled ? (
                   <p className="rounded-md border border-warning/30 bg-warning-subtle px-3 py-2 text-body text-warning-strong">
-                    mDNS tidak tersedia. Gunakan alamat IP di bawah.
+                    {data.mdns.message ??
+                      "mDNS tidak tersedia. Gunakan alamat IP."}
+                  </p>
+                ) : null}
+                {data.mdns.message && data.mdns.status === "published" ? (
+                  <p className="rounded-md border border-border bg-surface px-3 py-2 text-body text-muted-foreground">
+                    {data.mdns.message}
                   </p>
                 ) : null}
                 {data.preferredInterfaceId &&

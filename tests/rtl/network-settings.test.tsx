@@ -36,7 +36,12 @@ const status: NetworkStatus = {
     },
   ],
   excluded: [],
-  mdns: { enabled: true, hostname: "ravika-pos.local", status: "published" },
+  mdns: {
+    enabled: true,
+    hostname: "ravika-pos.local",
+    message: null,
+    status: "published",
+  },
   preferredAccess: { type: "mdns", url: "http://ravika-pos.local:3000" },
   preferredInterfaceId: "wifi-guid",
   server: { listening: true, port: 3000 },
