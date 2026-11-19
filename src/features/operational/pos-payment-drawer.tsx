@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Badge } from "@/components/ui/badge";
@@ -62,6 +62,7 @@ export function PosPaymentDrawer({
   const remaining = Math.max(0, (order?.grandTotal ?? 0) - paid);
   const suggestedCash =
     paid === 0 ? (order?.cashTendered ?? remaining) : remaining;
+  const lastResetKey = useRef<string | null>(null);
 
   const {
     formState: { errors },
@@ -84,9 +85,17 @@ export function PosPaymentDrawer({
 
   useEffect(() => {
     if (!open || !order) {
+      lastResetKey.current = null;
       return;
     }
 
+    const resetKey = `${order.id}:${open}`;
+
+    if (lastResetKey.current === resetKey) {
+      return;
+    }
+
+    lastResetKey.current = resetKey;
     reset({
       method: "CASH",
       amount: suggestedCash,
