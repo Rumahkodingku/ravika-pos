@@ -47,6 +47,7 @@ export default function NetworkSettingsPage() {
   const { toast } = useToast();
   const { data, error, isLoading, refetch } = useNetworkStatusQuery();
   const preferred = usePreferredInterfaceMutation();
+  const [showIpQr, setShowIpQr] = useState(false);
   const [showQr, setShowQr] = useState(false);
 
   const copyUrl = async () => {
@@ -82,6 +83,17 @@ export default function NetworkSettingsPage() {
       });
     }
   };
+
+  const fallbackIpUrl =
+    data?.preferredAccess.type === "mdns"
+      ? (() => {
+          const address =
+            data.addresses.find((item) => item.preferred)?.address ??
+            data.addresses[0]?.address;
+
+          return address ? `http://${address}:${data.server.port}` : null;
+        })()
+      : null;
 
   return (
     <RequirePermission permission="settings.manage">
@@ -164,6 +176,46 @@ export default function NetworkSettingsPage() {
                     <p className="text-caption text-muted-foreground">
                       Perangkat harus terhubung ke jaringan yang sama.
                     </p>
+                  </div>
+                ) : null}
+                {fallbackIpUrl ? (
+                  <div className="flex flex-col gap-2 rounded-lg border border-border bg-surface p-4">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div className="flex min-w-0 flex-col gap-0.5">
+                        <span className="text-body font-medium text-foreground">
+                          QR alamat IP
+                        </span>
+                        <span className="break-all text-caption text-muted-foreground">
+                          {fallbackIpUrl}
+                        </span>
+                      </div>
+                      <Button
+                        onClick={() => setShowIpQr((open) => !open)}
+                        size="sm"
+                        variant="outline"
+                      >
+                        <QrCode aria-hidden="true" className="h-4 w-4" />
+                        {showIpQr ? "Sembunyikan QR" : "Tampilkan QR"}
+                      </Button>
+                    </div>
+                    {showIpQr ? (
+                      <div className="flex flex-col items-center gap-2 rounded-lg border border-border bg-surface-subtle p-4">
+                        <div className="rounded-md bg-white p-3">
+                          <QRCodeSVG
+                            bgColor="#ffffff"
+                            fgColor="#101828"
+                            level="M"
+                            marginSize={2}
+                            size={192}
+                            title="QR alamat IP RAVIKA POS"
+                            value={fallbackIpUrl}
+                          />
+                        </div>
+                        <p className="text-caption text-muted-foreground">
+                          Gunakan ini jika .local tidak bisa dibuka.
+                        </p>
+                      </div>
+                    ) : null}
                   </div>
                 ) : null}
                 <dl className="grid gap-3 text-body sm:grid-cols-3">
