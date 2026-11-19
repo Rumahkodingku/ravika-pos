@@ -10,6 +10,10 @@ const nextConfig: NextConfig = {
     },
   },
   cacheComponents: true,
+  output: "standalone",
+  outputFileTracingIncludes: {
+    "/*": ["./drizzle/**/*"],
+  },
   partialPrefetching: true,
   turbopack: {
     rules: {

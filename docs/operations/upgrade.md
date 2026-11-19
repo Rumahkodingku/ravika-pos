@@ -1,5 +1,17 @@
 # Upgrade
 
+## Windows
+
+1. Buat backup dan salin ke media terpisah.
+2. Jalankan installer versi baru sebagai Administrator.
+3. Installer menghentikan service, mencadangkan app lama dan database, lalu mengganti app files.
+4. Installer memulai service dan memeriksa `/api/health`.
+5. Jika health gagal, installer mengembalikan app dan database lama secara otomatis.
+6. Periksa log di `C:\ProgramData\RAVIKA POS\logs` jika rollback terjadi.
+6. Uninstall tidak menghapus `C:\ProgramData\RAVIKA POS`.
+
+## Linux
+
 1. Buat backup dan salin ke media terpisah.
 2. Catat versi saat ini.
 3. Hentikan service: `sudo systemctl stop ravika-pos`.

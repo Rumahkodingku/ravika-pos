@@ -50,3 +50,5 @@ next-env.d.ts
 /release/
 /playwright-report/
 /test-results/
+/installer/runtime/
+/installer/winsw.exe

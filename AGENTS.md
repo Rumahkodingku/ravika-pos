@@ -102,7 +102,8 @@ If docs conflict with config or scripts, trust the executable source. If a requi
 - Do not add Zustand. TanStack Query, query keys, and the KDS SSE client already exist; use them.
 - Database file lives in `data/` by default and is ignored. Production seed creates roles and business without an owner; the first-run wizard at `/setup` creates the owner and writes `RAVIKA_QR_TOKEN_KEY` to `.env`. Env bootstrap owner remains a fallback.
 - Order/payment/refund/public-order mutations require `Idempotency-Key`. Refund endpoint is `POST /api/orders/:id/refund` and is full-order only.
-- QR tokens require `RAVIKA_QR_TOKEN_KEY` (base64 32 bytes) in production. Backup goes to `data/backups/`. Daily backup runs in-process from `src/instrumentation.ts`; configure `RAVIKA_BACKUP_SCHEDULE`, `RAVIKA_BACKUP_TIME`, and `RAVIKA_BACKUP_RETENTION`.
+- QR tokens require `RAVIKA_QR_TOKEN_KEY` (base64 32 bytes) in production. Backup goes to `data/backups/`, or `RAVIKA_BACKUP_DIR` on Windows. Daily backup runs in-process from `src/instrumentation.ts`; configure `RAVIKA_BACKUP_SCHEDULE`, `RAVIKA_BACKUP_TIME`, and `RAVIKA_BACKUP_RETENTION`.
+- Windows deployment uses Inno Setup + WinSW + bundled Node 26 LTS. App files live in `Program Files`; data, config, backups, and logs live in `ProgramData`. Network settings are in `/app/settings/network`.
 - Restore succeeds only after the database is replaced, then sets `ravika-restart-required` in localStorage. The blocking restart screen polls `/api/health` every 3 seconds; after health 200 it clears the flag and reloads. Do not show a normal success toast instead.
 - Backend SSE is in-process only. Do not add Redis or a worker for it without an architecture decision.
 - Phase 7 added no database migration. Backend changes are response enrichment and the `roles/options` route only.

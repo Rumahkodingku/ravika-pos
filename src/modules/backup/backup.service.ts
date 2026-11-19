@@ -21,6 +21,7 @@ import { writeAudit } from "@/modules/audit/audit.service";
 import { AppError } from "@/shared/errors/app-error";
 import { newId } from "@/shared/ids";
 import { logger } from "@/shared/logging/logger";
+import { backupDirectory, databasePath } from "@/shared/paths";
 import { now } from "@/shared/time";
 import type { BackupRecord } from "@/types/domain";
 
@@ -49,20 +50,6 @@ function toRecord(row: BackupRow): BackupRecord {
     createdBy: row.createdBy,
     createdAt: row.createdAt.toISOString(),
   };
-}
-
-function backupDirectory() {
-  return resolve(process.cwd(), "data/backups");
-}
-
-function databasePath() {
-  if (process.env.RAVIKA_DB_PATH === ":memory:") {
-    return ":memory:";
-  }
-
-  return process.env.RAVIKA_DB_PATH
-    ? resolve(process.env.RAVIKA_DB_PATH)
-    : resolve(process.cwd(), "data/ravika.sqlite");
 }
 
 function retentionCount() {

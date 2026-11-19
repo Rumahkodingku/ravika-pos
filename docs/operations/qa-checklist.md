@@ -26,6 +26,14 @@
 - [x] Backup contains image BLOB; restore + restart; image returned 200
 - [ ] Instalasi systemd di Ubuntu fisik
 - [ ] LAN access dari ponsel fisik
+- [ ] Installer Windows 11 x64
+- [ ] Windows service start setelah reboot
+- [ ] Windows firewall rule TCP 3000 dan UDP 5353
+- [ ] Network Settings menampilkan IP, URL, dan QR
+- [ ] mDNS `ravika-pos.local` di Windows 11
+- [ ] mDNS fallback IP saat multicast diblokir
+- [ ] Windows upgrade/rollback
+- [ ] Windows uninstall preserve `ProgramData`
 - [ ] `pnpm audit --prod`
 - [ ] Performance hardware pilot
 

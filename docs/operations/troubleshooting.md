@@ -1,6 +1,23 @@
 # Troubleshooting
 
-## Service tidak jalan
+## Windows service tidak jalan
+
+```powershell
+Get-Service RAVIKA_POS
+Get-Content "C:\ProgramData\RAVIKA POS\logs\RAVIKA_POS.out.log" -Tail 100
+```
+
+Pastikan service account `NT SERVICE\RAVIKA_POS` punya akses Modify ke `C:\ProgramData\RAVIKA POS`.
+
+## Windows firewall memblokir LAN
+
+Pastikan rule `RAVIKA POS HTTP` ada untuk TCP 3000 dan `remoteip=LocalSubnet`. Jangan menonaktifkan firewall atau mengubah profile jaringan.
+
+## mDNS tidak tersedia
+
+Coba alamat IP dari `/app/settings/network`. mDNS bisa diblokir router, access point, atau Windows. Aplikasi tetap berjalan tanpa mDNS.
+
+## Service tidak jalan (Linux)
 
 ```bash
 sudo systemctl status ravika-pos

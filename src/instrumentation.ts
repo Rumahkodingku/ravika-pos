@@ -6,6 +6,12 @@ export async function register() {
   const { startBackupScheduler } = await import(
     "@/modules/backup/backup.scheduler"
   );
+  const { startNetworkMonitor, stopNetworkMonitor } = await import(
+    "@/modules/network/network.service"
+  );
 
   startBackupScheduler();
+  startNetworkMonitor();
+  process.once("SIGTERM", stopNetworkMonitor);
+  process.once("SIGINT", stopNetworkMonitor);
 }

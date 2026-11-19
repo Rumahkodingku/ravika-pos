@@ -4,6 +4,7 @@ import { mkdirSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { DatabaseSync, type SQLInputValue } from "node:sqlite";
 import { drizzle } from "drizzle-orm/sqlite-proxy";
+import { databasePath } from "@/shared/paths";
 import { bootstrap } from "./bootstrap";
 import { runMigrations } from "./migrate";
 import * as schema from "./schema";
@@ -72,10 +73,7 @@ const globalForDatabase = globalThis as unknown as {
 
 export function getDb() {
   if (!globalForDatabase.ravikaDatabase) {
-    const promise = createDatabase(
-      process.env.RAVIKA_DB_PATH ??
-        resolve(process.cwd(), "data/ravika.sqlite"),
-    );
+    const promise = createDatabase(databasePath());
 
     globalForDatabase.ravikaDatabase = promise;
 

@@ -1,0 +1,41 @@
+name: Windows Release
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.34.5
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 26.13.1
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm check
+      - run: pnpm test
+      - run: pnpm build
+      - run: node scripts/windows/package-standalone.mjs
+      - name: Fetch Node runtime
+        shell: powershell
+        run: |
+          New-Item -ItemType Directory -Force -Path installer\runtime | Out-Null
+          Invoke-WebRequest -Uri "https://nodejs.org/dist/v26.13.1/win-x64/node.exe" -OutFile installer\runtime\node.exe
+      - name: Fetch WinSW
+        shell: powershell
+        run: |
+          Invoke-WebRequest -Uri "https://github.com/winsw/winsw/releases/download/v2.13.0/WinSW-x64.exe" -OutFile installer\winsw.exe
+      - name: Install Inno Setup
+        shell: powershell
+        run: choco install innosetup --no-progress -y
+      - name: Build installer
+        shell: powershell
+        run: '& "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer\ravika-pos.iss'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ravika-pos-windows
+          path: release/*.exe

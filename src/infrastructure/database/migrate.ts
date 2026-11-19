@@ -1,8 +1,8 @@
 import "server-only";
 
-import { resolve } from "node:path";
 import type { DatabaseSync } from "node:sqlite";
 import { migrate } from "drizzle-orm/sqlite-proxy/migrator";
+import { migrationsDirectory } from "@/shared/paths";
 import type { AppDatabase } from "./types";
 
 export async function runMigrations(db: AppDatabase, sqlite: DatabaseSync) {
@@ -20,6 +20,6 @@ export async function runMigrations(db: AppDatabase, sqlite: DatabaseSync) {
         throw error;
       }
     },
-    { migrationsFolder: resolve(process.cwd(), "drizzle") },
+    { migrationsFolder: migrationsDirectory() },
   );
 }

@@ -13,16 +13,35 @@
 
 Env bootstrap owner tetap tersedia sebagai fallback.
 
-Target: satu komputer server Ubuntu LTS di LAN. Aplikasi tidak boleh diekspos langsung ke internet publik.
+Target: satu komputer server Ubuntu LTS atau Windows 11 x64 di LAN. Aplikasi tidak boleh diekspos langsung ke internet publik.
+
+## Windows
+
+Installer Windows menggunakan Inno Setup dan WinSW. Runtime Node 26 LTS dibundel.
+
+1. Jalankan installer `ravika-pos-windows-<versi>.exe` sebagai Administrator.
+2. Installer memasang aplikasi di `C:\Program Files\RAVIKA POS`.
+3. Data, config, backup, dan log berada di `C:\ProgramData\RAVIKA POS`.
+4. Service `RAVIKA_POS` start otomatis.
+5. Installer menambahkan firewall rule TCP 3000 dan UDP 5353 untuk `LocalSubnet`.
+6. Buka `http://127.0.0.1:3000/setup`.
+7. Setelah setup selesai, service restart otomatis.
+8. Login owner, lalu buka `/app/settings/network` untuk melihat URL LAN dan QR.
+
+Windows 11 x64 adalah target resmi. Windows 10 22H2 hanya best effort.
 
 ## Prasyarat
 
-- Node.js 26.9.0. Versi ini bukan LTS; tinjau sebelum pilot.
+- Node.js 26 LTS. Untuk Windows, runtime dibundel oleh installer.
+- Windows 11 x64 atau Windows 10 22H2 x64.
+- Ubuntu LTS untuk deployment Linux.
 - pnpm 10.34.5.
 - Git dan build tools dasar.
 - Direktori data lokal: `/opt/ravika-pos/data`.
 
-## Langkah
+## Linux
+
+### Langkah
 
 ```bash
 sudo useradd --system --home /opt/ravika-pos --shell /usr/sbin/nologin ravika

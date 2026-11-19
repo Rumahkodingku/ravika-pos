@@ -10,6 +10,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "package:standalone": "node scripts/windows/package-standalone.mjs",
     "start": "next start",
     "lint": "biome check",
     "typecheck": "tsc --noEmit",
@@ -26,6 +27,7 @@
   "dependencies": {
     "@hookform/resolvers": "^7.0.6",
     "@tanstack/react-query": "5.108.0",
+    "bonjour-service": "1.4.4",
     "drizzle-orm": "^0.45.4",
     "lucide-react": "^1.73.0",
     "next": "16.4.6",

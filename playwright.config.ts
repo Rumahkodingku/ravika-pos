@@ -17,6 +17,7 @@ export default defineConfig({
       RAVIKA_BOOTSTRAP_OWNER_NAME: "Pemilik",
       RAVIKA_BOOTSTRAP_OWNER_PASSWORD: "demo123",
       RAVIKA_DB_PATH: ".e2e/ravika.sqlite",
+      RAVIKA_MDNS_ENABLED: "false",
       RAVIKA_QR_TOKEN_KEY: "AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE=",
       RAVIKA_SEED_MODE: "production",
     },

@@ -4,7 +4,7 @@
 
 POS self-hosted untuk kafe dan UMKM. Satu instalasi melayani satu bisnis, berjalan di komputer server lokal, dan diakses lewat LAN/Wi-Fi tanpa mewajibkan internet untuk transaksi.
 
-**Status:** Fase 1 sampai Fase 9 selesai sebagai release candidate `1.0.0-rc.1`. UI memakai API backend nyata: TanStack Query untuk server state, session cookie HttpOnly, guard berbasis permission, dan data SQLite melalui Drizzle. Mock data, mock auth, dan `/app/design-system` sudah dihapus. Backend menyediakan katalog, meja dan QR, order, pembayaran, refund penuh, KDS dengan SSE, laporan, lisensi, serta backup dan restore. Playwright E2E lokal dan dokumentasi operasional Ubuntu tersedia. Pilot dan hardware target belum dijalankan.
+**Status:** Fase 1 sampai Fase 10 memiliki implementasi release candidate `1.0.0-rc.1`. UI memakai API backend nyata: TanStack Query untuk server state, session cookie HttpOnly, guard berbasis permission, dan data SQLite melalui Drizzle. Mock data, mock auth, dan `/app/design-system` sudah dihapus. Backend menyediakan katalog, meja dan QR, order, pembayaran, refund penuh, KDS dengan SSE, laporan, backup dan restore, serta network settings. Playwright E2E lokal dan dokumentasi operasional Ubuntu tersedia. Windows installer dan validasi hardware masih menunggu pengujian Windows 11.
 
 ## Stack
 
@@ -16,7 +16,7 @@ Sudah terpasang:
 - Tailwind CSS 4.3
 - Biome 2.4
 - pnpm 10.34.5
-- Node.js 26.9.0
+- Node.js 26 LTS
 - Lucide React
 - React Hook Form 7.92
 - Zod 4.6
@@ -46,22 +46,18 @@ pnpm dev
 Buka `http://localhost:3000`.
 
 Untuk menjalankan backend produksi, isi `.env` dengan database path, cookie
-Secure, bootstrap owner, `RAVIKA_QR_TOKEN_KEY` (base64 32 byte), serta
-`RAVIKA_INSTALLATION_ID`, `RAVIKA_LICENSE_FILE`, dan
-`RAVIKA_LICENSE_PUBLIC_KEY` bila lisensi dipakai. Database dibuat dan
-dimigrasikan otomatis saat API pertama kali diakses. Backup ditulis ke
-`data/backups/`; restore memerlukan restart proses.
+Secure, bootstrap owner, dan `RAVIKA_QR_TOKEN_KEY` (base64 32 byte). Database
+dibuat dan dimigrasikan otomatis saat API pertama kali diakses. Backup ditulis
+ke `data/backups/`; restore memerlukan restart proses.
 
 ```bash
 pnpm build
 pnpm start
 ```
 
-Bootstrap development membuat akun demo `owner@ravika.id`,
-`cashier@ravika.id`, dan `barista@ravika.id` dengan password `demo123`.
-Akun ini hanya berasal dari seed development dan tidak ditampilkan di
-halaman login. Bootstrap produksi hanya membuat owner dari environment
-variable.
+Windows memakai installer terpisah. Service berjalan sebagai WinSW, data dan
+config berada di `C:\ProgramData\RAVIKA POS`, dan network settings tersedia di
+`/app/settings/network`. Validasi Windows 11 masih diperlukan sebelum rilis.
 
 ## Command
 
@@ -124,8 +120,8 @@ query hook per domain di `src/features/**/api.ts`. Tidak ada folder `src/mocks`.
 | `/app/users` | Pengguna |
 | `/app/roles` | Peran dan izin |
 | `/app/settings` | Pengaturan |
+| `/app/settings/network` | Jaringan |
 | `/app/reports` | Laporan |
-| `/app/license` | Lisensi |
 | `/app/backup` | Backup |
 | `/app/pos` | POS kasir |
 | `/kds` | Kitchen Display System |
@@ -178,8 +174,11 @@ Token desain ada di `src/styles/tokens.css`. Theme, shell, dan komponen dasar te
 | GET | `/api/reports/summary` | `reports.view` |
 | GET | `/api/reports/sales` | `reports.view` |
 | GET | `/api/reports/top-products` | `reports.view` |
-| GET | `/api/licensing/status` | `license.view` |
+| GET | `/api/system/network` | `settings.manage` |
+| PATCH | `/api/system/network/preferred` | `settings.manage` |
 | GET/POST | `/api/backup` | `backup.create` |
+| GET | `/api/backup/:id/download` | `backup.create` |
+| POST | `/api/backup/upload` | `backup.restore` |
 | POST | `/api/backup/restore` | `backup.restore` |
 | GET | `/api/product-images/:productId` | Publik, versioned image |
 | PUT/DELETE | `/api/products/:id/image` | `products.manage` |

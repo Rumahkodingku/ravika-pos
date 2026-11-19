@@ -36,6 +36,7 @@ export const queryKeys = {
   topProducts: (filters: TopProductsParams) =>
     ["reports", "top-products", filters] as const,
   backups: ["backups"] as const,
+  network: ["system", "network"] as const,
   publicMenu: (token: string) => ["public", "menu", token] as const,
   setupStatus: ["setup", "status"] as const,
   publicOrder: (token: string) => ["public", "order", token] as const,

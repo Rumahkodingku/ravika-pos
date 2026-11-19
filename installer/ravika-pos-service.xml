@@ -1,0 +1,28 @@
+<service>
+  <id>RAVIKA_POS</id>
+  <name>RAVIKA POS</name>
+  <description>RAVIKA POS local server</description>
+  <executable>%BASE%\..\runtime\node.exe</executable>
+  <arguments>"%BASE%\start.mjs"</arguments>
+  <workingdirectory>%BASE%\..\app</workingdirectory>
+  <startmode>Automatic</startmode>
+  <stoptimeout>15 sec</stoptimeout>
+  <onfailure action="restart" delay="10 sec" />
+  <resetfailure>1 hour</resetfailure>
+  <logpath>%ProgramData%\RAVIKA POS\logs</logpath>
+  <log mode="roll-by-size">
+    <sizeThreshold>10240</sizeThreshold>
+    <keepFiles>8</keepFiles>
+  </log>
+  <env name="NODE_ENV" value="production" />
+  <env name="RAVIKA_APP_DIR" value="%BASE%\..\app" />
+  <env name="RAVIKA_DATA_DIR" value="%ProgramData%\RAVIKA POS\data" />
+  <env name="RAVIKA_BACKUP_DIR" value="%ProgramData%\RAVIKA POS\backups" />
+  <env name="RAVIKA_CONFIG_FILE" value="%ProgramData%\RAVIKA POS\config\.env" />
+  <env name="RAVIKA_MIGRATIONS_DIR" value="%BASE%\..\app\drizzle" />
+  <env name="RAVIKA_MDNS_ENABLED" value="true" />
+  <env name="RAVIKA_NETWORK_POLL_MS" value="15000" />
+  <env name="RAVIKA_SERVICE_RESTART" value="1" />
+  <env name="HOSTNAME" value="0.0.0.0" />
+  <env name="PORT" value="3000" />
+</service>

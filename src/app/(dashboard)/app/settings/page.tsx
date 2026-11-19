@@ -1,12 +1,13 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import Link from "next/link";
 import { useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { ErrorState } from "@/components/feedback/error-state";
 import { useTheme } from "@/components/theme/theme-provider";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Field, FieldDescription } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
@@ -214,6 +215,21 @@ export default function SettingsPage() {
             </div>
           </form>
         )}
+
+        <Card>
+          <CardHeader
+            description="Alamat LAN, interface utama, dan status mDNS."
+            title="Jaringan"
+          />
+          <CardContent>
+            <Link
+              className={buttonVariants({ variant: "outline" })}
+              href="/app/settings/network"
+            >
+              Buka pengaturan jaringan
+            </Link>
+          </CardContent>
+        </Card>
       </div>
     </RequirePermission>
   );
