@@ -3,39 +3,91 @@ name: Windows Release
 on:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
+concurrency:
+  group: windows-release
+  cancel-in-progress: false
+
 jobs:
   build:
     runs-on: windows-latest
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
+
       - uses: pnpm/action-setup@v4
         with:
           version: 10.34.5
+
       - uses: actions/setup-node@v4
         with:
           node-version: 26.13.1
           cache: pnpm
+
       - run: pnpm install --frozen-lockfile
+
       - run: pnpm check
+
       - run: pnpm test
+
       - run: pnpm build
-      - run: node scripts/windows/package-standalone.mjs
+
+      - name: Package standalone
+        run: pnpm package:standalone
+
+      - name: Verify standalone files
+        shell: pwsh
+        run: |
+          $required = @(
+            ".next\standalone\server.js",
+            ".next\standalone\drizzle\meta\_journal.json",
+            ".next\standalone\public"
+          )
+          foreach ($path in $required) {
+            if (!(Test-Path $path)) {
+              throw "Missing standalone file: $path"
+            }
+          }
+
       - name: Fetch Node runtime
-        shell: powershell
+        shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path installer\runtime | Out-Null
-          Invoke-WebRequest -Uri "https://nodejs.org/dist/v26.13.1/win-x64/node.exe" -OutFile installer\runtime\node.exe
+          Invoke-WebRequest -UseBasicParsing -Uri "https://nodejs.org/dist/v26.13.1/win-x64/node.exe" -OutFile installer\runtime\node.exe
+
       - name: Fetch WinSW
-        shell: powershell
+        shell: pwsh
         run: |
-          Invoke-WebRequest -Uri "https://github.com/winsw/winsw/releases/download/v2.13.0/WinSW-x64.exe" -OutFile installer\winsw.exe
+          Invoke-WebRequest -UseBasicParsing -Uri "https://github.com/winsw/winsw/releases/download/v2.13.0/WinSW-x64.exe_Release" -OutFile installer\winsw.exe
+
       - name: Install Inno Setup
-        shell: powershell
+        shell: pwsh
         run: choco install innosetup --no-progress -y
+
       - name: Build installer
-        shell: powershell
-        run: '& "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer\ravika-pos.iss'
+        shell: pwsh
+        run: |
+          $iscc = "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
+          if (!(Test-Path $iscc)) {
+            $found = Get-ChildItem "C:\Program Files*\Inno Setup*\ISCC.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
+            if ($found) { $iscc = $found.FullName }
+          }
+          if (!(Test-Path $iscc)) {
+            throw "ISCC.exe tidak ditemukan."
+          }
+          & $iscc "installer\ravika-pos.iss"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $installer = Get-ChildItem "release\ravika-pos-windows-*.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
+          if (!$installer) {
+            throw "Installer tidak dihasilkan di folder release."
+          }
+          Get-FileHash $installer.FullName -Algorithm SHA256 | Format-List
+
       - uses: actions/upload-artifact@v4
         with:
           name: ravika-pos-windows
-          path: release/*.exe
+          path: release/ravika-pos-windows-*.exe
+          if-no-files-found: error
+          retention-days: 14
