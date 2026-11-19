@@ -1,12 +1,12 @@
 "use client";
 
-import { Copy, Printer } from "lucide-react";
+import { Printer } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
-import { useToast } from "@/components/ui/toast";
+import { useLanUrlQuery } from "@/features/system/api/network";
 
 export function TableQrCode({
   label,
@@ -15,111 +15,47 @@ export function TableQrCode({
   label: string;
   token: string;
 }) {
-  const { toast } = useToast();
-  const [origin, setOrigin] = useState("");
-  const [isLocalhost, setIsLocalhost] = useState(false);
   const [printOpen, setPrintOpen] = useState(false);
-
-  useEffect(() => {
-    setOrigin(window.location.origin);
-    setIsLocalhost(
-      window.location.hostname === "localhost" ||
-        window.location.hostname === "127.0.0.1",
-    );
-  }, []);
-
-  const menuUrl = origin && token ? `${origin}/menu/${token}` : "";
-
-  const copyLink = async () => {
-    if (!menuUrl) {
-      toast({
-        title: "Tautan belum siap",
-        description: "Muat ulang halaman lalu coba lagi.",
-        tone: "danger",
-      });
-      return;
-    }
-
-    let copied = false;
-
-    try {
-      if (navigator.clipboard?.writeText) {
-        await navigator.clipboard.writeText(menuUrl);
-        copied = true;
-      } else {
-        const textarea = document.createElement("textarea");
-        textarea.value = menuUrl;
-        textarea.setAttribute("readonly", "");
-        textarea.style.left = "-9999px";
-        textarea.style.position = "fixed";
-        textarea.style.top = "0";
-        document.body.appendChild(textarea);
-        textarea.focus();
-        textarea.select();
-        textarea.setSelectionRange(0, menuUrl.length);
-        copied = document.execCommand("copy");
-        document.body.removeChild(textarea);
-      }
-    } catch {
-      copied = false;
-    }
-
-    if (copied) {
-      toast({
-        title: "Tautan menu disalin",
-        description: "Buka tautan ini di browser pelanggan.",
-        tone: "success",
-      });
-    } else {
-      toast({
-        title: "Tautan gagal disalin",
-        description: `Salin manual: ${menuUrl}`,
-        tone: "danger",
-      });
-    }
-  };
+  const lanUrl = useLanUrlQuery();
+  const menuUrl = lanUrl.data?.url ? `${lanUrl.data.url}/menu/${token}` : "";
+  const ready = Boolean(menuUrl);
 
   return (
     <div className="flex flex-col gap-3">
       <div className="flex flex-col items-center gap-3 rounded-lg border border-border bg-surface-subtle p-4">
-        <div className="rounded-md bg-white p-3">
-          <QRCodeSVG
-            bgColor="#ffffff"
-            fgColor="#101828"
-            level="M"
-            marginSize={2}
-            size={192}
-            title={`QR meja ${label}`}
-            value={menuUrl}
-          />
-        </div>
+        {ready ? (
+          <div className="rounded-md bg-white p-3">
+            <QRCodeSVG
+              bgColor="#ffffff"
+              fgColor="#101828"
+              level="M"
+              marginSize={2}
+              size={192}
+              title={`QR meja ${label}`}
+              value={menuUrl}
+            />
+          </div>
+        ) : (
+          <div className="flex min-h-[216px] w-[216px] items-center justify-center rounded-md border border-dashed border-border bg-surface p-4 text-center text-caption text-muted-foreground">
+            {lanUrl.isPending
+              ? "Menyiapkan QR meja."
+              : "URL LAN belum tersedia. Atur jaringan di halaman Pengaturan."}
+          </div>
+        )}
         <div className="flex flex-col items-center gap-1 text-center">
-          <Badge tone="success">QR meja siap dipindai</Badge>
+          <Badge tone={ready ? "success" : "warning"}>
+            {ready ? "QR meja siap dipindai" : "QR meja belum siap"}
+          </Badge>
           <p className="text-body font-medium text-foreground">{label}</p>
-          <p className="max-w-xs break-all text-caption text-muted-foreground">
-            {menuUrl}
-          </p>
-          <input
-            aria-label="URL menu pelanggan"
-            className="w-full max-w-xs rounded-md border border-border bg-surface px-2 py-1 text-center text-caption text-foreground"
-            onFocus={(event) => event.currentTarget.select()}
-            readOnly
-            value={menuUrl}
-          />
-          {isLocalhost ? (
-            <p className="max-w-xs text-caption font-medium text-warning-strong">
-              QR memakai localhost. Buka aplikasi lewat IP LAN agar bisa
-              dipindai dari ponsel.
-            </p>
-          ) : null}
         </div>
       </div>
       <div className="flex flex-wrap gap-2">
-        <Button onClick={copyLink} size="sm" variant="outline">
-          <Copy aria-hidden="true" className="h-4 w-4" />
-          Salin tautan
-        </Button>
-        <Button onClick={() => setPrintOpen(true)} size="sm" variant="outline">
+        <Button
+          disabled={!ready}
+          onClick={() => setPrintOpen(true)}
+          size="sm"
+          variant="outline"
+        >
           <Printer aria-hidden="true" className="h-4 w-4" />
           Pratinjau cetak
         </Button>
@@ -128,7 +64,11 @@ export function TableQrCode({
       <Dialog
         description="Cetak QR ini dan letakkan di meja pelanggan."
         footer={
-          <Button onClick={() => window.print()} variant="outline">
+          <Button
+            disabled={!ready}
+            onClick={() => window.print()}
+            variant="outline"
+          >
             <Printer aria-hidden="true" className="h-4 w-4" />
             Cetak
           </Button>
@@ -137,23 +77,25 @@ export function TableQrCode({
         open={printOpen}
         title="Pratinjau cetak QR"
       >
-        <div className="print-qr flex flex-col items-center gap-3">
-          <div className="rounded-md bg-white p-3">
-            <QRCodeSVG
-              bgColor="#ffffff"
-              fgColor="#101828"
-              level="M"
-              marginSize={2}
-              size={220}
-              title={`QR meja ${label}`}
-              value={menuUrl}
-            />
+        {ready ? (
+          <div className="print-qr flex flex-col items-center gap-3">
+            <div className="rounded-md bg-white p-3">
+              <QRCodeSVG
+                bgColor="#ffffff"
+                fgColor="#101828"
+                level="M"
+                marginSize={2}
+                size={220}
+                title={`QR meja ${label}`}
+                value={menuUrl}
+              />
+            </div>
+            <p className="text-card-title text-foreground">{label}</p>
+            <p className="text-caption text-muted-foreground">
+              Pindai untuk membuka menu pelanggan.
+            </p>
           </div>
-          <p className="text-card-title text-foreground">{label}</p>
-          <p className="text-caption text-muted-foreground">
-            Pindai untuk membuka menu pelanggan.
-          </p>
-        </div>
+        ) : null}
       </Dialog>
     </div>
   );

@@ -13,6 +13,14 @@ export function useNetworkStatusQuery() {
   });
 }
 
+export function useLanUrlQuery() {
+  return useQuery({
+    queryFn: () => apiFetch<{ url: string | null }>("/system/lan-url"),
+    queryKey: queryKeys.lanUrl,
+    staleTime: 60_000,
+  });
+}
+
 export function usePreferredInterfaceMutation() {
   const queryClient = useQueryClient();
 

@@ -37,6 +37,7 @@ export const queryKeys = {
     ["reports", "top-products", filters] as const,
   backups: ["backups"] as const,
   network: ["system", "network"] as const,
+  lanUrl: ["system", "lan-url"] as const,
   publicMenu: (token: string) => ["public", "menu", token] as const,
   setupStatus: ["setup", "status"] as const,
   publicOrder: (token: string) => ["public", "order", token] as const,

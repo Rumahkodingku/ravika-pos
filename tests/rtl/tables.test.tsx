@@ -16,6 +16,14 @@ import type { SessionUser } from "@/types/auth";
 import type { DiningTable, TableSummary } from "@/types/domain";
 import { renderWithProviders } from "../helpers/render";
 
+vi.mock("qrcode.react", () => ({
+  QRCodeSVG: ({ title, value }: { title?: string; value: string }) => (
+    <svg data-testid="table-qr" data-value={value}>
+      <title>{title}</title>
+    </svg>
+  ),
+}));
+
 const fetchMock = vi.fn();
 
 const owner: SessionUser = {
@@ -76,6 +84,10 @@ function mockApi(
         return jsonResponse(detail);
       }
 
+      if (url === "/api/system/lan-url") {
+        return jsonResponse({ url: "http://192.168.1.20:3000" });
+      }
+
       return jsonResponse({}, 404);
     },
   );
@@ -125,7 +137,10 @@ describe("TablesPage", () => {
       ).toBe(true);
     });
 
-    expect(await screen.findByText(/\/menu\/token-old$/)).toBeDefined();
+    expect((await screen.findAllByTestId("table-qr"))[0]).toBeDefined();
+    expect(
+      screen.getAllByTestId("table-qr")[0]?.getAttribute("data-value"),
+    ).toContain("/menu/token-old");
   });
 
   it("replaces the visible token after regenerating the QR", async () => {
@@ -144,7 +159,10 @@ describe("TablesPage", () => {
       name: "Detail",
     });
     await user.click(detailButtons[0]);
-    expect(await screen.findByText(/\/menu\/token-old$/)).toBeDefined();
+    await screen.findAllByTestId("table-qr");
+    expect(
+      screen.getAllByTestId("table-qr")[0]?.getAttribute("data-value"),
+    ).toContain("/menu/token-old");
 
     await user.click(
       await screen.findByRole("button", { name: "Buat ulang token" }),
@@ -160,7 +178,11 @@ describe("TablesPage", () => {
       );
     });
 
-    expect(await screen.findByText(/\/menu\/token-new$/)).toBeDefined();
+    await waitFor(() => {
+      expect(
+        screen.getAllByTestId("table-qr")[0]?.getAttribute("data-value"),
+      ).toContain("/menu/token-new");
+    });
   });
 
   it("patches only the strict table fields", async () => {
