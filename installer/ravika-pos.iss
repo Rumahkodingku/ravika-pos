@@ -17,10 +17,13 @@ OutputBaseFilename=ravika-pos-windows-{#AppVersion}
 Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern
+SetupIconFile=ravika-pos.ico
+UninstallDisplayIcon={app}\ravika-pos.ico
 UninstallDisplayName={#AppName}
 
 [Files]
 Source: "..\release\app\*"; DestDir: "{app}\app"; Flags: recursesubdirs createallsubdirs ignoreversion
+Source: "ravika-pos.ico"; DestDir: "{app}"; Flags: ignoreversion
 Source: "runtime\node.exe"; DestDir: "{app}\runtime"; Flags: ignoreversion
 Source: "ravika-pos-service.xml"; DestDir: "{app}\service"; Flags: ignoreversion
 Source: "winsw.exe"; DestDir: "{app}\service"; DestName: "ravika-pos-service.exe"; Flags: ignoreversion
@@ -37,10 +40,10 @@ Name: "{commonappdata}\RAVIKA POS\logs"; Permissions: users-modify
 Name: "desktopicon"; Description: "Buat shortcut RAVIKA POS di Desktop"; GroupDescription: "Shortcut:"
 
 [Icons]
-Name: "{group}\RAVIKA POS"; Filename: "http://127.0.0.1:3000"; IconFilename: "{sys}\shell32.dll"; IconIndex: 13
-Name: "{group}\Pengaturan Jaringan"; Filename: "http://127.0.0.1:3000/app/settings/network"; IconFilename: "{sys}\shell32.dll"; IconIndex: 13
-Name: "{group}\Uninstall RAVIKA POS"; Filename: "{uninstallexe}"
-Name: "{autodesktop}\RAVIKA POS"; Filename: "http://127.0.0.1:3000"; IconFilename: "{sys}\shell32.dll"; IconIndex: 13; Tasks: desktopicon
+Name: "{group}\RAVIKA POS"; Filename: "http://127.0.0.1:3000"; IconFilename: "{app}\ravika-pos.ico"
+Name: "{group}\Pengaturan Jaringan"; Filename: "http://127.0.0.1:3000/app/settings/network"; IconFilename: "{app}\ravika-pos.ico"
+Name: "{group}\Uninstall RAVIKA POS"; Filename: "{uninstallexe}"; IconFilename: "{app}\ravika-pos.ico"
+Name: "{autodesktop}\RAVIKA POS"; Filename: "http://127.0.0.1:3000"; IconFilename: "{app}\ravika-pos.ico"; Tasks: desktopicon
 
 [Run]
 Filename: "{app}\service\ravika-pos-service.exe"; Parameters: "install"; Flags: runhidden waituntilterminated
