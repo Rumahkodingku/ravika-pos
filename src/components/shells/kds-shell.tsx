@@ -26,7 +26,6 @@ export function KdsShell({ children }: { children: React.ReactNode }) {
           <AppHeader
             actions={<ConnectionIndicator status={status} />}
             fullWidth
-            invertLogo
             logoutLabel="Keluar KDS"
             moduleLabel="KDS"
           />

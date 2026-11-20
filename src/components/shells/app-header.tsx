@@ -56,14 +56,12 @@ function QuickNavLink({ item, pathname }: { item: NavItem; pathname: string }) {
 export function AppHeader({
   actions,
   fullWidth = false,
-  invertLogo = false,
   logoutLabel = "Keluar",
   moduleLabel = "POS",
   onLogout,
 }: {
   actions?: React.ReactNode;
   fullWidth?: boolean;
-  invertLogo?: boolean;
   logoutLabel?: string;
   moduleLabel?: string;
   onLogout?: () => void;
@@ -114,10 +112,7 @@ export function AppHeader({
         className="flex shrink-0 items-center gap-2 rounded-md px-1 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
         href="/app"
       >
-        <BrandLogo
-          priority
-          size="lg"
-        />
+        <BrandLogo priority size="lg" />
         <span className="text-lg font-bold tracking-tight text-foreground">
           RAVIKA
         </span>
