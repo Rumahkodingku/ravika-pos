@@ -31,7 +31,7 @@ export function ProductImage({
     // biome-ignore lint/performance/noImgElement: local dynamic image route
     <img
       alt={name}
-      className={cn("h-full w-full object-cover", className)}
+      className={cn("h-62 w-full object-cover", className)}
       decoding="async"
       loading="lazy"
       onError={() => setFailed(true)}

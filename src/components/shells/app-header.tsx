@@ -115,9 +115,8 @@ export function AppHeader({
         href="/app"
       >
         <BrandLogo
-          className={invertLogo ? "brightness-0 invert" : undefined}
           priority
-          size="sm"
+          size="lg"
         />
         <span className="text-lg font-bold tracking-tight text-foreground">
           RAVIKA
