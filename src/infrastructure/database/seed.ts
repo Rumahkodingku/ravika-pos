@@ -3,6 +3,7 @@ import "server-only";
 import { and, eq } from "drizzle-orm";
 import { hashPassword } from "@/modules/auth/password";
 import { permissionGroups, roleDefinitions } from "@/shared/permissions";
+import { ensureDemoData } from "./demo-data";
 import { business, permissions, rolePermissions, roles, users } from "./schema";
 import type { AppDatabase } from "./types";
 
@@ -272,4 +273,10 @@ export async function seedDatabase(db: AppDatabase, mode: SeedMode) {
       now,
     });
   }
+
+  if (mode === "development" && process.env.RAVIKA_SEED_DEMO !== "false") {
+    await ensureDemoData(db, businessRow.id, now);
+  }
+
+  return businessRow.id;
 }
