@@ -604,7 +604,7 @@ export async function ensureDemoImages(
   businessId: string,
 ): Promise<void> {
   const productRows = await db
-    .select({ id: products.id })
+    .select({ categoryId: products.categoryId, id: products.id })
     .from(products)
     .where(eq(products.businessId, businessId));
 
@@ -626,7 +626,10 @@ export async function ensureDemoImages(
 
     await Promise.allSettled(
       batch.map(async (product) => {
-        const image = await fetchDemoImage(product.id);
+        const urls =
+          demoImageUrls[product.categoryId] ?? demoImageUrls["category-kopi"];
+        const imageUrl = urls[product.id.length % urls.length];
+        const image = await fetchDemoImage(product.id, imageUrl);
 
         if (!image) {
           return;
@@ -642,15 +645,49 @@ export async function ensureDemoImages(
   }
 }
 
-async function fetchDemoImage(productId: string) {
+const demoImageUrls: Record<string, string[]> = {
+  "category-kopi": [
+    "https://images.unsplash.com/photo-1510591509098-f4fdc6d0ff04?auto=format&fit=crop&w=800&h=600&q=80",
+    "https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=800&h=600&q=80",
+  ],
+  "category-non-kopi": [
+    "https://images.unsplash.com/photo-1544787219-7f47ccb76574?auto=format&fit=crop&w=800&h=600&q=80",
+    "https://images.unsplash.com/photo-1517701550927-30cf4ba1dba5?auto=format&fit=crop&w=800&h=600&q=80",
+  ],
+  "category-teh": [
+    "https://images.unsplash.com/photo-1556679343-c7306c1976bc?auto=format&fit=crop&w=800&h=600&q=80",
+  ],
+  "category-makanan": [
+    "https://images.unsplash.com/photo-1603133872878-684f208fb84b?auto=format&fit=crop&w=800&h=600&q=80",
+    "https://images.unsplash.com/photo-1555507036-ab1f4038808a?auto=format&fit=crop&w=800&h=600&q=80",
+  ],
+  "category-dessert": [
+    "https://images.unsplash.com/photo-1533134242443-d4fd215305ad?auto=format&fit=crop&w=800&h=600&q=80",
+    "https://images.unsplash.com/photo-1606313564200-e75d5e30476c?auto=format&fit=crop&w=800&h=600&q=80",
+  ],
+  "category-snack": [
+    "https://images.unsplash.com/photo-1555507036-ab1f4038808a?auto=format&fit=crop&w=800&h=600&q=80",
+  ],
+  "category-roti": [
+    "https://images.unsplash.com/photo-1555507036-ab1f4038808a?auto=format&fit=crop&w=800&h=600&q=80",
+  ],
+  "category-paket": [
+    "https://images.unsplash.com/photo-1603133872878-684f208fb84b?auto=format&fit=crop&w=800&h=600&q=80",
+  ],
+  "category-minuman-dingin": [
+    "https://images.unsplash.com/photo-1517701550927-30cf4ba1dba5?auto=format&fit=crop&w=800&h=600&q=80",
+  ],
+  "category-seasonal": [
+    "https://images.unsplash.com/photo-1510591509098-f4fdc6d0ff04?auto=format&fit=crop&w=800&h=600&q=80",
+  ],
+};
+
+async function fetchDemoImage(productId: string, imageUrl: string) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 8000);
 
   try {
-    const response = await fetch(
-      `https://picsum.photos/seed/${encodeURIComponent(productId)}/800/600`,
-      { signal: controller.signal },
-    );
+    const response = await fetch(imageUrl, { signal: controller.signal });
 
     if (!response.ok) {
       return null;
