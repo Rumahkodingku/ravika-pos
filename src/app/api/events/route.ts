@@ -3,14 +3,23 @@ import {
   type RealtimeEvent,
   subscribeRealtime,
 } from "@/modules/events/event-bus";
-import { requirePermission } from "@/modules/rbac/authorization";
+import { AppError } from "@/shared/errors/app-error";
 import { withApi } from "@/shared/http/route-handler";
 
 const HEARTBEAT_MS = 15_000;
 
+const eventPermissions = ["kds.view", "orders.view", "payments.view"];
+
 export const GET = withApi(async (request) => {
   const context = await requireAuth();
-  requirePermission(context, "kds.view");
+
+  if (
+    !eventPermissions.some((permission) =>
+      context.permissions.includes(permission),
+    )
+  ) {
+    throw AppError.forbidden();
+  }
 
   const encoder = new TextEncoder();
   let cleanup = () => {};

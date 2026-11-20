@@ -861,6 +861,8 @@ dan atribut Secure dikontrol environment.
     catatan pembayaran.
 - **FR-QRO-019** --- Pesanan dengan nominal tunai tetap `UNPAID` sampai
     kasir mencatat pembayaran setelah serah-terima.
+- **FR-QRO-020** --- POS menampilkan notifikasi visual dan suara saat
+    pesanan QR baru masuk. Suara dapat dimatikan kasir.
 
 ### Kriteria penerimaan
 
@@ -877,6 +879,8 @@ dan atribut Secure dikontrol environment.
     pendapatan.
 - **AC-QRO-008** --- Kasir dapat melihat nominal tunai dan kembalian
     sebelum mencatat pembayaran.
+- **AC-QRO-009** --- Notifikasi suara hanya dipicu untuk pesanan QR,
+    bukan pesanan yang dibuat kasir.
 
 ## 6.9 Pembayaran
 

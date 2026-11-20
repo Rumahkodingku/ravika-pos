@@ -554,7 +554,9 @@ async function createOrderInternal(
     orderNumber: orderNumberValue,
     orderStatus: "NEW",
     paymentStatus: "UNPAID",
+    source,
     tableId,
+    tableName: table?.name ?? null,
   });
 
   return getOrder(db, businessId, orderId);

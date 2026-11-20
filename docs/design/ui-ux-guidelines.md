@@ -77,6 +77,14 @@ Responsive:
 
 Staf POS tetap memakai compact header tanpa navigasi management agar fokus transaksi. Pengguna management boleh berpindah modul dari POS. Cart tersimpan di `sessionStorage`; logout dari POS harus membersihkan cart.
 
+Notifikasi pesanan QR:
+
+- Pesanan baru dari QR menampilkan toast dan suara `Pesanan Baru Masuk`.
+- Suara hanya diputar saat tab POS terlihat.
+- Kasir dapat mematikan atau menyalakan suara dari header POS.
+- Preferensi suara disimpan di browser.
+- Jika browser memblokir audio, toast tetap tampil sebagai fallback.
+
 ### 3.3 KDS shell
 
 Dipakai Barista.

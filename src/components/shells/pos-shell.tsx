@@ -1,6 +1,14 @@
 "use client";
 
-import { Armchair, LogOut, ShoppingCart, Trash2, Wallet } from "lucide-react";
+import {
+  Armchair,
+  LogOut,
+  ShoppingCart,
+  Trash2,
+  Volume2,
+  VolumeX,
+  Wallet,
+} from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { BrandLogo } from "@/components/brand/brand-logo";
@@ -34,7 +42,7 @@ import {
   TablePickerDrawer,
   TableSelector,
 } from "@/features/operational/table-selector";
-import { useConnectionStatus } from "@/features/operational/use-connection-status";
+import { usePosEvents } from "@/features/operational/use-pos-events";
 import { cn } from "@/lib/cn";
 import { formatCurrency } from "@/lib/format";
 import { hasManagementAccess } from "@/lib/navigation";
@@ -53,6 +61,29 @@ function CartHeader() {
         </p>
       </div>
     </div>
+  );
+}
+
+function PosSoundToggle({
+  enabled,
+  onToggle,
+}: {
+  enabled: boolean;
+  onToggle: () => void;
+}) {
+  const Icon = enabled ? Volume2 : VolumeX;
+
+  return (
+    <Button
+      aria-label={
+        enabled ? "Matikan notifikasi suara" : "Aktifkan notifikasi suara"
+      }
+      onClick={onToggle}
+      size="icon"
+      variant="ghost"
+    >
+      <Icon aria-hidden="true" className="h-5 w-5" />
+    </Button>
   );
 }
 
@@ -286,7 +317,11 @@ function PosShellContent({
   const { clearCart, itemCount, setTableId, subtotal, tableId } = usePosCart();
   const { data: business } = useBusinessQuery();
   const { data: payableOrders = [] } = usePayableOrdersQuery();
-  const connectionStatus = useConnectionStatus();
+  const {
+    soundEnabled,
+    status: connectionStatus,
+    toggleSound,
+  } = usePosEvents();
   const [cartOpen, setCartOpen] = useState(false);
   const [tablePickerOpen, setTablePickerOpen] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
@@ -321,6 +356,7 @@ function PosShellContent({
                   <Badge tone="warning">{payableCount}</Badge>
                 ) : null}
               </Button>
+              <PosSoundToggle enabled={soundEnabled} onToggle={toggleSound} />
             </>
           }
           fullWidth
@@ -360,6 +396,7 @@ function PosShellContent({
               <div className="hidden sm:block">
                 <ConnectionIndicator status={connectionStatus} />
               </div>
+              <PosSoundToggle enabled={soundEnabled} onToggle={toggleSound} />
               <ThemeToggle />
               <Button
                 aria-label="Pesanan perlu dibayar"
