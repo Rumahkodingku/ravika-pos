@@ -3,13 +3,13 @@ import { loginAs } from "./helpers/auth";
 
 async function createStaff(
   page: import("@playwright/test").Page,
-  role: "CASHIER" | "BARISTA",
+  role: "CASHIER" | "KITCHEN",
 ) {
   const response = await page.request.post("/api/users", {
     data: {
       email: `${role.toLowerCase()}@ravika.id`,
       isActive: true,
-      name: role === "CASHIER" ? "Kasir E2E" : "Barista E2E",
+      name: role === "CASHIER" ? "Kasir E2E" : "Kitchen E2E",
       password: "demo12345",
       role,
       username: role.toLowerCase(),
@@ -39,7 +39,7 @@ test("cashier and barista keep compact operational headers", async ({
 }) => {
   await loginAs(page, "owner");
   await createStaff(page, "CASHIER");
-  await createStaff(page, "BARISTA");
+  await createStaff(page, "KITCHEN");
 
   await loginAs(page, "cashier", "demo12345");
   await page.goto("/app/pos");
@@ -48,7 +48,7 @@ test("cashier and barista keep compact operational headers", async ({
   );
   await expect(page.getByRole("button", { name: "Keluar POS" })).toBeVisible();
 
-  await loginAs(page, "barista", "demo12345");
+  await loginAs(page, "kitchen", "demo12345");
   await page.goto("/kds");
   await expect(page.getByRole("button", { name: /Menu Lainnya/ })).toHaveCount(
     0,

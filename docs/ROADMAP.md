@@ -626,7 +626,7 @@ jika hasil finalisasi domain menunjukkan dependency berbeda.
 - [x] Permission registry dan assignment.
 - [x] Role-permission management.
 - [x] Authorization policy per endpoint/use case.
-- [x] Seed built-in roles OWNER, CASHIER, BARISTA tanpa mengunci
+- [x] Seed built-in roles OWNER, CASHIER, KITCHEN tanpa mengunci
     desain agar role tetap dinamis.
 
 ### 6.3 Catalog

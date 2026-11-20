@@ -32,8 +32,8 @@ describe("phase 7 users and roles", () => {
     const options = await listRoleOptions(bundle.db, businessId);
 
     expect(options.map((option) => option.code)).toEqual([
-      "BARISTA",
       "CASHIER",
+      "KITCHEN",
       "OWNER",
     ]);
     expect(options).toContainEqual({

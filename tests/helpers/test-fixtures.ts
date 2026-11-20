@@ -242,7 +242,7 @@ async function ensureDemoOrders(
   db: AppDatabase,
   businessId: string,
   roleIds: {
-    baristaRoleId: string | null;
+    kitchenRoleId: string | null;
     cashierRoleId: string | null;
     ownerRoleId: string | null;
   },
@@ -269,8 +269,8 @@ async function ensureDemoOrders(
       : null;
   const cashierUserId = userByRole(roleIds.cashierRoleId);
   const ownerUserId = userByRole(roleIds.ownerRoleId);
-  const baristaUserId =
-    userByRole(roleIds.baristaRoleId) ?? cashierUserId ?? ownerUserId;
+  const kitchenUserId =
+    userByRole(roleIds.kitchenRoleId) ?? cashierUserId ?? ownerUserId;
   const occupied = new Set<string>();
 
   for (let index = 0; index < 24; index += 1) {
@@ -428,7 +428,7 @@ async function ensureDemoOrders(
           orderId,
           previousStatus: step === 0 ? null : flow[step - 1],
           newStatus: flow[step],
-          changedBy: step === 0 ? cashierUserId : baristaUserId,
+          changedBy: step === 0 ? cashierUserId : kitchenUserId,
           reason: "",
           createdAt: new Date(created.getTime() + step * 60_000),
         });
@@ -521,7 +521,7 @@ export async function seedTestDatabase(bundle: DatabaseBundle) {
   const roleIdByCode = new Map(roleRows.map((role) => [role.code, role.id]));
   const ownerRoleId = roleIdByCode.get("OWNER");
   const cashierRoleId = roleIdByCode.get("CASHIER");
-  const baristaRoleId = roleIdByCode.get("BARISTA");
+  const kitchenRoleId = roleIdByCode.get("KITCHEN");
 
   if (cashierRoleId) {
     await ensureUser(bundle.db, {
@@ -536,14 +536,14 @@ export async function seedTestDatabase(bundle: DatabaseBundle) {
     });
   }
 
-  if (baristaRoleId) {
+  if (kitchenRoleId) {
     await ensureUser(bundle.db, {
-      id: "user-barista",
+      id: "user-kitchen",
       businessId,
-      roleId: baristaRoleId,
-      name: "Nadia Barista",
-      email: "barista@ravika.id",
-      username: "barista",
+      roleId: kitchenRoleId,
+      name: "Nadia Kitchen",
+      email: "kitchen@ravika.id",
+      username: "kitchen",
       password: DEMO_PASSWORD,
       now,
     });
@@ -555,7 +555,7 @@ export async function seedTestDatabase(bundle: DatabaseBundle) {
     bundle.db,
     businessId,
     {
-      baristaRoleId: baristaRoleId ?? null,
+      kitchenRoleId: kitchenRoleId ?? null,
       cashierRoleId: cashierRoleId ?? null,
       ownerRoleId: ownerRoleId ?? null,
     },

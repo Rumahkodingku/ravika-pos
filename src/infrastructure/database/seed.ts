@@ -112,6 +112,74 @@ async function ensureRoles(
   return roleIdByCode;
 }
 
+async function migrateLegacyKitchenRole(
+  db: AppDatabase,
+  businessId: string,
+  now: Date,
+) {
+  const legacy = await db
+    .select()
+    .from(roles)
+    .where(and(eq(roles.businessId, businessId), eq(roles.code, "BARISTA")))
+    .limit(1);
+
+  if (!legacy[0]) {
+    return;
+  }
+
+  const current = await db
+    .select()
+    .from(roles)
+    .where(and(eq(roles.businessId, businessId), eq(roles.code, "KITCHEN")))
+    .limit(1);
+
+  if (current[0]) {
+    return;
+  }
+
+  await db
+    .update(roles)
+    .set({
+      code: "KITCHEN",
+      description: "Melihat antrean dan memproses pesanan melalui KDS.",
+      name: "Kitchen",
+      updatedAt: now,
+    })
+    .where(eq(roles.id, legacy[0].id));
+}
+
+async function migrateLegacyKitchenUser(db: AppDatabase, now: Date) {
+  const legacy = await db
+    .select()
+    .from(users)
+    .where(eq(users.email, "barista@ravika.id"))
+    .limit(1);
+
+  if (!legacy[0]) {
+    return;
+  }
+
+  const current = await db
+    .select()
+    .from(users)
+    .where(eq(users.email, "kitchen@ravika.id"))
+    .limit(1);
+
+  if (current[0]) {
+    return;
+  }
+
+  await db
+    .update(users)
+    .set({
+      email: "kitchen@ravika.id",
+      name: "Nadia Kitchen",
+      updatedAt: now,
+      username: "kitchen",
+    })
+    .where(eq(users.id, legacy[0].id));
+}
+
 async function ensureUser(
   db: AppDatabase,
   input: {
@@ -169,6 +237,10 @@ export async function seedDatabase(db: AppDatabase, mode: SeedMode) {
   const now = new Date();
   const businessRow = await ensureBusiness(db, now);
   const permissionIdByCode = await ensurePermissions(db, now);
+
+  await migrateLegacyKitchenRole(db, businessRow.id, now);
+  await migrateLegacyKitchenUser(db, now);
+
   const roleIdByCode = await ensureRoles(
     db,
     businessRow.id,

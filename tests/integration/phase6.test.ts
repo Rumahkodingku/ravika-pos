@@ -533,7 +533,7 @@ describe("phase 6 KDS and events", () => {
     const order = await newOrder();
 
     await expect(
-      updateKdsStatus(bundle.db, businessId, order.id, "READY", "user-barista"),
+      updateKdsStatus(bundle.db, businessId, order.id, "READY", "user-kitchen"),
     ).rejects.toMatchObject({ code: "KDS_TRANSITION_INVALID" });
 
     let current = order;
@@ -549,7 +549,7 @@ describe("phase 6 KDS and events", () => {
         businessId,
         order.id,
         next,
-        "user-barista",
+        "user-kitchen",
       );
     }
 

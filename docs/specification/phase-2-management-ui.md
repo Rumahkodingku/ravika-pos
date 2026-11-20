@@ -140,7 +140,7 @@ Demo accounts:
 |---|---|---|---|---|
 | OWNER | `owner@ravika.id` | `owner` | `demo123` | `/app` |
 | CASHIER | `cashier@ravika.id` | `cashier` | `demo123` | `/app/pos` |
-| BARISTA | `barista@ravika.id` | `barista` | `demo123` | `/kds` |
+| KITCHEN | `barista@ravika.id` | `barista` | `demo123` | `/kds` |
 
 Catatan: identitas login final masih OPEN-002. Demo memakai email dan username.
 
@@ -151,7 +151,7 @@ Catatan: identitas login final masih OPEN-002. Demo memakai email dan username.
 - Barista membuka `/app`: redirect `/kds`.
 - Cashier dan owner dapat membuka management sesuai permission.
 - `/app/pos` membutuhkan `orders.create` atau role OWNER/CASHIER.
-- `/kds` membutuhkan `kds.view` atau role OWNER/BARISTA.
+- `/kds` membutuhkan `kds.view` atau role OWNER/KITCHEN.
 - Login page jika sudah login: redirect ke landing role.
 - Guard menampilkan loading state sampai `isReady`.
 - Guard hanya simulasi. Tidak ada keamanan nyata.
@@ -953,7 +953,7 @@ const tableSchema = z.object({
 const userSchema = z.object({
   name: z.string().min(1),
   email: z.string().email(),
-  role: z.enum(["OWNER", "CASHIER", "BARISTA"]),
+  role: z.enum(["OWNER", "CASHIER", "KITCHEN"]),
   isActive: z.boolean(),
 });
 ```
@@ -1033,13 +1033,13 @@ Minimal 8 meja:
 
 - 3 akun demo.
 - 2 user tambahan untuk daftar management.
-- Role OWNER, CASHIER, BARISTA.
+- Role OWNER, CASHIER, KITCHEN.
 
 ### 10.7 Roles
 
 - OWNER
 - CASHIER
-- BARISTA
+- KITCHEN
 
 Built-in role tidak bisa dihapus.
 

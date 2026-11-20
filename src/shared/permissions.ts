@@ -115,7 +115,7 @@ export const cashierPermissionCodes = [
   "payments.create",
 ];
 
-export const baristaPermissionCodes = [
+export const kitchenPermissionCodes = [
   "categories.view",
   "products.view",
   "tables.view",
@@ -144,9 +144,9 @@ export const roleDefinitions = [
     permissionCodes: cashierPermissionCodes,
   },
   {
-    code: "BARISTA",
-    name: "Barista",
-    description: "Memproses pesanan melalui KDS.",
-    permissionCodes: baristaPermissionCodes,
+    code: "KITCHEN",
+    name: "Kitchen",
+    description: "Melihat antrean dan memproses pesanan melalui KDS.",
+    permissionCodes: kitchenPermissionCodes,
   },
 ] as const;

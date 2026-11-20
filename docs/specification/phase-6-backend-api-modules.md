@@ -1301,7 +1301,7 @@ Payload yang ditandatangani adalah stable JSON tanpa spasi.
 
 - Business RAVIKA.
 - Permission registry.
-- Roles OWNER, CASHIER, BARISTA.
+- Roles OWNER, CASHIER, KITCHEN.
 - Users:
   - <owner@ravika.id> / owner
   - <cashier@ravika.id> / cashier

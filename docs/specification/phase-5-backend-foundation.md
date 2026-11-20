@@ -893,7 +893,7 @@ role langsung berlaku tanpa menunggu login ulang.
 | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | OWNER   | Semua permission                                                                                                                                                                           |
 | CASHIER | `dashboard.view`, `business.view`, `categories.view`, `products.view`, `tables.view`, `tables.manage`, `orders.view`, `orders.create`, `orders.cancel`, `payments.view`, `payments.create` |
-| BARISTA | `categories.view`, `products.view`, `tables.view`, `orders.view`, `kds.view`, `kds.update_status`                                                                                          |
+| KITCHEN | `categories.view`, `products.view`, `tables.view`, `orders.view`, `kds.view`, `kds.update_status`                                                                                          |
 
 ### Authorization
 
@@ -1195,7 +1195,7 @@ Error:
 
 ### Role seed
 
-- OWNER, CASHIER, BARISTA.
+- OWNER, CASHIER, KITCHEN.
 - `is_system = true`.
 - `code` uppercase.
 - Permission default hanya diberikan saat role dibuat.
@@ -1219,7 +1219,7 @@ phone: 021-000000
 | -------------- | ------------- | ------------------- | --------- | ------- | --------- |
 | `user-owner`   | Rina Pemilik  | `owner@ravika.id`   | `owner`   | OWNER   | `demo123` |
 | `user-cashier` | Bagas Kasir   | `cashier@ravika.id` | `cashier` | CASHIER | `demo123` |
-| `user-barista` | Nadia Barista | `barista@ravika.id` | `barista` | BARISTA | `demo123` |
+| `user-kitchen` | Nadia Kitchen | `kitchen@ravika.id` | `kitchen` | KITCHEN | `demo123` |
 
 Password di-hash saat seed. Jangan menyimpan plaintext.
 
@@ -1229,7 +1229,7 @@ Password di-hash saat seed. Jangan menyimpan plaintext.
 - Email dan password dari env.
 - Nama default `Pemilik`.
 - Role OWNER.
-- Jangan membuat cashier/barista demo.
+- Jangan membuat cashier/kitchen demo.
 
 ### Determinisme
 
@@ -1299,7 +1299,7 @@ Jangan gunakan transaksi panjang untuk request read-only.
 | ------------------------------------ | ---------------------------------------------------------------------------------- |
 | `tests/integration/database.test.ts` | migration dari kosong, tabel utama ada, foreign key aktif, seed idempotent         |
 | `tests/integration/auth.test.ts`     | login benar/salah, user nonaktif, session expired/revoked, logout, change password |
-| `tests/integration/rbac.test.ts`     | owner/cashier/barista permission, 401/403                                          |
+| `tests/integration/rbac.test.ts`     | owner/cashier/kitchen permission, 401/403                                          |
 | `tests/integration/business.test.ts` | get/update business, validasi, permission                                          |
 | `tests/unit/password.test.ts`        | hash dan verify, salt berbeda, format valid                                        |
 | `tests/unit/problem-details.test.ts` | bentuk RFC 9457, status, code, validation errors                                   |

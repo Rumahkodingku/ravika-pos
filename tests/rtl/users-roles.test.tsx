@@ -53,7 +53,7 @@ const cashierUser: ManagementUser = {
 const roleOptions = [
   { id: "role-owner", code: "OWNER", name: "Pemilik" },
   { id: "role-cashier", code: "CASHIER", name: "Kasir" },
-  { id: "role-barista", code: "BARISTA", name: "Barista" },
+  { id: "role-kitchen", code: "KITCHEN", name: "Kitchen" },
   { id: "role-supervisor", code: "SUPERVISOR", name: "Supervisor" },
 ];
 

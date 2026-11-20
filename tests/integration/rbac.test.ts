@@ -33,13 +33,13 @@ describe("rbac", () => {
   it("grants permissions by role", async () => {
     const owner = await contextFor("owner");
     const cashier = await contextFor("cashier");
-    const barista = await contextFor("barista");
+    const kitchen = await contextFor("kitchen");
 
     expect(hasPermission(owner, "business.update")).toBe(true);
     expect(hasPermission(cashier, "business.view")).toBe(true);
     expect(hasPermission(cashier, "business.update")).toBe(false);
-    expect(hasPermission(barista, "kds.update_status")).toBe(true);
-    expect(hasPermission(barista, "business.view")).toBe(false);
+    expect(hasPermission(kitchen, "kds.update_status")).toBe(true);
+    expect(hasPermission(kitchen, "business.view")).toBe(false);
   });
 
   it("throws 403 when permission is missing", async () => {

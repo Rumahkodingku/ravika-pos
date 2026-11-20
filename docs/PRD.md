@@ -260,7 +260,7 @@ MVP memiliki tiga role bawaan:
                                                   dan mencatat
                                                   pembayaran.
 
-`BARISTA`               Barista                 Melihat antrean dan
+`KITCHEN`               Kitchen                 Melihat antrean dan
                                                   memperbarui proses
                                                   persiapan pesanan
   -----------------------------------------------------------------------
@@ -287,7 +287,7 @@ Matriks berikut adalah baseline permission. Implementasi harus memeriksa
 permission, bukan hanya membandingkan nama role.
 
   -----------------------------------------------------------------------
-  Area                        OWNER            CASHIER            BARISTA
+  Area                        OWNER            CASHIER            KITCHEN
   -------------- ------------------ ------------------ ------------------
   Dashboard                      Ya Ringkasan terbatas              Tidak
 
@@ -666,7 +666,7 @@ dan atribut Secure dikontrol environment.
 - **FR-RBAC-005** --- Backend memeriksa permission pada setiap
     tindakan terlindungi.
 - **FR-RBAC-006** --- Sistem menyediakan role awal OWNER, CASHIER, dan
-    BARISTA melalui seeder.
+    KITCHEN melalui seeder.
 - **FR-RBAC-007** --- Sistem tidak boleh mengandalkan nama role
     sebagai satu-satunya mekanisme otorisasi.
 - **FR-RBAC-008** --- Perubahan permission harus tercermin pada
@@ -2330,7 +2330,7 @@ MVP dinyatakan selesai apabila seluruh kondisi berikut terpenuhi:
 - [ ] Aplikasi dapat digunakan untuk operasional lokal tanpa internet.
 - [ ] Akun OWNER dapat dibuat pada instalasi pertama.
 - [ ] Login, logout, sesi, dan RBAC berfungsi.
-- [ ] OWNER, CASHIER, dan BARISTA memiliki akses sesuai permission.
+- [ ] OWNER, CASHIER, dan KITCHEN memiliki akses sesuai permission.
 - [ ] Bisnis dapat dikelola.
 - [ ] Kategori, produk, varian, dan add-on dapat dikelola.
 - [ ] Meja dan QR Code dapat dikelola.
@@ -2445,7 +2445,7 @@ Setiap perubahan harus:
   Real-time                 SSE
   Pengujian                 Vitest dan Playwright
   Styling                   Tailwind CSS v4
-  Role MVP                  OWNER, CASHIER, BARISTA
+  Role MVP                  OWNER, CASHIER, KITCHEN
   Autentikasi customer      Tidak wajib
   Sumber pesanan            CASHIER dan QR
   Tipe pesanan              DINE_IN dan TAKEAWAY
