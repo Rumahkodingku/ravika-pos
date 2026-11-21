@@ -5,7 +5,7 @@ import { useState } from "react";
 import { EmptyState } from "@/components/feedback/empty-state";
 import { ErrorState } from "@/components/feedback/error-state";
 import { LoadingState } from "@/components/feedback/loading-state";
-import { Badge, StatusBadge } from "@/components/ui/badge";
+import { StatusBadge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/layout";
 import { OrderTicket } from "@/components/ui/order-ticket";
@@ -17,7 +17,6 @@ import {
   useUpdateKdsStatusMutation,
 } from "@/features/kds/api";
 import { RequirePermission } from "@/features/management/permission-gate";
-import { useBusinessQuery } from "@/features/operational/api";
 import { useNow } from "@/features/operational/use-now";
 import { formatElapsed } from "@/lib/format";
 import { preparationStatusConfig } from "@/lib/status";
@@ -45,7 +44,6 @@ const nextStatus: Partial<Record<PreparationStatus, KdsNextStatus>> = {
 
 export default function KdsPage() {
   const { toast } = useToast();
-  const { data: business } = useBusinessQuery();
   const { data, error, isLoading, refetch } = useKdsOrdersQuery();
   const { mutateAsync: updateStatus } = useUpdateKdsStatusMutation();
   const [updatingId, setUpdatingId] = useState<string | null>(null);
@@ -118,9 +116,6 @@ export default function KdsPage() {
     <RequirePermission permission="kds.view">
       <div className="flex flex-col gap-5">
         <PageHeader
-          actions={
-            business ? <Badge tone="neutral">{business.name}</Badge> : null
-          }
           description="Pantau alur persiapan dan ubah status pesanan aktif."
           title="Antrean pesanan"
         />
@@ -167,7 +162,7 @@ export default function KdsPage() {
             </p>
 
             <div className="overflow-x-auto pb-2">
-              <div className="grid min-w-[1348px] grid-cols-5 gap-3">
+              <div className="grid min-w-337 grid-cols-5 gap-3">
                 {columns.map((column) => {
                   const tickets =
                     column.status === "COMPLETED"
@@ -179,7 +174,7 @@ export default function KdsPage() {
                   return (
                     <section
                       aria-label={column.label}
-                      className="flex min-h-[420px] min-w-[260px] flex-col gap-3 rounded-lg border border-border bg-surface-subtle p-3"
+                      className="flex min-h-105 min-w-65 flex-col gap-3 rounded-lg border border-border bg-surface-subtle p-3"
                       key={column.status}
                     >
                       <div className="flex items-start justify-between gap-2">

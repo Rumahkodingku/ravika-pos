@@ -10,7 +10,6 @@ import { PageHeader } from "@/components/ui/layout";
 import { ProductCard } from "@/components/ui/product-card";
 import { useToast } from "@/components/ui/toast";
 import {
-  useBusinessQuery,
   usePosCatalogQuery,
 } from "@/features/operational/api";
 import {
@@ -23,7 +22,6 @@ import type { Product } from "@/types/domain";
 export default function PosPage() {
   const { addLine } = usePosCart();
   const { toast } = useToast();
-  const { data: business } = useBusinessQuery();
   const { addOns, categories, isLoading, products } = usePosCatalogQuery();
   const [category, setCategory] = useState("Semua");
   const [query, setQuery] = useState("");
@@ -97,7 +95,6 @@ export default function PosPage() {
     <div className="flex flex-col gap-5">
       <PageHeader
         description="Pilih produk, atur pesanan, lalu lanjutkan ke pembayaran."
-        eyebrow={business?.name ?? "RAVIKA"}
         title="POS"
       />
 
