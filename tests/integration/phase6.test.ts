@@ -575,7 +575,7 @@ describe("phase 6 KDS and events", () => {
 
 describe("phase 6 reports", () => {
   it("computes summary and sales report from seeded data", async () => {
-    const summary = await getSummary(bundle.db, businessId, "7d");
+    const summary = await getSummary(bundle.db, businessId, { range: "7d" });
     const report = await getSalesReport(bundle.db, businessId, {});
 
     expect(summary.transactionCount).toBeGreaterThan(0);

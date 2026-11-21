@@ -9,9 +9,7 @@ import { SearchInput } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/layout";
 import { ProductCard } from "@/components/ui/product-card";
 import { useToast } from "@/components/ui/toast";
-import {
-  usePosCatalogQuery,
-} from "@/features/operational/api";
+import { usePosCatalogQuery } from "@/features/operational/api";
 import {
   ProductConfigurator,
   type ProductConfiguratorResult,

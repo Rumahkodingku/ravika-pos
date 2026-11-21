@@ -629,7 +629,7 @@ export async function ensureDemoImages(
         const urls =
           demoImageUrls[product.categoryId] ?? demoImageUrls["category-kopi"];
         const imageUrl = urls[product.id.length % urls.length];
-        const image = await fetchDemoImage(product.id, imageUrl);
+        const image = await fetchDemoImage(imageUrl);
 
         if (!image) {
           return;
@@ -682,7 +682,7 @@ const demoImageUrls: Record<string, string[]> = {
   ],
 };
 
-async function fetchDemoImage(productId: string, imageUrl: string) {
+async function fetchDemoImage(imageUrl: string) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 8000);
 

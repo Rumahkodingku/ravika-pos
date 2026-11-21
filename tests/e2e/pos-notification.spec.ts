@@ -36,7 +36,9 @@ test("pos announces a new QR order in real time", async ({ page }) => {
   const table = await tableResponse.json();
 
   await page.goto("/app/pos");
-  await expect(page.getByRole("status")).toHaveText(/Terhubung/);
+  await expect(
+    page.getByRole("status").filter({ hasText: "Terhubung" }),
+  ).toBeVisible();
 
   const orderResponse = await page.request.post("/api/public/orders", {
     data: {

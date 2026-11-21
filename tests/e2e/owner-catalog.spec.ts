@@ -10,7 +10,7 @@ test("owner manages catalog, add-on, product image, and table QR", async ({
   const tableName = `E2E Meja ${suffix}`;
   await page.goto("/login");
   await page.getByLabel("Email atau username").fill("owner@ravika.id");
-  await page.getByLabel("Kata sandi").fill("demo123");
+  await page.getByRole("textbox", { name: "Kata sandi" }).fill("demo123");
   await page.getByRole("button", { name: "Masuk" }).click();
   await expect(page).toHaveURL(/\/app$/);
 

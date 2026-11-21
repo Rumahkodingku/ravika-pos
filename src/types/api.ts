@@ -30,6 +30,16 @@ export type BaseListParams = {
   sortDir?: "asc" | "desc";
 };
 
+export type DashboardFilters = {
+  dateFrom?: string;
+  dateTo?: string;
+  orderStatus?: string;
+  orderType?: string;
+  paymentStatus?: string;
+  range?: string;
+  source?: string;
+};
+
 export type ProductListParams = BaseListParams & {
   categoryId?: string;
   active?: string;

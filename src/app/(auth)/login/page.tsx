@@ -24,6 +24,8 @@ export default function LoginPage() {
   return (
     <div className="grid min-h-dvh lg:grid-cols-2">
       <aside className="relative hidden overflow-hidden lg:block">
+        {/* Login artwork is a decorative remote image; next/image remote config is unnecessary here. */}
+        {/* biome-ignore lint/performance/noImgElement: remote login artwork */}
         <img
           alt=""
           aria-hidden="true"

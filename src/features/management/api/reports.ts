@@ -3,7 +3,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { apiFetch } from "@/lib/api/client";
 import { queryKeys } from "@/lib/api/keys";
-import type { SalesReportParams, TopProductsParams } from "@/types/api";
+import type {
+  DashboardFilters,
+  SalesReportParams,
+  TopProductsParams,
+} from "@/types/api";
 import type { DashboardSummary, SalesReport } from "@/types/domain";
 
 function reportPath(path: string, params: Record<string, unknown>) {
@@ -20,11 +24,12 @@ function reportPath(path: string, params: Record<string, unknown>) {
   return search ? `${path}?${search}` : path;
 }
 
-export function useDashboardQuery(range: string) {
+export function useDashboardQuery(filters: DashboardFilters, enabled = true) {
   return useQuery({
+    enabled,
     queryFn: () =>
-      apiFetch<DashboardSummary>(reportPath("/reports/summary", { range })),
-    queryKey: queryKeys.reportSummary(range),
+      apiFetch<DashboardSummary>(reportPath("/reports/summary", filters)),
+    queryKey: queryKeys.reportSummary(filters),
   });
 }
 

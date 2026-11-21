@@ -2,7 +2,7 @@
 
 import { ChefHat, ShoppingCart } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { EmptyState } from "@/components/feedback/empty-state";
 import { ErrorState } from "@/components/feedback/error-state";
 import { StatusBadge } from "@/components/ui/badge";
@@ -14,6 +14,7 @@ import {
   CardHeader,
 } from "@/components/ui/card";
 import { BarChart, ChartContainer } from "@/components/ui/chart";
+import { DatePicker } from "@/components/ui/date-picker";
 import { PageHeader, Section } from "@/components/ui/layout";
 import { Select } from "@/components/ui/select";
 import { ServiceFlow } from "@/components/ui/service-flow";
@@ -36,16 +37,80 @@ import {
   formatCompactCurrency,
   formatCurrency,
   formatDate,
+  formatDateKey,
   formatDateTime,
   formatElapsed,
   formatNumber,
 } from "@/lib/format";
 import { preparationStatusConfig } from "@/lib/status";
 
+function rangeDates(period: string, customFrom: string, customTo: string) {
+  const today = formatDateKey(new Date());
+  const daysAgo = (days: number) => {
+    const date = new Date(`${today}T12:00:00Z`);
+    date.setUTCDate(date.getUTCDate() - days);
+    return formatDateKey(date);
+  };
+  const fallback = { from: daysAgo(6), to: today };
+
+  if (period === "today") {
+    return { from: today, to: today };
+  }
+  if (period === "7d") {
+    return fallback;
+  }
+  if (period === "30d") {
+    return { from: daysAgo(29), to: today };
+  }
+  return {
+    from: customFrom || fallback.from,
+    to: customTo || fallback.to,
+  };
+}
+
 export default function DashboardPage() {
-  const [range, setRange] = useState("today");
+  const [period, setPeriod] = useState("today");
+  const [customFrom, setCustomFrom] = useState(
+    () => rangeDates("today", "", "").from,
+  );
+  const [customTo, setCustomTo] = useState(
+    () => rangeDates("today", "", "").to,
+  );
+  const [source, setSource] = useState("all");
+  const [orderType, setOrderType] = useState("all");
+  const [paymentStatus, setPaymentStatus] = useState("all");
+  const [orderStatus, setOrderStatus] = useState("all");
   const now = useNow();
-  const { data, error, isLoading, refetch } = useDashboardQuery(range);
+  const dates = rangeDates(period, customFrom, customTo);
+  const isCustomRangeInvalid =
+    period === "custom" &&
+    customFrom !== "" &&
+    customTo !== "" &&
+    customFrom > customTo;
+  const filters = useMemo(
+    () => ({
+      dateFrom: period === "custom" ? customFrom || undefined : undefined,
+      dateTo: period === "custom" ? customTo || undefined : undefined,
+      orderStatus: orderStatus === "all" ? undefined : orderStatus,
+      orderType: orderType === "all" ? undefined : orderType,
+      paymentStatus: paymentStatus === "all" ? undefined : paymentStatus,
+      range: period,
+      source: source === "all" ? undefined : source,
+    }),
+    [
+      customFrom,
+      customTo,
+      orderStatus,
+      orderType,
+      paymentStatus,
+      period,
+      source,
+    ],
+  );
+  const { data, error, isLoading, refetch } = useDashboardQuery(
+    filters,
+    !isCustomRangeInvalid,
+  );
 
   const totalActive =
     data?.queue.reduce((total, item) => total + item.count, 0) ?? 0;
@@ -79,16 +144,85 @@ export default function DashboardPage() {
             <Select
               aria-label="Periode dashboard"
               className="w-40"
-              onChange={(event) => setRange(event.target.value)}
-              value={range}
+              onChange={(event) => setPeriod(event.target.value)}
+              value={period}
             >
               <option value="today">Hari ini</option>
               <option value="7d">7 hari</option>
               <option value="30d">30 hari</option>
+              <option value="custom">Kustom</option>
             </Select>
-            <p className="text-caption text-muted-foreground">
-              Angka dihitung dari pesanan dan pembayaran tercatat.
-            </p>
+            {period === "custom" ? (
+              <>
+                <DatePicker
+                  aria-label="Tanggal mulai dashboard"
+                  className="w-40"
+                  onChange={(event) => setCustomFrom(event.target.value)}
+                  value={customFrom}
+                />
+                <DatePicker
+                  aria-label="Tanggal akhir dashboard"
+                  className="w-40"
+                  onChange={(event) => setCustomTo(event.target.value)}
+                  value={customTo}
+                />
+              </>
+            ) : null}
+            <Select
+              aria-label="Sumber pesanan"
+              className="w-40"
+              onChange={(event) => setSource(event.target.value)}
+              value={source}
+            >
+              <option value="all">Semua sumber</option>
+              <option value="CASHIER">Kasir</option>
+              <option value="QR">QR</option>
+            </Select>
+            <Select
+              aria-label="Tipe pesanan"
+              className="w-40"
+              onChange={(event) => setOrderType(event.target.value)}
+              value={orderType}
+            >
+              <option value="all">Semua tipe</option>
+              <option value="DINE_IN">Dine-in</option>
+              <option value="TAKEAWAY">Takeaway</option>
+            </Select>
+            <Select
+              aria-label="Status pembayaran"
+              className="w-40"
+              onChange={(event) => setPaymentStatus(event.target.value)}
+              value={paymentStatus}
+            >
+              <option value="all">Semua pembayaran</option>
+              <option value="UNPAID">Belum dibayar</option>
+              <option value="PARTIALLY_PAID">Dibayar sebagian</option>
+              <option value="PAID">Lunas</option>
+              <option value="REFUNDED">Refund</option>
+            </Select>
+            <Select
+              aria-label="Status persiapan"
+              className="w-40"
+              onChange={(event) => setOrderStatus(event.target.value)}
+              value={orderStatus}
+            >
+              <option value="all">Semua persiapan</option>
+              <option value="NEW">Baru</option>
+              <option value="ACCEPTED">Diterima</option>
+              <option value="PREPARING">Disiapkan</option>
+              <option value="READY">Siap</option>
+              <option value="COMPLETED">Selesai</option>
+              <option value="CANCELLED">Dibatalkan</option>
+            </Select>
+            {isCustomRangeInvalid ? (
+              <p className="text-caption text-danger-strong" role="alert">
+                Tanggal mulai harus sebelum tanggal akhir.
+              </p>
+            ) : (
+              <p className="text-caption text-muted-foreground">
+                Periode {formatDate(dates.from)} sampai {formatDate(dates.to)}.
+              </p>
+            )}
           </CardContent>
         </Card>
 
@@ -103,9 +237,10 @@ export default function DashboardPage() {
           </div>
         ) : error ? (
           <ErrorState onRetry={() => void refetch()} />
-        ) : !data ? null : data.transactionCount === 0 ? (
+        ) : isCustomRangeInvalid ? null : !data ? null : data.transactionCount ===
+          0 ? (
           <EmptyState
-            description="Belum ada transaksi pada periode ini. Ubah filter untuk melihat data lain."
+            description="Belum ada transaksi pada filter ini. Ubah filter untuk melihat data lain."
             icon={ShoppingCart}
             title="Belum ada transaksi"
           />

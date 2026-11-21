@@ -7,6 +7,7 @@ import {
   listPaymentRows,
 } from "@/modules/orders/order.repository";
 import { mapOrders } from "@/modules/orders/order.service";
+import type { DashboardFilters } from "@/types/api";
 import type { DashboardSummary, Order, SalesReport } from "@/types/domain";
 import type { PreparationStatus } from "@/types/ui";
 
@@ -39,6 +40,14 @@ function rangeKeys(range?: string) {
     return { from: dateKeyOffset(29), to: dateKeyOffset(0) };
   }
   return { from: dateKeyOffset(0), to: dateKeyOffset(0) };
+}
+
+function resolveRange(filters: DashboardFilters) {
+  if (filters.dateFrom && filters.dateTo) {
+    return { from: filters.dateFrom, to: filters.dateTo };
+  }
+
+  return rangeKeys(filters.range);
 }
 
 function inRange(value: Date, from: string, to: string) {
@@ -93,21 +102,59 @@ function buildTrend(orders: Order[], toKey: string) {
 async function reportData(
   db: AppDatabase,
   businessId: string,
+  filters: DashboardFilters,
   from: string,
   to: string,
 ) {
-  const rows = (await listOrderRows(db)).filter(
-    (row) =>
-      row.businessId === businessId &&
-      row.orderStatus !== "CANCELLED" &&
-      inRange(row.createdAt, from, to),
-  );
+  const rows = (await listOrderRows(db)).filter((row) => {
+    if (row.businessId !== businessId || !inRange(row.createdAt, from, to)) {
+      return false;
+    }
+
+    if (
+      filters.orderStatus &&
+      filters.orderStatus !== "all" &&
+      row.orderStatus !== filters.orderStatus
+    ) {
+      return false;
+    }
+
+    if (
+      filters.orderStatus !== "CANCELLED" &&
+      row.orderStatus === "CANCELLED"
+    ) {
+      return false;
+    }
+
+    if (
+      filters.orderType &&
+      filters.orderType !== "all" &&
+      row.orderType !== filters.orderType
+    ) {
+      return false;
+    }
+
+    if (
+      filters.paymentStatus &&
+      filters.paymentStatus !== "all" &&
+      row.paymentStatus !== filters.paymentStatus
+    ) {
+      return false;
+    }
+
+    if (
+      filters.source &&
+      filters.source !== "all" &&
+      row.source !== filters.source
+    ) {
+      return false;
+    }
+
+    return true;
+  });
+
   const orders = await mapOrders(db, rows);
-  const orderIds = new Set(
-    (await listOrderRows(db))
-      .filter((row) => row.businessId === businessId)
-      .map((row) => row.id),
-  );
+  const orderIds = new Set(rows.map((row) => row.id));
   const paidTotal = (await listPaymentRows(db))
     .filter(
       (row) =>
@@ -127,12 +174,13 @@ async function reportData(
 export async function getSummary(
   db: AppDatabase,
   businessId: string,
-  range?: string,
+  filters: DashboardFilters = {},
 ): Promise<DashboardSummary> {
-  const { from, to } = rangeKeys(range);
+  const { from, to } = resolveRange(filters);
   const { orders, paidTotal, salesTotal } = await reportData(
     db,
     businessId,
+    filters,
     from,
     to,
   );
@@ -178,6 +226,7 @@ export async function getSalesReport(
   const { orders, paidTotal, salesTotal } = await reportData(
     db,
     businessId,
+    {},
     from,
     to,
   );
@@ -204,7 +253,7 @@ export async function getTopProducts(
 ) {
   const from = params.dateFrom ?? dateKeyOffset(6);
   const to = params.dateTo ?? dateKeyOffset(0);
-  const { orders } = await reportData(db, businessId, from, to);
+  const { orders } = await reportData(db, businessId, {}, from, to);
 
   return buildTopProducts(orders, Math.min(params.limit ?? 5, 100));
 }

@@ -1,5 +1,6 @@
 import type {
   CategoryListParams,
+  DashboardFilters,
   OrderListParams,
   PaymentListParams,
   ProductListParams,
@@ -30,7 +31,8 @@ export const queryKeys = {
   payments: (filters: PaymentListParams) => ["payments", filters] as const,
   payment: (id: string) => ["payments", "detail", id] as const,
   kds: ["kds"] as const,
-  reportSummary: (range: string) => ["reports", "summary", range] as const,
+  reportSummary: (filters: DashboardFilters) =>
+    ["reports", "summary", filters] as const,
   salesReport: (filters: SalesReportParams) =>
     ["reports", "sales", filters] as const,
   topProducts: (filters: TopProductsParams) =>
