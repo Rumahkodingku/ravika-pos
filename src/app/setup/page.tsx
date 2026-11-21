@@ -11,7 +11,7 @@ import { LoadingState } from "@/components/feedback/loading-state";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
+import { Input, PasswordInput } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/layout";
 import { Textarea } from "@/components/ui/textarea";
 import { useSetupMutation, useSetupStatusQuery } from "@/features/setup/api";
@@ -199,9 +199,8 @@ export default function SetupPage() {
               label="Kata sandi owner"
               required
             >
-              <Input
+              <PasswordInput
                 id="setup-owner-password"
-                type="password"
                 {...register("ownerPassword")}
               />
             </Field>
@@ -211,9 +210,8 @@ export default function SetupPage() {
               label="Konfirmasi kata sandi"
               required
             >
-              <Input
+              <PasswordInput
                 id="setup-confirm-password"
-                type="password"
                 {...register("confirmPassword")}
               />
             </Field>

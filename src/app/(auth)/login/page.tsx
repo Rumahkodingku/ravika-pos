@@ -12,7 +12,7 @@ const productFacts = [
   },
   {
     icon: Wifi,
-    text: "Berjalan di jaringan lokal tanpa internet wajib.",
+    text: "Akses dari perangkat yang terhubung ke jaringan bisnis",
   },
   {
     icon: HardDrive,

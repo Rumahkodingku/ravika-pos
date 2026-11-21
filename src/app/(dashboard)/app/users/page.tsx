@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Field, FieldDescription } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
+import { Input, PasswordInput } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/layout";
 import { Select } from "@/components/ui/select";
 import {
@@ -363,10 +363,9 @@ export default function UsersPage() {
               label="Kata sandi awal"
               required
             >
-              <Input
+              <PasswordInput
                 autoComplete="new-password"
                 id="user-password"
-                type="password"
                 {...register("password")}
               />
             </Field>

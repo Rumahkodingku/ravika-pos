@@ -1,5 +1,5 @@
-import { Search } from "lucide-react";
-import { forwardRef } from "react";
+import { Eye, EyeOff, Search } from "lucide-react";
+import { forwardRef, useState } from "react";
 import { cn } from "@/lib/cn";
 
 const inputBaseClasses =
@@ -37,4 +37,36 @@ export const SearchInput = forwardRef<HTMLInputElement, InputProps>(
   ),
 );
 
-SearchInput.displayName = "SearchInput";
+export const PasswordInput = forwardRef<HTMLInputElement, InputProps>(
+  ({ className, ...props }, ref) => {
+    const [visible, setVisible] = useState(false);
+
+    return (
+      <div className="relative">
+        <Input
+          {...props}
+          className={cn("pr-11", className)}
+          ref={ref}
+          type={visible ? "text" : "password"}
+        />
+        <button
+          aria-label={
+            visible ? "Sembunyikan kata sandi" : "Tampilkan kata sandi"
+          }
+          aria-pressed={visible}
+          className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
+          onClick={() => setVisible((value) => !value)}
+          type="button"
+        >
+          {visible ? (
+            <EyeOff aria-hidden="true" className="h-4 w-4" />
+          ) : (
+            <Eye aria-hidden="true" className="h-4 w-4" />
+          )}
+        </button>
+      </div>
+    );
+  },
+);
+
+PasswordInput.displayName = "PasswordInput";

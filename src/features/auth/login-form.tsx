@@ -8,7 +8,7 @@ import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Field } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
+import { Input, PasswordInput } from "@/components/ui/input";
 import { useLoginMutation } from "@/features/auth/api";
 import { apiFetch } from "@/lib/api/client";
 
@@ -89,12 +89,11 @@ export function LoginForm() {
         label="Kata sandi"
         required
       >
-        <Input
+        <PasswordInput
           aria-invalid={errors.password ? true : undefined}
           autoComplete="current-password"
           id="login-password"
           placeholder="Masukkan kata sandi"
-          type="password"
           {...register("password")}
         />
       </Field>

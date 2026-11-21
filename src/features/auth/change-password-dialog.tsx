@@ -7,7 +7,7 @@ import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
 import { Field } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/input";
 import { useToast } from "@/components/ui/toast";
 import { useChangePasswordMutation } from "@/features/auth/api";
 import { ApiError } from "@/lib/api/errors";
@@ -112,10 +112,9 @@ export function ChangePasswordDialog({
           label="Kata sandi saat ini"
           required
         >
-          <Input
+          <PasswordInput
             autoComplete="current-password"
             id="change-password-current"
-            type="password"
             {...register("currentPassword")}
           />
         </Field>
@@ -126,10 +125,9 @@ export function ChangePasswordDialog({
           label="Kata sandi baru"
           required
         >
-          <Input
+          <PasswordInput
             autoComplete="new-password"
             id="change-password-new"
-            type="password"
             {...register("newPassword")}
           />
         </Field>
@@ -139,10 +137,9 @@ export function ChangePasswordDialog({
           label="Konfirmasi kata sandi baru"
           required
         >
-          <Input
+          <PasswordInput
             autoComplete="new-password"
             id="change-password-confirm"
-            type="password"
             {...register("confirmPassword")}
           />
         </Field>
