@@ -1,64 +1,23 @@
 "use client";
 
-import { HardDrive, Monitor, Wifi } from "lucide-react";
 import { BrandLogo } from "@/components/brand/brand-logo";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { LoginForm } from "@/features/auth/login-form";
 
-const productFacts = [
-  {
-    icon: Monitor,
-    text: "Kasir, KDS, dan QR menu dalam satu alur.",
-  },
-  {
-    icon: Wifi,
-    text: "Berjalan di jaringan lokal tanpa internet wajib.",
-  },
-  {
-    icon: HardDrive,
-    text: "Data operasional tetap di komputer server Anda.",
-  },
-];
-
 export default function LoginPage() {
   return (
     <div className="grid min-h-dvh lg:grid-cols-2">
-      <aside className="hidden flex-col justify-between gap-10 border-r border-border bg-surface-inverse p-10 text-inverse-foreground lg:flex xl:p-14">
-        <div className="flex flex-col gap-10">
-          <div className="flex items-center gap-2">
-            <BrandLogo priority size="lg" />
-            <span className="text-2xl font-bold tracking-tight">RAVIKA</span>
-            <span className="text-caption font-semibold text-inverse-foreground/70">
-              POS
-            </span>
-          </div>
-          <div className="flex max-w-xl flex-col gap-3">
-            <p className="text-display">Run your business with clarity.</p>
-            <p className="max-w-md text-body text-inverse-foreground/75">
-              Satu alur untuk pesanan, pembayaran, persiapan, dan laporan
-              operasional kafe.
-            </p>
-          </div>
-          <ul className="flex flex-col gap-4">
-            {productFacts.map((fact) => {
-              const Icon = fact.icon;
-
-              return (
-                <li className="flex items-start gap-3" key={fact.text}>
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-white/15 bg-white/5">
-                    <Icon aria-hidden="true" className="h-4 w-4" />
-                  </span>
-                  <span className="text-body text-inverse-foreground/80">
-                    {fact.text}
-                  </span>
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-        <p className="text-caption text-inverse-foreground/60">
-          Sistem operasional kafe dalam satu tempat.
-        </p>
+      <aside
+        aria-hidden="true"
+        className="relative hidden overflow-hidden lg:block"
+      >
+        <img
+          alt=""
+          className="absolute inset-0 h-full w-full object-cover"
+          fetchPriority="high"
+          src="https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?auto=format&fit=crop&w=1600&h=900&q=80"
+        />
+        <div className="absolute inset-0 bg-black/60" />
       </aside>
 
       <section className="relative flex min-h-dvh flex-col bg-surface">
