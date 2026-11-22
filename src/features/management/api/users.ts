@@ -38,6 +38,10 @@ export type CreateUserInput = {
 
 export type UpdateUserInput = Omit<CreateUserInput, "password">;
 
+export type ResetUserPasswordInput = {
+  password: string;
+};
+
 export function useCreateUserMutation() {
   const queryClient = useQueryClient();
 
@@ -58,5 +62,25 @@ export function useUpdateUserMutation() {
         method: "PATCH",
       }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["users"] }),
+  });
+}
+
+export function useDeleteUserMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) =>
+      apiFetch<void>(`/users/${id}`, { method: "DELETE" }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["users"] }),
+  });
+}
+
+export function useResetUserPasswordMutation() {
+  return useMutation({
+    mutationFn: ({ id, password }: { id: string; password: string }) =>
+      apiFetch<void>(`/users/${id}/reset-password`, {
+        body: { password },
+        method: "POST",
+      }),
   });
 }

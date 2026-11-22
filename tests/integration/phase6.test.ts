@@ -129,7 +129,7 @@ describe("phase 6 users and roles", () => {
         role: "CASHIER",
         isActive: true,
       }),
-    ).rejects.toMatchObject({ code: "LAST_OWNER_GUARD" });
+    ).rejects.toMatchObject({ code: "USER_OWNER_ROLE" });
   });
 
   it("creates custom roles, replaces permissions, and locks system codes", async () => {

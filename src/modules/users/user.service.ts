@@ -1,6 +1,7 @@
 import "server-only";
 
-import type { AppDatabase } from "@/infrastructure/database/types";
+import type { AppDatabase, DbExecutor } from "@/infrastructure/database/types";
+import { writeAudit } from "@/modules/audit/audit.service";
 import { hashPassword } from "@/modules/auth/password";
 import { AppError } from "@/shared/errors/app-error";
 import { newId } from "@/shared/ids";
@@ -16,6 +17,8 @@ import {
   findUserByUsername,
   insertUser,
   listUserRows,
+  revokeUserSessions,
+  updatePassword,
   updateUser,
 } from "./user.repository";
 import type { UserCreateInput, UserUpdateInput } from "./user.schemas";
@@ -102,6 +105,14 @@ export async function createUser(
   businessId: string,
   input: UserCreateInput,
 ) {
+  const allowedCreateRoles = new Set(["CASHIER", "KITCHEN"]);
+
+  if (!allowedCreateRoles.has(input.role)) {
+    throw AppError.validation([
+      { path: "role", message: "Role tidak tersedia untuk pengguna baru." },
+    ]);
+  }
+
   const role = await findRoleByCode(db, businessId, input.role);
 
   if (!role) {
@@ -155,6 +166,22 @@ export async function updateUserById(
     throw AppError.notFound("ROLE_NOT_FOUND", "Role tidak ditemukan.");
   }
 
+  if (existing.role.code === "OWNER" && role.code !== "OWNER") {
+    throw AppError.conflict(
+      "USER_OWNER_ROLE",
+      "Role owner tidak dapat diubah.",
+    );
+  }
+
+  if (
+    existing.role.code !== "OWNER" &&
+    !["CASHIER", "KITCHEN"].includes(role.code)
+  ) {
+    throw AppError.validation([
+      { path: "role", message: "Role tidak tersedia untuk pengguna ini." },
+    ]);
+  }
+
   const email = input.email.toLowerCase();
   const username = (input.username || defaultUsername(email)).toLowerCase();
 
@@ -189,5 +216,101 @@ export async function updateUserById(
     updatedAt: now(),
   });
 
+  if (!input.isActive) {
+    await revokeUserSessions(db, id);
+  }
+
   return getUser(db, businessId, id);
+}
+
+export async function deactivateUser(
+  db: AppDatabase,
+  businessId: string,
+  id: string,
+  actorId: string,
+) {
+  const existing = await findUserById(db, id);
+
+  if (!existing || existing.user.businessId !== businessId) {
+    throw AppError.notFound("USER_NOT_FOUND", "Pengguna tidak ditemukan.");
+  }
+
+  if (existing.role.code === "OWNER") {
+    throw AppError.conflict(
+      "USER_OWNER_GUARD",
+      "Owner tidak dapat dinonaktifkan.",
+    );
+  }
+
+  if (existing.user.id === actorId) {
+    throw AppError.conflict(
+      "USER_SELF_DEACTIVATE",
+      "Anda tidak dapat menonaktifkan akun sendiri.",
+    );
+  }
+
+  if (!existing.user.isActive) {
+    return;
+  }
+
+  await updateUser(db, id, {
+    email: existing.user.email,
+    isActive: false,
+    name: existing.user.name,
+    roleId: existing.user.roleId,
+    updatedAt: now(),
+    username: existing.user.username,
+  });
+  await revokeUserSessions(db, id);
+
+  await writeAudit(db, {
+    action: "user.deactivate",
+    actorUserId: actorId,
+    businessId,
+    metadata: { userId: id },
+    resourceId: id,
+    resourceType: "user",
+  });
+}
+
+export async function resetUserPassword(
+  db: AppDatabase,
+  businessId: string,
+  id: string,
+  password: string,
+  actorId: string,
+) {
+  const existing = await findUserById(db, id);
+
+  if (!existing || existing.user.businessId !== businessId) {
+    throw AppError.notFound("USER_NOT_FOUND", "Pengguna tidak ditemukan.");
+  }
+
+  if (existing.role.code === "OWNER") {
+    throw AppError.conflict(
+      "USER_OWNER_PASSWORD",
+      "Password owner diubah lewat profil akun.",
+    );
+  }
+
+  if (password.length < 8) {
+    throw AppError.validation([
+      { message: "Kata sandi minimal 8 karakter.", path: "password" },
+    ]);
+  }
+
+  const passwordHash = await hashPassword(password);
+
+  await db.transaction(async (tx) => {
+    await updatePassword(tx as unknown as DbExecutor, id, passwordHash);
+    await revokeUserSessions(tx as unknown as DbExecutor, id);
+    await writeAudit(tx as unknown as DbExecutor, {
+      action: "user.reset_password",
+      actorUserId: actorId,
+      businessId,
+      metadata: { userId: id },
+      resourceId: id,
+      resourceType: "user",
+    });
+  });
 }

@@ -150,7 +150,7 @@ describe("UsersPage", () => {
     await user.type(screen.getByLabelText(/^Nama/), "Supervisor Satu");
     await user.type(screen.getByLabelText(/^Email/), "sup@ravika.id");
     await user.type(screen.getByLabelText(/Kata sandi awal/), "rahasia123");
-    await user.selectOptions(screen.getByLabelText(/^Role/), "SUPERVISOR");
+    await user.selectOptions(screen.getByLabelText(/^Role/), "CASHIER");
     await user.click(screen.getByRole("button", { name: "Simpan" }));
 
     await waitFor(() => {
@@ -170,7 +170,7 @@ describe("UsersPage", () => {
       isActive: true,
       name: "Supervisor Satu",
       password: "rahasia123",
-      role: "SUPERVISOR",
+      role: "CASHIER",
     });
   });
 

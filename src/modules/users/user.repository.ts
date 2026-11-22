@@ -1,7 +1,7 @@
 import "server-only";
 
-import { and, eq, ne, or } from "drizzle-orm";
-import { roles, users } from "@/infrastructure/database/schema";
+import { and, eq, isNull, ne, or } from "drizzle-orm";
+import { roles, sessions, users } from "@/infrastructure/database/schema";
 import type { DbExecutor } from "@/infrastructure/database/types";
 
 async function roleForUser(db: DbExecutor, user: typeof users.$inferSelect) {
@@ -174,4 +174,11 @@ export async function countActiveOwners(
     );
 
   return rows.length;
+}
+
+export async function revokeUserSessions(db: DbExecutor, userId: string) {
+  await db
+    .update(sessions)
+    .set({ revokedAt: new Date() })
+    .where(and(eq(sessions.userId, userId), isNull(sessions.revokedAt)));
 }
