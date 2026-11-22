@@ -1,10 +1,22 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Package, Pencil, Plus, Trash2 } from "lucide-react";
+import type {
+  ColumnDef,
+  OnChangeFn,
+  SortingState,
+} from "@tanstack/react-table";
+import { Eye, Package, Pencil, Plus, Power, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
+import { DataTable } from "@/components/data-table/data-table";
+import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
+import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
+import { ResponsiveList } from "@/components/data-table/responsive-list";
+import { TableActions } from "@/components/data-table/table-actions";
+import { TablePagination } from "@/components/data-table/table-pagination";
+import { TableSkeleton } from "@/components/data-table/table-skeleton";
 import { EmptyState } from "@/components/feedback/empty-state";
 import { ErrorState } from "@/components/feedback/error-state";
 import { Badge } from "@/components/ui/badge";
@@ -17,16 +29,9 @@ import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/layout";
 import { ProductImage } from "@/components/ui/product-image";
 import { Select } from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/toast";
+import { useSession } from "@/features/auth/session-provider";
 import {
   type ProductInput,
   useAddOnsQuery,
@@ -38,16 +43,11 @@ import {
   useUpdateProductMutation,
   useUploadProductImageMutation,
 } from "@/features/management/api/catalog";
-import { DataTableToolbar } from "@/features/management/data-table-toolbar";
 import { FormDrawer } from "@/features/management/form-drawer";
 import {
   PermissionGate,
   RequirePermission,
 } from "@/features/management/permission-gate";
-import { ResponsiveList } from "@/features/management/responsive-list";
-import { SortableTableHead } from "@/features/management/sortable-table-head";
-import { TablePagination } from "@/features/management/table-pagination";
-import { TableSkeleton } from "@/features/management/table-skeleton";
 import { formatCurrency, parseCurrencyInput } from "@/lib/format";
 import { compressProductImage, PRODUCT_IMAGE_ACCEPT } from "@/lib/image";
 import type { Product } from "@/types/domain";
@@ -105,6 +105,8 @@ function toValues(product: Product): ProductValues {
 
 export default function ProductsPage() {
   const { toast } = useToast();
+  const { user: currentUser } = useSession();
+  const canManageProducts = currentUser.permissions.includes("products.manage");
   const [search, setSearch] = useState("");
   const [categoryId, setCategoryId] = useState("all");
   const [active, setActive] = useState("all");
@@ -277,18 +279,141 @@ export default function ProductsPage() {
     setPage(1);
   };
 
-  const toggleSort = (key: string) => {
-    if (sortBy === key) {
-      setSortDir((current) => (current === "asc" ? "desc" : "asc"));
-    } else {
-      setSortBy(key);
-      setSortDir("asc");
-    }
+  const categoryName = (id: string) =>
+    categories.find((category) => category.id === id)?.name ?? "Tanpa kategori";
+
+  const sorting: SortingState = [{ desc: sortDir === "desc", id: sortBy }];
+  const onSortingChange: OnChangeFn<SortingState> = (updater) => {
+    const next = typeof updater === "function" ? updater(sorting) : updater;
+    const first = next[0];
+
+    setSortBy(first?.id ?? "name");
+    setSortDir(first?.desc ? "desc" : "asc");
     setPage(1);
   };
 
-  const categoryName = (id: string) =>
-    categories.find((category) => category.id === id)?.name ?? "Tanpa kategori";
+  const columns: ColumnDef<Product>[] = [
+    {
+      accessorKey: "name",
+      cell: ({ row }) => {
+        const product = row.original;
+
+        return (
+          <div className="flex items-center gap-2">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-md border border-border bg-surface-subtle">
+              <ProductImage
+                iconClassName="h-5 w-5"
+                name={product.name}
+                src={product.imageUrl}
+              />
+            </span>
+            <button
+              className="min-h-11 text-left font-medium text-foreground underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
+              onClick={() => setDetail(product)}
+              type="button"
+            >
+              {product.name}
+            </button>
+          </div>
+        );
+      },
+      enableSorting: true,
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Nama" />
+      ),
+    },
+    {
+      accessorFn: (row) => categoryName(row.categoryId),
+      cell: ({ row }) => (
+        <span className="text-muted-foreground">
+          {categoryName(row.original.categoryId)}
+        </span>
+      ),
+      enableSorting: true,
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Kategori" />
+      ),
+      id: "category",
+    },
+    {
+      accessorFn: (row) => row.basePrice,
+      cell: ({ row }) => (
+        <span className="tabular-nums">
+          {formatCurrency(row.original.basePrice)}
+        </span>
+      ),
+      enableSorting: true,
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Harga" />
+      ),
+      id: "price",
+    },
+    {
+      accessorKey: "isAvailable",
+      cell: ({ row }) => (
+        <Badge tone={row.original.isAvailable ? "info" : "warning"}>
+          {row.original.isAvailable ? "Tersedia" : "Habis"}
+        </Badge>
+      ),
+      header: "Ketersediaan",
+    },
+    {
+      accessorKey: "isActive",
+      cell: ({ row }) => (
+        <Badge tone={row.original.isActive ? "success" : "neutral"}>
+          {row.original.isActive ? "Aktif" : "Nonaktif"}
+        </Badge>
+      ),
+      header: "Status",
+    },
+    {
+      cell: ({ row }) => {
+        const product = row.original;
+        const actions = [
+          {
+            icon: Eye,
+            label: `Lihat ${product.name}`,
+            onClick: () => setDetail(product),
+          },
+          ...(canManageProducts
+            ? [
+                {
+                  icon: Package,
+                  label: product.isAvailable
+                    ? `Tandai ${product.name} habis`
+                    : `Tandai ${product.name} tersedia`,
+                  onClick: () =>
+                    void toggleFlags(product, {
+                      isAvailable: !product.isAvailable,
+                    }),
+                },
+                {
+                  icon: Power,
+                  label: product.isActive
+                    ? `Nonaktifkan ${product.name}`
+                    : `Aktifkan ${product.name}`,
+                  onClick: () =>
+                    void toggleFlags(product, { isActive: !product.isActive }),
+                  variant: product.isActive
+                    ? ("danger" as const)
+                    : ("ghost" as const),
+                },
+                {
+                  icon: Pencil,
+                  label: `Ubah ${product.name}`,
+                  onClick: () => openEdit(product),
+                },
+              ]
+            : []),
+        ];
+
+        return <TableActions actions={actions} />;
+      },
+      header: "Aksi",
+      id: "actions",
+      meta: { cellClassName: "text-right", className: "text-right" },
+    },
+  ];
 
   return (
     <RequirePermission permission="products.view">
@@ -421,137 +546,13 @@ export default function ProductsPage() {
                   </button>
                 ))}
                 table={
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <SortableTableHead
-                          active={sortBy === "name"}
-                          direction={sortDir}
-                          label="Nama"
-                          onSort={toggleSort}
-                          sortKey="name"
-                        />
-                        <SortableTableHead
-                          active={sortBy === "category"}
-                          direction={sortDir}
-                          label="Kategori"
-                          onSort={toggleSort}
-                          sortKey="category"
-                        />
-                        <SortableTableHead
-                          active={sortBy === "price"}
-                          direction={sortDir}
-                          label="Harga"
-                          onSort={toggleSort}
-                          sortKey="price"
-                        />
-                        <TableHead>Ketersediaan</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead className="text-right">Aksi</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {data.items.map((product) => (
-                        <TableRow key={product.id}>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              <span className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-md border border-border bg-surface-subtle">
-                                <ProductImage
-                                  iconClassName="h-5 w-5"
-                                  name={product.name}
-                                  src={product.imageUrl}
-                                />
-                              </span>
-                              <button
-                                className="min-h-11 text-left font-medium text-foreground underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
-                                onClick={() => setDetail(product)}
-                                type="button"
-                              >
-                                {product.name}
-                              </button>
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-muted-foreground">
-                            {categoryName(product.categoryId)}
-                          </TableCell>
-                          <TableCell className="tabular-nums">
-                            {formatCurrency(product.basePrice)}
-                          </TableCell>
-                          <TableCell>
-                            <Badge
-                              tone={product.isAvailable ? "info" : "warning"}
-                            >
-                              {product.isAvailable ? "Tersedia" : "Habis"}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <Badge
-                              tone={product.isActive ? "success" : "neutral"}
-                            >
-                              {product.isActive ? "Aktif" : "Nonaktif"}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex justify-end gap-1">
-                              <Button
-                                aria-label={`Lihat ${product.name}`}
-                                onClick={() => setDetail(product)}
-                                size="sm"
-                                variant="ghost"
-                              >
-                                Detail
-                              </Button>
-                              <PermissionGate permission="products.manage">
-                                <Button
-                                  aria-label={`Tandai ${product.name} ${
-                                    product.isAvailable ? "habis" : "tersedia"
-                                  }`}
-                                  onClick={() =>
-                                    toggleFlags(product, {
-                                      isAvailable: !product.isAvailable,
-                                    })
-                                  }
-                                  size="sm"
-                                  variant="ghost"
-                                >
-                                  {product.isAvailable ? "Habis" : "Tersedia"}
-                                </Button>
-                                <Button
-                                  aria-label={`${
-                                    product.isActive
-                                      ? "Nonaktifkan"
-                                      : "Aktifkan"
-                                  } ${product.name}`}
-                                  onClick={() =>
-                                    toggleFlags(product, {
-                                      isActive: !product.isActive,
-                                    })
-                                  }
-                                  size="sm"
-                                  variant="ghost"
-                                >
-                                  {product.isActive
-                                    ? "Nonaktifkan"
-                                    : "Aktifkan"}
-                                </Button>
-                                <Button
-                                  aria-label={`Ubah ${product.name}`}
-                                  onClick={() => openEdit(product)}
-                                  size="sm"
-                                  variant="ghost"
-                                >
-                                  <Pencil
-                                    aria-hidden="true"
-                                    className="h-4 w-4"
-                                  />
-                                </Button>
-                              </PermissionGate>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                  <DataTable
+                    columns={columns}
+                    data={data.items}
+                    getRowId={(product) => product.id}
+                    onSortingChange={onSortingChange}
+                    sorting={sorting}
+                  />
                 }
               />
             )}

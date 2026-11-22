@@ -1,7 +1,9 @@
 "use client";
 
+import type { ColumnDef } from "@tanstack/react-table";
 import { BarChart3 } from "lucide-react";
 import { useState } from "react";
+import { DataTable } from "@/components/data-table/data-table";
 import { EmptyState } from "@/components/feedback/empty-state";
 import { ErrorState } from "@/components/feedback/error-state";
 import { StatusBadge } from "@/components/ui/badge";
@@ -11,14 +13,6 @@ import { DatePicker } from "@/components/ui/date-picker";
 import { PageHeader } from "@/components/ui/layout";
 import { Select } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import {
   useSalesReportQuery,
   useTopProductsQuery,
@@ -32,6 +26,7 @@ import {
   formatDateTime,
   formatNumber,
 } from "@/lib/format";
+import type { Order } from "@/types/domain";
 
 function rangeDates(period: string, customFrom: string, customTo: string) {
   const today = formatDateKey(new Date());
@@ -80,6 +75,55 @@ export default function ReportsPage() {
     limit: 5,
   });
   const topProducts = topProductsQuery.data ?? data?.topProducts ?? [];
+
+  const orderColumns: ColumnDef<Order>[] = [
+    {
+      accessorKey: "orderNumber",
+      cell: ({ row }) => (
+        <span className="font-medium">{row.original.orderNumber}</span>
+      ),
+      header: "Nomor",
+    },
+    {
+      accessorKey: "createdAt",
+      cell: ({ row }) => (
+        <span className="whitespace-nowrap text-muted-foreground">
+          {formatDateTime(row.original.createdAt)}
+        </span>
+      ),
+      header: "Waktu",
+    },
+    {
+      accessorKey: "orderType",
+      cell: ({ row }) =>
+        row.original.orderType === "DINE_IN" ? "Dine-in" : "Takeaway",
+      header: "Tipe",
+    },
+    {
+      accessorKey: "grandTotal",
+      cell: ({ row }) => (
+        <span className="tabular-nums">
+          {formatCurrency(row.original.grandTotal)}
+        </span>
+      ),
+      header: "Total",
+      meta: { cellClassName: "text-right", className: "text-right" },
+    },
+    {
+      accessorKey: "paymentStatus",
+      cell: ({ row }) => (
+        <StatusBadge kind="payment" status={row.original.paymentStatus} />
+      ),
+      header: "Pembayaran",
+    },
+    {
+      accessorKey: "orderStatus",
+      cell: ({ row }) => (
+        <StatusBadge kind="preparation" status={row.original.orderStatus} />
+      ),
+      header: "Persiapan",
+    },
+  ];
 
   return (
     <RequirePermission permission="reports.view">
@@ -242,50 +286,11 @@ export default function ReportsPage() {
               />
               <CardContent className="p-0">
                 <div className="hidden lg:block">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Nomor</TableHead>
-                        <TableHead>Waktu</TableHead>
-                        <TableHead>Tipe</TableHead>
-                        <TableHead className="text-right">Total</TableHead>
-                        <TableHead>Pembayaran</TableHead>
-                        <TableHead>Persiapan</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {data.orders.map((order) => (
-                        <TableRow key={order.id}>
-                          <TableCell className="font-medium">
-                            {order.orderNumber}
-                          </TableCell>
-                          <TableCell className="whitespace-nowrap text-muted-foreground">
-                            {formatDateTime(order.createdAt)}
-                          </TableCell>
-                          <TableCell>
-                            {order.orderType === "DINE_IN"
-                              ? "Dine-in"
-                              : "Takeaway"}
-                          </TableCell>
-                          <TableCell className="text-right tabular-nums">
-                            {formatCurrency(order.grandTotal)}
-                          </TableCell>
-                          <TableCell>
-                            <StatusBadge
-                              kind="payment"
-                              status={order.paymentStatus}
-                            />
-                          </TableCell>
-                          <TableCell>
-                            <StatusBadge
-                              kind="preparation"
-                              status={order.orderStatus}
-                            />
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                  <DataTable
+                    columns={orderColumns}
+                    data={data.orders}
+                    getRowId={(order) => order.id}
+                  />
                 </div>
                 <div className="flex flex-col gap-2 p-3 lg:hidden">
                   {data.orders.map((order) => (

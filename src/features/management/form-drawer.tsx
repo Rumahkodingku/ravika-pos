@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Drawer } from "@/components/ui/drawer";
-import { ConfirmDialog } from "@/features/management/confirm-dialog";
 
 export function FormDrawer({
   children,

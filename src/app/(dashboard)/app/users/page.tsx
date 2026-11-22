@@ -1,30 +1,30 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import type { ColumnDef } from "@tanstack/react-table";
 import { KeyRound, Pencil, Plus, Trash2, Users } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { DataTable } from "@/components/data-table/data-table";
+import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
+import { ResponsiveList } from "@/components/data-table/responsive-list";
+import { TableActions } from "@/components/data-table/table-actions";
+import { TablePagination } from "@/components/data-table/table-pagination";
+import { TableSkeleton } from "@/components/data-table/table-skeleton";
 import { EmptyState } from "@/components/feedback/empty-state";
 import { ErrorState } from "@/components/feedback/error-state";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Dialog } from "@/components/ui/dialog";
 import { Field, FieldDescription } from "@/components/ui/field";
 import { Input, PasswordInput } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/layout";
 import { Select } from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { useToast } from "@/components/ui/toast";
 import { useSession } from "@/features/auth/session-provider";
 import { useRoleOptionsQuery } from "@/features/management/api/roles";
@@ -35,15 +35,11 @@ import {
   useUpdateUserMutation,
   useUsersQuery,
 } from "@/features/management/api/users";
-import { DataTableToolbar } from "@/features/management/data-table-toolbar";
 import { FormDrawer } from "@/features/management/form-drawer";
 import {
   PermissionGate,
   RequirePermission,
 } from "@/features/management/permission-gate";
-import { ResponsiveList } from "@/features/management/responsive-list";
-import { TablePagination } from "@/features/management/table-pagination";
-import { TableSkeleton } from "@/features/management/table-skeleton";
 import type { ManagementUser } from "@/types/domain";
 
 const userSchema = z.object({
@@ -102,6 +98,8 @@ export default function UsersPage() {
     null,
   );
   const [resetPasswordOpen, setResetPasswordOpen] = useState(false);
+  const [deactivateTarget, setDeactivateTarget] =
+    useState<ManagementUser | null>(null);
 
   const { data, error, isLoading, refetch } = useUsersQuery({
     search,
@@ -172,14 +170,15 @@ export default function UsersPage() {
     setResetPasswordOpen(open);
   };
 
-  const deactivateUser = async (user: ManagementUser) => {
-    if (!window.confirm(`Nonaktifkan ${user.name}?`)) {
+  const deactivateUser = async () => {
+    if (!deactivateTarget) {
       return;
     }
 
     try {
-      await deleteUserMutation.mutateAsync(user.id);
+      await deleteUserMutation.mutateAsync(deactivateTarget.id);
       toast({ title: "Pengguna dinonaktifkan", tone: "success" });
+      setDeactivateTarget(null);
     } catch (reason) {
       toast({
         description:
@@ -252,6 +251,72 @@ export default function UsersPage() {
       });
     }
   });
+
+  const columns: ColumnDef<ManagementUser>[] = [
+    {
+      accessorKey: "name",
+      cell: ({ row }) => (
+        <span className="font-medium">{row.original.name}</span>
+      ),
+      header: "Nama",
+    },
+    {
+      accessorKey: "email",
+      cell: ({ row }) => (
+        <span className="text-muted-foreground">{row.original.email}</span>
+      ),
+      header: "Email",
+    },
+    {
+      accessorKey: "roleLabel",
+      header: "Role",
+    },
+    {
+      accessorKey: "isActive",
+      cell: ({ row }) => (
+        <Badge tone={row.original.isActive ? "success" : "neutral"}>
+          {row.original.isActive ? "Aktif" : "Nonaktif"}
+        </Badge>
+      ),
+      header: "Status",
+    },
+    {
+      cell: ({ row }) => {
+        const user = row.original;
+        const actions = [
+          {
+            icon: Pencil,
+            label: `Ubah ${user.name}`,
+            onClick: () => openEdit(user),
+          },
+          ...(user.role !== "OWNER"
+            ? [
+                {
+                  icon: KeyRound,
+                  label: `Reset password ${user.name}`,
+                  onClick: () => openResetPassword(user),
+                },
+                {
+                  icon: Trash2,
+                  label: `Nonaktifkan ${user.name}`,
+                  onClick: () => setDeactivateTarget(user),
+                  variant: "danger" as const,
+                },
+              ]
+            : []),
+        ];
+
+        return (
+          <PermissionGate permission="users.manage">
+            <TableActions actions={actions} />
+          </PermissionGate>
+        );
+      },
+      header: "Aksi",
+      id: "actions",
+      meta: { cellClassName: "text-right", className: "text-right" },
+    },
+  ];
 
   return (
     <RequirePermission permission="users.view">
@@ -387,7 +452,7 @@ export default function UsersPage() {
                               Reset
                             </Button>
                             <Button
-                              onClick={() => void deactivateUser(user)}
+                              onClick={() => setDeactivateTarget(user)}
                               size="sm"
                               variant="danger"
                             >
@@ -401,78 +466,11 @@ export default function UsersPage() {
                   </div>
                 ))}
                 table={
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Nama</TableHead>
-                        <TableHead>Email</TableHead>
-                        <TableHead>Role</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead className="text-right">Aksi</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {data.items.map((user) => (
-                        <TableRow key={user.id}>
-                          <TableCell className="font-medium">
-                            {user.name}
-                          </TableCell>
-                          <TableCell className="text-muted-foreground">
-                            {user.email}
-                          </TableCell>
-                          <TableCell>{user.roleLabel}</TableCell>
-                          <TableCell>
-                            <Badge tone={user.isActive ? "success" : "neutral"}>
-                              {user.isActive ? "Aktif" : "Nonaktif"}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <PermissionGate permission="users.manage">
-                              <div className="flex justify-end gap-1">
-                                <Button
-                                  aria-label={`Ubah ${user.name}`}
-                                  onClick={() => openEdit(user)}
-                                  size="sm"
-                                  variant="ghost"
-                                >
-                                  <Pencil
-                                    aria-hidden="true"
-                                    className="h-4 w-4"
-                                  />
-                                </Button>
-                                {user.role !== "OWNER" ? (
-                                  <>
-                                    <Button
-                                      aria-label={`Reset password ${user.name}`}
-                                      onClick={() => openResetPassword(user)}
-                                      size="sm"
-                                      variant="ghost"
-                                    >
-                                      <KeyRound
-                                        aria-hidden="true"
-                                        className="h-4 w-4"
-                                      />
-                                    </Button>
-                                    <Button
-                                      aria-label={`Nonaktifkan ${user.name}`}
-                                      onClick={() => void deactivateUser(user)}
-                                      size="sm"
-                                      variant="ghost"
-                                    >
-                                      <Trash2
-                                        aria-hidden="true"
-                                        className="h-4 w-4"
-                                      />
-                                    </Button>
-                                  </>
-                                ) : null}
-                              </div>
-                            </PermissionGate>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                  <DataTable
+                    columns={columns}
+                    data={data.items}
+                    getRowId={(user) => user.id}
+                  />
                 }
               />
             )}
@@ -643,6 +641,24 @@ export default function UsersPage() {
             ) : null}
           </form>
         </Dialog>
+
+        <ConfirmDialog
+          confirmLabel="Nonaktifkan"
+          description={
+            deactivateTarget
+              ? `Nonaktifkan ${deactivateTarget.name}? Pengguna tidak dapat masuk sampai diaktifkan kembali.`
+              : ""
+          }
+          isLoading={deleteUserMutation.isPending}
+          onConfirm={() => void deactivateUser()}
+          onOpenChange={(open) => {
+            if (!open) {
+              setDeactivateTarget(null);
+            }
+          }}
+          open={deactivateTarget !== null}
+          title="Nonaktifkan pengguna"
+        />
       </div>
     </RequirePermission>
   );

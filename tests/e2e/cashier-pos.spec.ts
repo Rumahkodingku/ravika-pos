@@ -71,7 +71,7 @@ test("cashier creates an order and records split payment", async ({ page }) => {
   await expect(page.getByText("Pembayaran lunas")).toBeVisible();
   await page.goto("/app/orders");
   await expect(
-    page.getByRole("cell", { name: orderNumber ?? "" }),
+    page.getByRole("cell", { exact: true, name: orderNumber ?? "" }),
   ).toBeVisible();
   await expect(page.getByRole("cell", { name: "Lunas" }).first()).toBeVisible();
 });

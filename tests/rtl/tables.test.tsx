@@ -125,7 +125,7 @@ describe("TablesPage", () => {
     ).toBe(false);
 
     const detailButtons = await screen.findAllByRole("button", {
-      name: "Detail",
+      name: /^Detail/,
     });
     await user.click(detailButtons[0]);
 
@@ -156,7 +156,7 @@ describe("TablesPage", () => {
     renderWithProviders(<TablesPage />, { user: owner });
 
     const detailButtons = await screen.findAllByRole("button", {
-      name: "Detail",
+      name: /^Detail/,
     });
     await user.click(detailButtons[0]);
     await screen.findAllByTestId("table-qr");

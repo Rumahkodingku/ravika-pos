@@ -1,10 +1,17 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Pencil, Plus, Tag } from "lucide-react";
+import type { ColumnDef } from "@tanstack/react-table";
+import { Pencil, Plus, Power, Tag } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { DataTable } from "@/components/data-table/data-table";
+import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
+import { ResponsiveList } from "@/components/data-table/responsive-list";
+import { TableActions } from "@/components/data-table/table-actions";
+import { TablePagination } from "@/components/data-table/table-pagination";
+import { TableSkeleton } from "@/components/data-table/table-skeleton";
 import { EmptyState } from "@/components/feedback/empty-state";
 import { ErrorState } from "@/components/feedback/error-state";
 import { Badge } from "@/components/ui/badge";
@@ -15,14 +22,6 @@ import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/layout";
 import { Select } from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { useToast } from "@/components/ui/toast";
 import {
   useAddOnsQuery,
@@ -30,15 +29,11 @@ import {
   useSetAddOnActiveMutation,
   useUpdateAddOnMutation,
 } from "@/features/management/api/catalog";
-import { DataTableToolbar } from "@/features/management/data-table-toolbar";
 import { FormDrawer } from "@/features/management/form-drawer";
 import {
   PermissionGate,
   RequirePermission,
 } from "@/features/management/permission-gate";
-import { ResponsiveList } from "@/features/management/responsive-list";
-import { TablePagination } from "@/features/management/table-pagination";
-import { TableSkeleton } from "@/features/management/table-skeleton";
 import { formatCurrency, parseCurrencyInput } from "@/lib/format";
 import type { AddOn } from "@/types/domain";
 
@@ -150,6 +145,64 @@ export default function AddOnsPage() {
     }
   };
 
+  const columns: ColumnDef<AddOn>[] = [
+    {
+      accessorKey: "name",
+      cell: ({ row }) => (
+        <span className="font-medium">{row.original.name}</span>
+      ),
+      header: "Nama",
+    },
+    {
+      accessorKey: "price",
+      cell: ({ row }) => (
+        <span className="tabular-nums">
+          {formatCurrency(row.original.price)}
+        </span>
+      ),
+      header: "Harga",
+    },
+    {
+      accessorKey: "isActive",
+      cell: ({ row }) => (
+        <Badge tone={row.original.isActive ? "success" : "neutral"}>
+          {row.original.isActive ? "Aktif" : "Nonaktif"}
+        </Badge>
+      ),
+      header: "Status",
+    },
+    {
+      cell: ({ row }) => {
+        const addOn = row.original;
+
+        return (
+          <PermissionGate permission="products.manage">
+            <TableActions
+              actions={[
+                {
+                  icon: Pencil,
+                  label: `Ubah ${addOn.name}`,
+                  onClick: () => openEdit(addOn),
+                },
+                {
+                  icon: Power,
+                  label: addOn.isActive
+                    ? `Nonaktifkan ${addOn.name}`
+                    : `Aktifkan ${addOn.name}`,
+                  onClick: () => void toggleActive(addOn),
+                  variant: addOn.isActive ? "danger" : "ghost",
+                },
+              ]}
+            />
+          </PermissionGate>
+        );
+      },
+      header: "Aksi",
+      id: "actions",
+      meta: { cellClassName: "text-right", className: "text-right" },
+    },
+  ];
+
   return (
     <RequirePermission permission="products.view">
       <div className="flex flex-col gap-6">
@@ -258,58 +311,11 @@ export default function AddOnsPage() {
                   </div>
                 ))}
                 table={
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Nama</TableHead>
-                        <TableHead>Harga</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead className="text-right">Aksi</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {items.map((addOn) => (
-                        <TableRow key={addOn.id}>
-                          <TableCell className="font-medium">
-                            {addOn.name}
-                          </TableCell>
-                          <TableCell className="tabular-nums">
-                            {formatCurrency(addOn.price)}
-                          </TableCell>
-                          <TableCell>
-                            <Badge
-                              tone={addOn.isActive ? "success" : "neutral"}
-                            >
-                              {addOn.isActive ? "Aktif" : "Nonaktif"}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <PermissionGate permission="products.manage">
-                              <div className="flex justify-end gap-1">
-                                <Button
-                                  onClick={() => openEdit(addOn)}
-                                  size="sm"
-                                  variant="ghost"
-                                >
-                                  <Pencil
-                                    aria-hidden="true"
-                                    className="h-4 w-4"
-                                  />
-                                </Button>
-                                <Button
-                                  onClick={() => void toggleActive(addOn)}
-                                  size="sm"
-                                  variant="ghost"
-                                >
-                                  {addOn.isActive ? "Nonaktifkan" : "Aktifkan"}
-                                </Button>
-                              </div>
-                            </PermissionGate>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                  <DataTable
+                    columns={columns}
+                    data={items}
+                    getRowId={(addOn) => addOn.id}
+                  />
                 }
               />
             )}

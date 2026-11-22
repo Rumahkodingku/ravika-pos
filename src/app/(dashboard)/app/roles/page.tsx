@@ -1,10 +1,15 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import type { ColumnDef } from "@tanstack/react-table";
 import { Pencil, Plus, ShieldCheck } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { DataTable } from "@/components/data-table/data-table";
+import { ResponsiveList } from "@/components/data-table/responsive-list";
+import { TableActions } from "@/components/data-table/table-actions";
+import { TableSkeleton } from "@/components/data-table/table-skeleton";
 import { EmptyState } from "@/components/feedback/empty-state";
 import { ErrorState } from "@/components/feedback/error-state";
 import { Badge } from "@/components/ui/badge";
@@ -28,8 +33,6 @@ import {
   PermissionGate,
   RequirePermission,
 } from "@/features/management/permission-gate";
-import { ResponsiveList } from "@/features/management/responsive-list";
-import { TableSkeleton } from "@/features/management/table-skeleton";
 import type { Permission, Role } from "@/types/domain";
 
 const roleSchema = z.object({
@@ -184,6 +187,67 @@ export default function RolesPage() {
     }
   });
 
+  const columns: ColumnDef<Role>[] = [
+    {
+      accessorKey: "name",
+      cell: ({ row }) => (
+        <span className="font-medium">{row.original.name}</span>
+      ),
+      header: "Nama",
+    },
+    {
+      accessorKey: "code",
+      cell: ({ row }) => (
+        <span className="text-muted-foreground">{row.original.code}</span>
+      ),
+      header: "Kode",
+    },
+    {
+      accessorKey: "description",
+      cell: ({ row }) => (
+        <span className="block max-w-72 truncate text-muted-foreground">
+          {row.original.description || "Tidak ada"}
+        </span>
+      ),
+      header: "Deskripsi",
+    },
+    {
+      cell: ({ row }) => (
+        <span className="tabular-nums">
+          {row.original.permissionCodes.length}
+        </span>
+      ),
+      header: "Izin",
+      id: "permissions",
+    },
+    {
+      accessorKey: "isSystem",
+      cell: ({ row }) =>
+        row.original.isSystem ? (
+          <Badge tone="info">Bawaan</Badge>
+        ) : (
+          <Badge tone="neutral">Kustom</Badge>
+        ),
+      header: "Tipe",
+    },
+    {
+      cell: ({ row }) => (
+        <TableActions
+          actions={[
+            {
+              icon: Pencil,
+              label: `Ubah ${row.original.name}`,
+              onClick: () => openEdit(row.original),
+            },
+          ]}
+        />
+      ),
+      header: "Aksi",
+      id: "actions",
+      meta: { cellClassName: "text-right", className: "text-right" },
+    },
+  ];
+
   return (
     <RequirePermission permission="roles.manage">
       <div className="flex flex-col gap-6">
@@ -257,63 +321,11 @@ export default function RolesPage() {
                   </div>
                 ))}
                 table={
-                  <table className="w-full text-body">
-                    <thead className="bg-surface-subtle">
-                      <tr className="border-b border-border">
-                        <th className="h-10 px-3 text-left text-label font-medium text-muted-foreground">
-                          Nama
-                        </th>
-                        <th className="h-10 px-3 text-left text-label font-medium text-muted-foreground">
-                          Kode
-                        </th>
-                        <th className="h-10 px-3 text-left text-label font-medium text-muted-foreground">
-                          Deskripsi
-                        </th>
-                        <th className="h-10 px-3 text-left text-label font-medium text-muted-foreground">
-                          Izin
-                        </th>
-                        <th className="h-10 px-3 text-left text-label font-medium text-muted-foreground">
-                          Tipe
-                        </th>
-                        <th className="h-10 px-3 text-right text-label font-medium text-muted-foreground">
-                          Aksi
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {data.map((role) => (
-                        <tr className="border-b border-border" key={role.id}>
-                          <td className="px-3 py-3 font-medium">{role.name}</td>
-                          <td className="px-3 py-3 text-muted-foreground">
-                            {role.code}
-                          </td>
-                          <td className="max-w-72 truncate px-3 py-3 text-muted-foreground">
-                            {role.description || "Tidak ada"}
-                          </td>
-                          <td className="px-3 py-3 tabular-nums">
-                            {role.permissionCodes.length}
-                          </td>
-                          <td className="px-3 py-3">
-                            {role.isSystem ? (
-                              <Badge tone="info">Bawaan</Badge>
-                            ) : (
-                              <Badge tone="neutral">Kustom</Badge>
-                            )}
-                          </td>
-                          <td className="px-3 py-3 text-right">
-                            <Button
-                              aria-label={`Ubah ${role.name}`}
-                              onClick={() => openEdit(role)}
-                              size="sm"
-                              variant="ghost"
-                            >
-                              <Pencil aria-hidden="true" className="h-4 w-4" />
-                            </Button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                  <DataTable
+                    columns={columns}
+                    data={data}
+                    getRowId={(role) => role.id}
+                  />
                 }
               />
             )}

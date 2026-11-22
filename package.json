@@ -28,6 +28,7 @@
   "dependencies": {
     "@hookform/resolvers": "^7.0.6",
     "@tanstack/react-query": "5.108.0",
+    "@tanstack/react-table": "8.20.5",
     "bonjour-service": "1.4.4",
     "drizzle-orm": "^0.45.4",
     "lucide-react": "^1.73.0",

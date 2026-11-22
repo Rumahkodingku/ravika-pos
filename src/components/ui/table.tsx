@@ -88,12 +88,15 @@ export function TableRow({
 export function TableHead({
   children,
   className,
+  "aria-sort": ariaSort,
 }: {
   children: React.ReactNode;
   className?: string;
+  "aria-sort"?: "ascending" | "descending" | "none";
 }) {
   return (
     <th
+      aria-sort={ariaSort}
       className={cn(
         "h-10 px-3 text-left align-middle text-label font-medium text-muted-foreground",
         className,

@@ -1,30 +1,31 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Armchair, Pencil, Plus, RefreshCw } from "lucide-react";
+import type { ColumnDef } from "@tanstack/react-table";
+import { Armchair, Eye, Pencil, Plus, RefreshCw } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { DataTable } from "@/components/data-table/data-table";
+import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
+import { ResponsiveList } from "@/components/data-table/responsive-list";
+import { TableActions } from "@/components/data-table/table-actions";
+import { TablePagination } from "@/components/data-table/table-pagination";
+import { TableSkeleton } from "@/components/data-table/table-skeleton";
 import { EmptyState } from "@/components/feedback/empty-state";
 import { ErrorState } from "@/components/feedback/error-state";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Drawer } from "@/components/ui/drawer";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/layout";
 import { Select } from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { useToast } from "@/components/ui/toast";
+import { useSession } from "@/features/auth/session-provider";
 import {
   useCreateTableMutation,
   useRegenerateTableQrMutation,
@@ -32,17 +33,12 @@ import {
   useTablesQuery,
   useUpdateTableMutation,
 } from "@/features/management/api/tables";
-import { ConfirmDialog } from "@/features/management/confirm-dialog";
-import { DataTableToolbar } from "@/features/management/data-table-toolbar";
 import { FormDrawer } from "@/features/management/form-drawer";
 import {
   PermissionGate,
   RequirePermission,
 } from "@/features/management/permission-gate";
-import { ResponsiveList } from "@/features/management/responsive-list";
-import { TablePagination } from "@/features/management/table-pagination";
 import { TableQrCode } from "@/features/management/table-qr-code";
-import { TableSkeleton } from "@/features/management/table-skeleton";
 import type { TableStatus, TableSummary } from "@/types/domain";
 
 const tableSchema = z.object({
@@ -78,6 +74,8 @@ const emptyTable: TableValues = {
 
 export default function TablesPage() {
   const { toast } = useToast();
+  const { user: currentUser } = useSession();
+  const canManageTables = currentUser.permissions.includes("tables.manage");
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("all");
   const [page, setPage] = useState(1);
@@ -144,6 +142,77 @@ export default function TablesPage() {
       });
     }
   });
+
+  const columns: ColumnDef<TableSummary>[] = [
+    {
+      accessorKey: "name",
+      cell: ({ row }) => (
+        <button
+          className="min-h-11 text-left font-medium text-foreground underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
+          onClick={() => setDetailId(row.original.id)}
+          type="button"
+        >
+          {row.original.name}
+        </button>
+      ),
+      header: "Nama meja",
+    },
+    {
+      accessorKey: "status",
+      cell: ({ row }) => (
+        <Badge tone={statusTones[row.original.status]}>
+          {statusLabels[row.original.status]}
+        </Badge>
+      ),
+      header: "Status",
+    },
+    {
+      accessorKey: "isActive",
+      cell: ({ row }) => (
+        <Badge tone={row.original.isActive ? "success" : "neutral"}>
+          {row.original.isActive ? "Aktif" : "Nonaktif"}
+        </Badge>
+      ),
+      header: "Aktif",
+    },
+    {
+      accessorKey: "activeOrderCount",
+      cell: ({ row }) => (
+        <span className="tabular-nums">{row.original.activeOrderCount}</span>
+      ),
+      header: "Pesanan aktif",
+      meta: { cellClassName: "text-right", className: "text-right" },
+    },
+    {
+      cell: ({ row }) => {
+        const table = row.original;
+
+        return (
+          <TableActions
+            actions={[
+              {
+                icon: Eye,
+                label: `Detail ${table.name}`,
+                onClick: () => setDetailId(table.id),
+              },
+              ...(canManageTables
+                ? [
+                    {
+                      icon: Pencil,
+                      label: `Ubah ${table.name}`,
+                      onClick: () => openEdit(table),
+                    },
+                  ]
+                : []),
+            ]}
+          />
+        );
+      },
+      header: "Aksi",
+      id: "actions",
+      meta: { cellClassName: "text-right", className: "text-right" },
+    },
+  ];
 
   return (
     <RequirePermission permission="tables.view">
@@ -240,73 +309,11 @@ export default function TablesPage() {
                   </div>
                 }
                 table={
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Nama meja</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Aktif</TableHead>
-                        <TableHead className="text-right">
-                          Pesanan aktif
-                        </TableHead>
-                        <TableHead className="text-right">Aksi</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {data.items.map((table) => (
-                        <TableRow key={table.id}>
-                          <TableCell>
-                            <button
-                              className="min-h-11 text-left font-medium text-foreground underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
-                              onClick={() => setDetailId(table.id)}
-                              type="button"
-                            >
-                              {table.name}
-                            </button>
-                          </TableCell>
-                          <TableCell>
-                            <Badge tone={statusTones[table.status]}>
-                              {statusLabels[table.status]}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <Badge
-                              tone={table.isActive ? "success" : "neutral"}
-                            >
-                              {table.isActive ? "Aktif" : "Nonaktif"}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-right tabular-nums">
-                            {table.activeOrderCount}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex justify-end gap-1">
-                              <Button
-                                onClick={() => setDetailId(table.id)}
-                                size="sm"
-                                variant="ghost"
-                              >
-                                Detail
-                              </Button>
-                              <PermissionGate permission="tables.manage">
-                                <Button
-                                  aria-label={`Ubah ${table.name}`}
-                                  onClick={() => openEdit(table)}
-                                  size="sm"
-                                  variant="ghost"
-                                >
-                                  <Pencil
-                                    aria-hidden="true"
-                                    className="h-4 w-4"
-                                  />
-                                </Button>
-                              </PermissionGate>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                  <DataTable
+                    columns={columns}
+                    data={data.items}
+                    getRowId={(table) => table.id}
+                  />
                 }
               />
             )}

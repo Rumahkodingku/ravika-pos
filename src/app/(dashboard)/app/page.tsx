@@ -1,8 +1,10 @@
 "use client";
 
+import type { ColumnDef } from "@tanstack/react-table";
 import { ChefHat, ShoppingCart } from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { DataTable } from "@/components/data-table/data-table";
 import { EmptyState } from "@/components/feedback/empty-state";
 import { ErrorState } from "@/components/feedback/error-state";
 import { StatusBadge } from "@/components/ui/badge";
@@ -19,14 +21,6 @@ import { PageHeader, Section } from "@/components/ui/layout";
 import { Select } from "@/components/ui/select";
 import { ServiceFlow } from "@/components/ui/service-flow";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { useDashboardQuery } from "@/features/management/api/reports";
 import {
   PermissionGate,
@@ -43,6 +37,7 @@ import {
   formatNumber,
 } from "@/lib/format";
 import { preparationStatusConfig } from "@/lib/status";
+import type { Order } from "@/types/domain";
 
 function rangeDates(period: string, customFrom: string, customTo: string) {
   const today = formatDateKey(new Date());
@@ -114,6 +109,49 @@ export default function DashboardPage() {
 
   const totalActive =
     data?.queue.reduce((total, item) => total + item.count, 0) ?? 0;
+
+  const recentOrderColumns: ColumnDef<Order>[] = [
+    {
+      accessorKey: "orderNumber",
+      cell: ({ row }) => (
+        <span className="font-medium">{row.original.orderNumber}</span>
+      ),
+      header: "Nomor",
+    },
+    {
+      accessorKey: "createdAt",
+      cell: ({ row }) => (
+        <span className="whitespace-nowrap text-muted-foreground">
+          {formatDateTime(row.original.createdAt)}
+        </span>
+      ),
+      header: "Waktu",
+    },
+    {
+      accessorKey: "grandTotal",
+      cell: ({ row }) => (
+        <span className="tabular-nums">
+          {formatCurrency(row.original.grandTotal)}
+        </span>
+      ),
+      header: "Total",
+      meta: { cellClassName: "text-right", className: "text-right" },
+    },
+    {
+      accessorKey: "paymentStatus",
+      cell: ({ row }) => (
+        <StatusBadge kind="payment" status={row.original.paymentStatus} />
+      ),
+      header: "Pembayaran",
+    },
+    {
+      accessorKey: "orderStatus",
+      cell: ({ row }) => (
+        <StatusBadge kind="preparation" status={row.original.orderStatus} />
+      ),
+      header: "Persiapan",
+    },
+  ];
 
   return (
     <RequirePermission permission="dashboard.view">
@@ -417,44 +455,11 @@ export default function DashboardPage() {
                 <Card>
                   <CardContent className="p-0">
                     <div className="hidden lg:block">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>Nomor</TableHead>
-                            <TableHead>Waktu</TableHead>
-                            <TableHead className="text-right">Total</TableHead>
-                            <TableHead>Pembayaran</TableHead>
-                            <TableHead>Persiapan</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {data.recentOrders.map((order) => (
-                            <TableRow key={order.id}>
-                              <TableCell className="font-medium">
-                                {order.orderNumber}
-                              </TableCell>
-                              <TableCell className="whitespace-nowrap text-muted-foreground">
-                                {formatDateTime(order.createdAt)}
-                              </TableCell>
-                              <TableCell className="text-right tabular-nums">
-                                {formatCurrency(order.grandTotal)}
-                              </TableCell>
-                              <TableCell>
-                                <StatusBadge
-                                  kind="payment"
-                                  status={order.paymentStatus}
-                                />
-                              </TableCell>
-                              <TableCell>
-                                <StatusBadge
-                                  kind="preparation"
-                                  status={order.orderStatus}
-                                />
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
+                      <DataTable
+                        columns={recentOrderColumns}
+                        data={data.recentOrders}
+                        getRowId={(order) => order.id}
+                      />
                     </div>
                     <div className="flex flex-col gap-2 p-3 lg:hidden">
                       {data.recentOrders.map((order) => (

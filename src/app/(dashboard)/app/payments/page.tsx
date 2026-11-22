@@ -1,7 +1,14 @@
 "use client";
 
-import { Wallet } from "lucide-react";
+import type { ColumnDef } from "@tanstack/react-table";
+import { Eye, Wallet } from "lucide-react";
 import { useState } from "react";
+import { DataTable } from "@/components/data-table/data-table";
+import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
+import { ResponsiveList } from "@/components/data-table/responsive-list";
+import { TableActions } from "@/components/data-table/table-actions";
+import { TablePagination } from "@/components/data-table/table-pagination";
+import { TableSkeleton } from "@/components/data-table/table-skeleton";
 import { EmptyState } from "@/components/feedback/empty-state";
 import { ErrorState } from "@/components/feedback/error-state";
 import { Badge } from "@/components/ui/badge";
@@ -12,22 +19,10 @@ import { Drawer } from "@/components/ui/drawer";
 import { Field } from "@/components/ui/field";
 import { PageHeader } from "@/components/ui/layout";
 import { Select } from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { useOrderQuery } from "@/features/management/api/orders";
 import { usePaymentsQuery } from "@/features/management/api/payments";
-import { DataTableToolbar } from "@/features/management/data-table-toolbar";
 import { OrderDetailDrawer } from "@/features/management/order-detail-drawer";
 import { RequirePermission } from "@/features/management/permission-gate";
-import { ResponsiveList } from "@/features/management/responsive-list";
-import { TablePagination } from "@/features/management/table-pagination";
-import { TableSkeleton } from "@/features/management/table-skeleton";
 import { formatCurrency, formatDateTime } from "@/lib/format";
 import type { Payment, PaymentMethod } from "@/types/domain";
 
@@ -86,6 +81,76 @@ export default function PaymentsPage() {
     setDraftFilters(defaultPaymentFilters);
     setPage(1);
   };
+
+  const columns: ColumnDef<Payment>[] = [
+    {
+      accessorKey: "orderNumber",
+      cell: ({ row }) => (
+        <span className="font-medium">
+          {row.original.orderNumber ?? "Tidak ada"}
+        </span>
+      ),
+      header: "Pesanan",
+    },
+    {
+      accessorKey: "method",
+      cell: ({ row }) => methodLabels[row.original.method],
+      header: "Metode",
+    },
+    {
+      accessorKey: "amount",
+      cell: ({ row }) => (
+        <span className="tabular-nums">
+          {formatCurrency(row.original.amount)}
+        </span>
+      ),
+      header: "Nominal",
+      meta: { cellClassName: "text-right", className: "text-right" },
+    },
+    {
+      accessorKey: "status",
+      cell: ({ row }) => (
+        <Badge tone={row.original.status === "REFUNDED" ? "info" : "success"}>
+          {row.original.status === "REFUNDED" ? "Dikembalikan" : "Tercatat"}
+        </Badge>
+      ),
+      header: "Status",
+    },
+    {
+      accessorKey: "paidAt",
+      cell: ({ row }) => (
+        <span className="whitespace-nowrap text-muted-foreground">
+          {formatDateTime(row.original.paidAt)}
+        </span>
+      ),
+      header: "Waktu",
+    },
+    {
+      accessorKey: "recordedByName",
+      cell: ({ row }) => (
+        <span className="text-muted-foreground">
+          {row.original.recordedByName ?? "Tidak ada"}
+        </span>
+      ),
+      header: "Dicatat oleh",
+    },
+    {
+      cell: ({ row }) => (
+        <TableActions
+          actions={[
+            {
+              icon: Eye,
+              label: `Lihat pembayaran ${row.original.orderNumber ?? ""}`,
+              onClick: () => setSelected(row.original),
+            },
+          ]}
+        />
+      ),
+      header: "Aksi",
+      id: "actions",
+      meta: { cellClassName: "text-right", className: "text-right" },
+    },
+  ];
 
   return (
     <RequirePermission permission="payments.view">
@@ -233,60 +298,11 @@ export default function PaymentsPage() {
                   </button>
                 ))}
                 table={
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Pesanan</TableHead>
-                        <TableHead>Metode</TableHead>
-                        <TableHead className="text-right">Nominal</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Waktu</TableHead>
-                        <TableHead>Dicatat oleh</TableHead>
-                        <TableHead className="text-right">Aksi</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {data.items.map((payment) => (
-                        <TableRow key={payment.id}>
-                          <TableCell className="font-medium">
-                            {payment.orderNumber ?? "Tidak ada"}
-                          </TableCell>
-                          <TableCell>{methodLabels[payment.method]}</TableCell>
-                          <TableCell className="text-right tabular-nums">
-                            {formatCurrency(payment.amount)}
-                          </TableCell>
-                          <TableCell>
-                            <Badge
-                              tone={
-                                payment.status === "REFUNDED"
-                                  ? "info"
-                                  : "success"
-                              }
-                            >
-                              {payment.status === "REFUNDED"
-                                ? "Dikembalikan"
-                                : "Tercatat"}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="whitespace-nowrap text-muted-foreground">
-                            {formatDateTime(payment.paidAt)}
-                          </TableCell>
-                          <TableCell className="text-muted-foreground">
-                            {payment.recordedByName ?? "Tidak ada"}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <Button
-                              onClick={() => setSelected(payment)}
-                              size="sm"
-                              variant="ghost"
-                            >
-                              Lihat pembayaran
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                  <DataTable
+                    columns={columns}
+                    data={data.items}
+                    getRowId={(payment) => payment.id}
+                  />
                 }
               />
             )}

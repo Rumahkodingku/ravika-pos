@@ -1,34 +1,30 @@
 "use client";
 
+import type { ColumnDef } from "@tanstack/react-table";
 import { DatabaseBackup, Download, RotateCcw, Upload } from "lucide-react";
 import { type ChangeEvent, useRef, useState } from "react";
+import { DataTable } from "@/components/data-table/data-table";
+import { ResponsiveList } from "@/components/data-table/responsive-list";
+import { TableActions } from "@/components/data-table/table-actions";
 import { ErrorState } from "@/components/feedback/error-state";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { PageHeader } from "@/components/ui/layout";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { useToast } from "@/components/ui/toast";
+import { Tooltip } from "@/components/ui/tooltip";
 import {
   useBackupsQuery,
   useCreateBackupMutation,
   useRestoreBackupMutation,
   useUploadBackupMutation,
 } from "@/features/management/api/system";
-import { ConfirmDialog } from "@/features/management/confirm-dialog";
 import {
   PermissionGate,
   RequirePermission,
 } from "@/features/management/permission-gate";
-import { ResponsiveList } from "@/features/management/responsive-list";
 import { useNow } from "@/features/operational/use-now";
 import { formatDateTime } from "@/lib/format";
 import type { BackupRecord } from "@/types/domain";
@@ -96,6 +92,100 @@ export default function BackupPage() {
       });
     }
   };
+
+  const columns: ColumnDef<BackupRecord>[] = [
+    {
+      accessorKey: "fileName",
+      cell: ({ row }) => (
+        <span className="font-medium">{row.original.fileName}</span>
+      ),
+      header: "File",
+    },
+    {
+      accessorKey: "fileSize",
+      cell: ({ row }) => (
+        <span className="tabular-nums text-muted-foreground">
+          {formatSize(row.original.fileSize)}
+        </span>
+      ),
+      header: "Ukuran",
+    },
+    {
+      accessorKey: "createdAt",
+      cell: ({ row }) => (
+        <span className="whitespace-nowrap text-muted-foreground">
+          {formatDateTime(row.original.createdAt)}
+        </span>
+      ),
+      header: "Waktu",
+    },
+    {
+      accessorKey: "status",
+      cell: ({ row }) => (
+        <Badge
+          tone={
+            row.original.status === "READY"
+              ? "success"
+              : row.original.status === "FAILED"
+                ? "danger"
+                : "warning"
+          }
+        >
+          {row.original.status === "READY"
+            ? "Siap"
+            : row.original.status === "FAILED"
+              ? "Gagal"
+              : "Berjalan"}
+        </Badge>
+      ),
+      header: "Status",
+    },
+    {
+      accessorKey: "checksum",
+      cell: ({ row }) => (
+        <span className="block max-w-40 truncate text-caption text-muted-foreground">
+          {row.original.checksum}
+        </span>
+      ),
+      header: "Checksum",
+    },
+    {
+      cell: ({ row }) => {
+        const backup = row.original;
+
+        return (
+          <div className="flex justify-end gap-1">
+            {backup.status === "READY" ? (
+              <Tooltip content="Download backup">
+                <a
+                  aria-label="Download backup"
+                  className={buttonVariants({ size: "sm", variant: "ghost" })}
+                  download
+                  href={`/api/backup/${backup.id}/download`}
+                >
+                  <Download aria-hidden="true" className="h-4 w-4" />
+                </a>
+              </Tooltip>
+            ) : null}
+            <PermissionGate permission="backup.restore">
+              <TableActions
+                actions={[
+                  {
+                    icon: RotateCcw,
+                    label: `Restore ${backup.fileName}`,
+                    onClick: () => setRestoreTarget(backup),
+                  },
+                ]}
+              />
+            </PermissionGate>
+          </div>
+        );
+      },
+      header: "Aksi",
+      id: "actions",
+      meta: { cellClassName: "text-right", className: "text-right" },
+    },
+  ];
 
   return (
     <RequirePermission permission="backup.create">
@@ -229,86 +319,11 @@ export default function BackupPage() {
                     </div>
                   ))}
                   table={
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>File</TableHead>
-                          <TableHead>Ukuran</TableHead>
-                          <TableHead>Waktu</TableHead>
-                          <TableHead>Status</TableHead>
-                          <TableHead>Checksum</TableHead>
-                          <TableHead className="text-right">Aksi</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {data.map((backup) => (
-                          <TableRow key={backup.id}>
-                            <TableCell className="font-medium">
-                              {backup.fileName}
-                            </TableCell>
-                            <TableCell className="tabular-nums text-muted-foreground">
-                              {formatSize(backup.fileSize)}
-                            </TableCell>
-                            <TableCell className="whitespace-nowrap text-muted-foreground">
-                              {formatDateTime(backup.createdAt)}
-                            </TableCell>
-                            <TableCell>
-                              <Badge
-                                tone={
-                                  backup.status === "READY"
-                                    ? "success"
-                                    : backup.status === "FAILED"
-                                      ? "danger"
-                                      : "warning"
-                                }
-                              >
-                                {backup.status === "READY"
-                                  ? "Siap"
-                                  : backup.status === "FAILED"
-                                    ? "Gagal"
-                                    : "Berjalan"}
-                              </Badge>
-                            </TableCell>
-                            <TableCell className="max-w-40 truncate text-caption text-muted-foreground">
-                              {backup.checksum}
-                            </TableCell>
-                            <TableCell className="text-right">
-                              <div className="inline-flex gap-2">
-                                {backup.status === "READY" ? (
-                                  <a
-                                    className={buttonVariants({
-                                      size: "sm",
-                                      variant: "outline",
-                                    })}
-                                    download
-                                    href={`/api/backup/${backup.id}/download`}
-                                  >
-                                    <Download
-                                      aria-hidden="true"
-                                      className="h-4 w-4"
-                                    />
-                                    Download
-                                  </a>
-                                ) : null}
-                                <PermissionGate permission="backup.restore">
-                                  <Button
-                                    onClick={() => setRestoreTarget(backup)}
-                                    size="sm"
-                                    variant="outline"
-                                  >
-                                    <RotateCcw
-                                      aria-hidden="true"
-                                      className="h-4 w-4"
-                                    />
-                                    Restore
-                                  </Button>
-                                </PermissionGate>
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
+                    <DataTable
+                      columns={columns}
+                      data={data}
+                      getRowId={(backup) => backup.id}
+                    />
                   }
                 />
               )}

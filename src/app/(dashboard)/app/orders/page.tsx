@@ -1,7 +1,19 @@
 "use client";
 
-import { ClipboardList } from "lucide-react";
+import type {
+  ColumnDef,
+  OnChangeFn,
+  SortingState,
+} from "@tanstack/react-table";
+import { ClipboardList, Eye } from "lucide-react";
 import { useState } from "react";
+import { DataTable } from "@/components/data-table/data-table";
+import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
+import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
+import { ResponsiveList } from "@/components/data-table/responsive-list";
+import { TableActions } from "@/components/data-table/table-actions";
+import { TablePagination } from "@/components/data-table/table-pagination";
+import { TableSkeleton } from "@/components/data-table/table-skeleton";
 import { EmptyState } from "@/components/feedback/empty-state";
 import { ErrorState } from "@/components/feedback/error-state";
 import { Badge, StatusBadge } from "@/components/ui/badge";
@@ -11,22 +23,9 @@ import { DatePicker } from "@/components/ui/date-picker";
 import { Field } from "@/components/ui/field";
 import { PageHeader } from "@/components/ui/layout";
 import { Select } from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { useOrdersQuery } from "@/features/management/api/orders";
-import { DataTableToolbar } from "@/features/management/data-table-toolbar";
 import { OrderDetailDrawer } from "@/features/management/order-detail-drawer";
 import { RequirePermission } from "@/features/management/permission-gate";
-import { ResponsiveList } from "@/features/management/responsive-list";
-import { SortableTableHead } from "@/features/management/sortable-table-head";
-import { TablePagination } from "@/features/management/table-pagination";
-import { TableSkeleton } from "@/features/management/table-skeleton";
 import { formatCurrency, formatDateTime } from "@/lib/format";
 import type { Order } from "@/types/domain";
 
@@ -78,6 +77,87 @@ export default function OrdersPage() {
     setDraftFilters(defaultOrderFilters);
     setPage(1);
   };
+
+  const sorting: SortingState = [{ desc: sortDir === "desc", id: "createdAt" }];
+  const onSortingChange: OnChangeFn<SortingState> = (updater) => {
+    const next = typeof updater === "function" ? updater(sorting) : updater;
+    const first = next[0];
+
+    if (first?.id === "createdAt") {
+      setSortDir(first.desc ? "desc" : "asc");
+    }
+  };
+
+  const columns: ColumnDef<Order>[] = [
+    {
+      accessorKey: "orderNumber",
+      cell: ({ row }) => (
+        <span className="font-medium">{row.original.orderNumber}</span>
+      ),
+      header: "Nomor",
+    },
+    {
+      accessorKey: "createdAt",
+      cell: ({ row }) => (
+        <span className="whitespace-nowrap text-muted-foreground">
+          {formatDateTime(row.original.createdAt)}
+        </span>
+      ),
+      enableSorting: true,
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Waktu" />
+      ),
+    },
+    {
+      accessorKey: "orderType",
+      cell: ({ row }) => (
+        <Badge tone="neutral">
+          {row.original.orderType === "DINE_IN" ? "Dine-in" : "Takeaway"}
+        </Badge>
+      ),
+      header: "Tipe",
+    },
+    {
+      accessorKey: "grandTotal",
+      cell: ({ row }) => (
+        <span className="tabular-nums">
+          {formatCurrency(row.original.grandTotal)}
+        </span>
+      ),
+      header: "Total",
+      meta: { cellClassName: "text-right", className: "text-right" },
+    },
+    {
+      accessorKey: "paymentStatus",
+      cell: ({ row }) => (
+        <StatusBadge kind="payment" status={row.original.paymentStatus} />
+      ),
+      header: "Pembayaran",
+    },
+    {
+      accessorKey: "orderStatus",
+      cell: ({ row }) => (
+        <StatusBadge kind="preparation" status={row.original.orderStatus} />
+      ),
+      header: "Persiapan",
+    },
+    {
+      cell: ({ row }) => (
+        <TableActions
+          actions={[
+            {
+              icon: Eye,
+              label: `Lihat detail ${row.original.orderNumber}`,
+              onClick: () => setSelected(row.original),
+            },
+          ]}
+        />
+      ),
+      header: "Aksi",
+      id: "actions",
+      meta: { cellClassName: "text-right", className: "text-right" },
+    },
+  ];
 
   return (
     <RequirePermission permission="orders.view">
@@ -234,72 +314,13 @@ export default function OrdersPage() {
                   </div>
                 ))}
                 table={
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Nomor</TableHead>
-                        <SortableTableHead
-                          active
-                          direction={sortDir}
-                          label="Waktu"
-                          onSort={() =>
-                            setSortDir((current) =>
-                              current === "asc" ? "desc" : "asc",
-                            )
-                          }
-                          sortKey="createdAt"
-                        />
-                        <TableHead>Tipe</TableHead>
-                        <TableHead className="text-right">Total</TableHead>
-                        <TableHead>Pembayaran</TableHead>
-                        <TableHead>Persiapan</TableHead>
-                        <TableHead className="text-right">Aksi</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {data.items.map((order) => (
-                        <TableRow key={order.id}>
-                          <TableCell className="font-medium">
-                            {order.orderNumber}
-                          </TableCell>
-                          <TableCell className="whitespace-nowrap text-muted-foreground">
-                            {formatDateTime(order.createdAt)}
-                          </TableCell>
-                          <TableCell>
-                            <Badge tone="neutral">
-                              {order.orderType === "DINE_IN"
-                                ? "Dine-in"
-                                : "Takeaway"}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-right tabular-nums">
-                            {formatCurrency(order.grandTotal)}
-                          </TableCell>
-                          <TableCell>
-                            <StatusBadge
-                              kind="payment"
-                              status={order.paymentStatus}
-                            />
-                          </TableCell>
-                          <TableCell>
-                            <StatusBadge
-                              kind="preparation"
-                              status={order.orderStatus}
-                            />
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <Button
-                              onClick={() => setSelected(order)}
-                              size="sm"
-                              variant="ghost"
-                            >
-                              Lihat detail
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                  <DataTable
+                    columns={columns}
+                    data={data.items}
+                    getRowId={(order) => order.id}
+                    onSortingChange={onSortingChange}
+                    sorting={sorting}
+                  />
                 }
                 tableBreakpoint="xl"
               />

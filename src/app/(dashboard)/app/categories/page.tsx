@@ -1,28 +1,28 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ArrowDown, ArrowUp, Pencil, Plus, Tags } from "lucide-react";
+import type { ColumnDef } from "@tanstack/react-table";
+import { ArrowDown, ArrowUp, Pencil, Plus, Power, Tags } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { DataTable } from "@/components/data-table/data-table";
+import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
+import { ResponsiveList } from "@/components/data-table/responsive-list";
+import { TableActions } from "@/components/data-table/table-actions";
+import { TablePagination } from "@/components/data-table/table-pagination";
+import { TableSkeleton } from "@/components/data-table/table-skeleton";
 import { EmptyState } from "@/components/feedback/empty-state";
 import { ErrorState } from "@/components/feedback/error-state";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/layout";
 import { Select } from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/toast";
 import {
@@ -33,16 +33,11 @@ import {
   useSetCategoryActiveMutation,
   useUpdateCategoryMutation,
 } from "@/features/management/api/catalog";
-import { ConfirmDialog } from "@/features/management/confirm-dialog";
-import { DataTableToolbar } from "@/features/management/data-table-toolbar";
 import { FormDrawer } from "@/features/management/form-drawer";
 import {
   PermissionGate,
   RequirePermission,
 } from "@/features/management/permission-gate";
-import { ResponsiveList } from "@/features/management/responsive-list";
-import { TablePagination } from "@/features/management/table-pagination";
-import { TableSkeleton } from "@/features/management/table-skeleton";
 import type { Category } from "@/types/domain";
 
 const categorySchema = z.object({
@@ -167,6 +162,89 @@ export default function CategoriesPage() {
       });
     }
   };
+
+  const columns: ColumnDef<Category>[] = [
+    {
+      accessorKey: "name",
+      cell: ({ row }) => (
+        <span className="font-medium">{row.original.name}</span>
+      ),
+      header: "Nama",
+    },
+    {
+      accessorKey: "description",
+      cell: ({ row }) => (
+        <span className="block max-w-56 truncate text-muted-foreground">
+          {row.original.description || "Tidak ada"}
+        </span>
+      ),
+      header: "Deskripsi",
+    },
+    {
+      accessorKey: "sortOrder",
+      cell: ({ row }) => (
+        <span className="tabular-nums">{row.original.sortOrder}</span>
+      ),
+      header: "Urutan",
+      meta: { cellClassName: "text-right", className: "text-right" },
+    },
+    {
+      cell: ({ row }) => (
+        <span className="tabular-nums">{productCount(row.original.id)}</span>
+      ),
+      header: "Produk",
+      id: "products",
+    },
+    {
+      accessorKey: "isActive",
+      cell: ({ row }) => (
+        <Badge tone={row.original.isActive ? "success" : "neutral"}>
+          {row.original.isActive ? "Aktif" : "Nonaktif"}
+        </Badge>
+      ),
+      header: "Status",
+    },
+    {
+      cell: ({ row }) => {
+        const category = row.original;
+
+        return (
+          <PermissionGate permission="categories.manage">
+            <TableActions
+              actions={[
+                {
+                  icon: ArrowUp,
+                  label: `Naikkan ${category.name}`,
+                  onClick: () => void move(category, "up"),
+                },
+                {
+                  icon: ArrowDown,
+                  label: `Turunkan ${category.name}`,
+                  onClick: () => void move(category, "down"),
+                },
+                {
+                  icon: Pencil,
+                  label: `Ubah ${category.name}`,
+                  onClick: () => openEdit(category),
+                },
+                {
+                  icon: Power,
+                  label: category.isActive
+                    ? `Nonaktifkan ${category.name}`
+                    : `Aktifkan ${category.name}`,
+                  onClick: () => void toggleActive(category),
+                  variant: category.isActive ? "danger" : "ghost",
+                },
+              ]}
+            />
+          </PermissionGate>
+        );
+      },
+      header: "Aksi",
+      id: "actions",
+      meta: { cellClassName: "text-right", className: "text-right" },
+    },
+  ];
 
   return (
     <RequirePermission permission="categories.view">
@@ -295,91 +373,11 @@ export default function CategoriesPage() {
                   </div>
                 ))}
                 table={
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Nama</TableHead>
-                        <TableHead>Deskripsi</TableHead>
-                        <TableHead className="text-right">Urutan</TableHead>
-                        <TableHead>Produk</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead className="text-right">Aksi</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {data.items.map((category) => (
-                        <TableRow key={category.id}>
-                          <TableCell className="font-medium">
-                            {category.name}
-                          </TableCell>
-                          <TableCell className="max-w-56 truncate text-muted-foreground">
-                            {category.description || "Tidak ada"}
-                          </TableCell>
-                          <TableCell className="text-right tabular-nums">
-                            {category.sortOrder}
-                          </TableCell>
-                          <TableCell className="tabular-nums">
-                            {productCount(category.id)}
-                          </TableCell>
-                          <TableCell>
-                            <Badge
-                              tone={category.isActive ? "success" : "neutral"}
-                            >
-                              {category.isActive ? "Aktif" : "Nonaktif"}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex justify-end gap-1">
-                              <PermissionGate permission="categories.manage">
-                                <Button
-                                  aria-label={`Naikkan ${category.name}`}
-                                  onClick={() => move(category, "up")}
-                                  size="sm"
-                                  variant="ghost"
-                                >
-                                  <ArrowUp
-                                    aria-hidden="true"
-                                    className="h-4 w-4"
-                                  />
-                                </Button>
-                                <Button
-                                  aria-label={`Turunkan ${category.name}`}
-                                  onClick={() => move(category, "down")}
-                                  size="sm"
-                                  variant="ghost"
-                                >
-                                  <ArrowDown
-                                    aria-hidden="true"
-                                    className="h-4 w-4"
-                                  />
-                                </Button>
-                                <Button
-                                  aria-label={`Ubah ${category.name}`}
-                                  onClick={() => openEdit(category)}
-                                  size="sm"
-                                  variant="ghost"
-                                >
-                                  <Pencil
-                                    aria-hidden="true"
-                                    className="h-4 w-4"
-                                  />
-                                </Button>
-                                <Button
-                                  onClick={() => toggleActive(category)}
-                                  size="sm"
-                                  variant="ghost"
-                                >
-                                  {category.isActive
-                                    ? "Nonaktifkan"
-                                    : "Aktifkan"}
-                                </Button>
-                              </PermissionGate>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                  <DataTable
+                    columns={columns}
+                    data={data.items}
+                    getRowId={(category) => category.id}
+                  />
                 }
               />
             )}
