@@ -12,6 +12,9 @@ export async function register() {
 
   startBackupScheduler();
   startNetworkMonitor();
-  process.once("SIGTERM", stopNetworkMonitor);
-  process.once("SIGINT", stopNetworkMonitor);
+  const { registerShutdownHandlers } = await import(
+    "@/modules/network/shutdown"
+  );
+
+  registerShutdownHandlers(stopNetworkMonitor);
 }
