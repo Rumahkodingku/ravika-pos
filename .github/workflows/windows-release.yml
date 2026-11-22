@@ -43,7 +43,7 @@ jobs:
           $required = @(
             ".next\standalone\server.js",
             ".next\standalone\drizzle\meta\_journal.json",
-            ".next\standalone\public",
+            "release\app\public",
             "release\app\server.js",
             "release\app\node_modules\@swc\helpers\_\_interop_require_default\package.json"
           )
