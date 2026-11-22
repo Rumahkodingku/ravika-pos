@@ -60,7 +60,13 @@ rmSync(app, { force: true, recursive: true });
 mkdirSync(app, { recursive: true });
 copyDereferenced(standalone, app);
 
-copyDereferenced(resolve(standalone, "public"), resolve(app, "public"));
+const publicSource = existsSync(resolve(standalone, "public"))
+  ? resolve(standalone, "public")
+  : resolve("public");
+
+if (existsSync(publicSource)) {
+  copyDereferenced(publicSource, resolve(app, "public"));
+}
 copyDereferenced(resolve(".next/static"), resolve(app, ".next/static"));
 copyDereferenced(resolve("drizzle"), resolve(app, "drizzle"));
 
