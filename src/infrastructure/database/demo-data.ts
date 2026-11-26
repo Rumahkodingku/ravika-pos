@@ -59,8 +59,8 @@ type DemoProduct = {
   id: string;
   name: string;
   categoryId: string;
-  basePrice: number;
-  variant?: { id: string; name: string; priceAdjustment: number };
+  basePrice: number | null;
+  variant?: { id: string; name: string; price: number };
   addOnIds: string[];
 };
 
@@ -69,11 +69,11 @@ const baseProducts: DemoProduct[] = [
     id: "product-espresso",
     name: "Espresso",
     categoryId: "category-kopi",
-    basePrice: 22000,
+    basePrice: null,
     variant: {
       id: "variant-espresso-large",
       name: "Large",
-      priceAdjustment: 5000,
+      price: 27000,
     },
     addOnIds: ["addon-extra-shot", "addon-oat-milk"],
   },
@@ -81,11 +81,11 @@ const baseProducts: DemoProduct[] = [
     id: "product-americano",
     name: "Americano",
     categoryId: "category-kopi",
-    basePrice: 25000,
+    basePrice: null,
     variant: {
       id: "variant-americano-large",
       name: "Large",
-      priceAdjustment: 5000,
+      price: 30000,
     },
     addOnIds: ["addon-extra-shot", "addon-oat-milk"],
   },
@@ -296,7 +296,7 @@ async function ensureDemoCatalog(
         id: product.variant.id,
         productId: product.id,
         name: product.variant.name,
-        priceAdjustment: product.variant.priceAdjustment,
+        price: product.variant.price,
         isActive: true,
       });
     }
@@ -415,9 +415,7 @@ async function ensureDemoOrders(
           : null;
       const addOnTotal = addOn?.price ?? 0;
       const unitPrice =
-        product.basePrice +
-        (product.variant?.priceAdjustment ?? 0) +
-        addOnTotal;
+        (product.variant?.price ?? product.basePrice ?? 0) + addOnTotal;
 
       return {
         id: `order-item-${index + 1}-${itemIndex + 1}`,

@@ -15,13 +15,13 @@ test("cashier creates an order and records split payment", async ({ page }) => {
 
   await page.request.post("/api/products", {
     data: {
-      basePrice: 18000,
+      basePrice: null,
       categoryId: category.id,
       description: "",
       isActive: true,
       isAvailable: true,
       name: "Kopi Susu",
-      variants: [{ isActive: true, name: "Large", priceAdjustment: 5000 }],
+      variants: [{ isActive: true, name: "Large", price: 23000 }],
     },
   });
 

@@ -66,15 +66,27 @@ export function ProductConfigurator({
   const selectedAddOns = selectedAddOnIds
     .map((addOnId) => addOns.find((addOn) => addOn.id === addOnId))
     .filter((addOn): addOn is AddOn => Boolean(addOn));
-  const unitPrice =
-    product.basePrice +
-    (selectedVariant?.priceAdjustment ?? 0) +
-    selectedAddOns.reduce((total, addOn) => total + addOn.price, 0);
-  const total = unitPrice * quantity;
+  const addOnTotal = selectedAddOns.reduce(
+    (total, addOn) => total + addOn.price,
+    0,
+  );
+  const baseUnitPrice = product.variants.length
+    ? (selectedVariant?.price ?? null)
+    : product.basePrice;
+  const unitPrice = baseUnitPrice === null ? null : baseUnitPrice + addOnTotal;
+  const total = unitPrice === null ? null : unitPrice * quantity;
 
   const validate = () => {
+    if (product.variants.length > 0 && activeVariants.length === 0) {
+      return "Tidak ada varian yang tersedia.";
+    }
+
     if (activeVariants.length > 0 && !variantId) {
       return "Pilih varian terlebih dahulu.";
+    }
+
+    if (baseUnitPrice === null) {
+      return "Harga produk belum dikonfigurasi.";
     }
 
     for (const relation of product.addOns) {
@@ -140,7 +152,9 @@ export function ProductConfigurator({
             </span>
           </div>
           <span className="text-card-title tabular-nums text-foreground">
-            {formatCurrency(unitPrice)}
+            {unitPrice === null
+              ? "Harga belum dikonfigurasi"
+              : formatCurrency(unitPrice)}
           </span>
         </div>
 
@@ -153,10 +167,7 @@ export function ProductConfigurator({
             >
               {activeVariants.map((variant) => (
                 <option key={variant.id} value={variant.id}>
-                  {variant.name}
-                  {variant.priceAdjustment > 0
-                    ? ` (+${formatCurrency(variant.priceAdjustment)})`
-                    : ""}
+                  {variant.name} ({formatCurrency(variant.price)})
                 </option>
               ))}
             </Select>
@@ -237,7 +248,9 @@ export function ProductConfigurator({
         <div className="flex items-center justify-between border-t border-border pt-4">
           <span className="text-body text-muted-foreground">Total</span>
           <span className="text-card-title tabular-nums text-foreground">
-            {formatCurrency(total)}
+            {total === null
+              ? "Harga belum dikonfigurasi"
+              : formatCurrency(total)}
           </span>
         </div>
       </div>

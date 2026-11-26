@@ -41,7 +41,7 @@ test("owner manages catalog, add-on, product image, and table QR", async ({
 
   await page.getByRole("button", { name: "Varian" }).click();
   await page.getByLabel(/^Nama varian/).fill("Large");
-  await page.getByLabel(/^Tambahan harga/).fill("5000");
+  await page.getByLabel(/^Harga/).fill("25000");
 
   await page.getByRole("button", { name: "Add-on" }).click();
   const addOnValue = await page

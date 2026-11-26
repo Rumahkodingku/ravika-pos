@@ -36,6 +36,13 @@
       "when": 1795096882266,
       "tag": "0004_fair_steve_rogers",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1795669709523,
+      "tag": "0005_variant_pricing",
+      "breakpoints": true
     }
   ]
 }

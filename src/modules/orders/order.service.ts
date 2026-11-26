@@ -249,7 +249,14 @@ async function buildItems(
       );
       let variant = null;
 
-      if (activeVariants.length > 0) {
+      if (product.variants.length > 0) {
+        if (activeVariants.length === 0) {
+          throw AppError.conflict(
+            "PRODUCT_UNAVAILABLE",
+            `${product.name} tidak memiliki varian aktif.`,
+          );
+        }
+
         variant =
           activeVariants.find(
             (candidate) => candidate.id === input.variantId,
@@ -318,8 +325,16 @@ async function buildItems(
         (total, item) => total + item.addOn.price,
         0,
       );
-      const unitPrice =
-        product.basePrice + (variant?.priceAdjustment ?? 0) + addOnTotal;
+      const baseUnitPrice = variant?.price ?? product.basePrice;
+
+      if (baseUnitPrice === null) {
+        throw AppError.conflict(
+          "PRODUCT_PRICE_MISSING",
+          `${product.name} belum memiliki harga.`,
+        );
+      }
+
+      const unitPrice = baseUnitPrice + addOnTotal;
       const lineTotal = unitPrice * input.quantity;
 
       return {

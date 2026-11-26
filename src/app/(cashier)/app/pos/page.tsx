@@ -14,6 +14,7 @@ import {
   ProductConfigurator,
   type ProductConfiguratorResult,
 } from "@/features/operational/product-configurator";
+import { productPriceDisplay } from "@/lib/catalog-pricing";
 import { formatCurrency } from "@/lib/format";
 import type { Product } from "@/types/domain";
 
@@ -57,14 +58,22 @@ export default function PosPage() {
     categories.find((item) => item.id === categoryId)?.name ?? "Tanpa kategori";
 
   const addProduct = (product: Product) => {
+    if (
+      product.variants.length > 0 &&
+      !product.variants.some((variant) => variant.isActive)
+    ) {
+      return;
+    }
+
     const needsConfigurator =
-      product.variants.some((variant) => variant.isActive) ||
-      product.addOns.length > 0;
+      product.variants.length > 0 || product.addOns.length > 0;
 
     if (needsConfigurator) {
       setConfigProduct(product);
       return;
     }
+
+    const display = productPriceDisplay(product);
 
     addLine({
       productId: product.id,
@@ -75,7 +84,10 @@ export default function PosPage() {
     });
     toast({
       title: "Ditambahkan ke keranjang",
-      description: `${product.name}, ${formatCurrency(product.basePrice)}`,
+      description:
+        display.kind === "unavailable"
+          ? product.name
+          : `${product.name}, ${formatCurrency(display.amount)}`,
       tone: "success",
     });
   };

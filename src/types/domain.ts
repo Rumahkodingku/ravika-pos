@@ -24,7 +24,7 @@ export type Category = {
 export type ProductVariant = {
   id: string;
   name: string;
-  priceAdjustment: number;
+  price: number;
   isActive: boolean;
 };
 
@@ -50,7 +50,7 @@ export type Product = {
   name: string;
   description: string;
   imageUrl: string | null;
-  basePrice: number;
+  basePrice: number | null;
   isAvailable: boolean;
   isActive: boolean;
   variants: ProductVariant[];

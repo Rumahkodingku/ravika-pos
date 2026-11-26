@@ -59,14 +59,14 @@ const espresso: Product = {
   name: "Espresso",
   description: "",
   imageUrl: null,
-  basePrice: 22000,
+  basePrice: null,
   isAvailable: true,
   isActive: true,
   variants: [
     {
       id: "variant-espresso-large",
       name: "Large",
-      priceAdjustment: 5000,
+      price: 27000,
       isActive: true,
     },
   ],
@@ -216,7 +216,7 @@ describe("ProductsPage", () => {
 
     await user.click(screen.getByRole("button", { name: "Varian" }));
     await user.type(screen.getByLabelText(/^Nama varian/), "Large");
-    await user.type(screen.getByLabelText(/^Tambahan harga/), "5000");
+    await user.type(screen.getByLabelText(/^Harga\*/), "5000");
 
     await user.click(screen.getByRole("button", { name: "Add-on" }));
     await user.selectOptions(
@@ -240,14 +240,14 @@ describe("ProductsPage", () => {
     const body = JSON.parse((call?.[1] as RequestInit).body as string);
 
     expect(body).toMatchObject({
-      basePrice: 24000,
+      basePrice: null,
       categoryId: "category-kopi",
       name: "Kopi Susu",
     });
     expect(body.variants).toHaveLength(1);
     expect(body.variants[0]).toMatchObject({
       name: "Large",
-      priceAdjustment: 5000,
+      price: 5000,
     });
     expect(body.addOns).toEqual([
       {
@@ -257,6 +257,93 @@ describe("ProductsPage", () => {
         maxSelection: 1,
       },
     ]);
+  });
+
+  it("switches between base price and variant price fields", async () => {
+    const user = userEvent.setup();
+    mockApi();
+    renderWithProviders(<ProductsPage />, { user: owner });
+
+    await screen.findAllByText("Espresso");
+    await user.click(
+      await screen.findByRole("button", { name: "Tambah produk" }),
+    );
+
+    expect(screen.queryByLabelText(/^Harga dasar/)).toBeDefined();
+
+    await user.click(screen.getByRole("button", { name: "Varian" }));
+
+    expect(screen.queryByLabelText(/^Harga dasar/)).toBeNull();
+    expect(screen.getByLabelText(/^Harga\*/)).toBeDefined();
+
+    await user.click(screen.getByRole("button", { name: "Hapus varian" }));
+
+    expect(screen.getByLabelText(/^Harga dasar/)).toBeDefined();
+    expect(screen.queryByLabelText(/^Harga\*/)).toBeNull();
+  });
+
+  it("shows the minimum active variant price in the product list", async () => {
+    mockApi((url) =>
+      url.startsWith("/api/products?")
+        ? jsonResponse(
+            pageOf([
+              {
+                ...espresso,
+                id: "product-nasi-goreng",
+                name: "Nasi Goreng",
+                variants: [
+                  {
+                    id: "variant-regular",
+                    isActive: true,
+                    name: "Regular",
+                    price: 15000,
+                  },
+                  {
+                    id: "variant-jumbo",
+                    isActive: true,
+                    name: "Jumbo",
+                    price: 20000,
+                  },
+                ],
+              },
+            ]),
+          )
+        : null,
+    );
+    renderWithProviders(<ProductsPage />, { user: owner });
+
+    await screen.findAllByText("Nasi Goreng");
+
+    expect(
+      screen.getAllByText(/Mulai dari Rp\s?15\.000/).length,
+    ).toBeGreaterThan(0);
+  });
+
+  it("marks a product without active variants as unavailable", async () => {
+    mockApi((url) =>
+      url.startsWith("/api/products?")
+        ? jsonResponse(
+            pageOf([
+              {
+                ...espresso,
+                variants: [
+                  {
+                    id: "variant-espresso-large",
+                    isActive: false,
+                    name: "Large",
+                    price: 27000,
+                  },
+                ],
+              },
+            ]),
+          )
+        : null,
+    );
+    renderWithProviders(<ProductsPage />, { user: owner });
+
+    await screen.findAllByText("Espresso");
+
+    expect(screen.getAllByText("Tidak tersedia").length).toBeGreaterThan(0);
   });
 
   it("fetches detail then patches the full product when toggling flags", async () => {
@@ -314,7 +401,7 @@ describe("ProductsPage", () => {
           minSelection: 0,
         },
       ],
-      basePrice: 22000,
+      basePrice: null,
       categoryId: "category-kopi",
       description: "",
       isActive: true,
@@ -325,7 +412,7 @@ describe("ProductsPage", () => {
           id: "variant-espresso-large",
           isActive: true,
           name: "Large",
-          priceAdjustment: 5000,
+          price: 27000,
         },
       ],
     });
@@ -363,6 +450,7 @@ describe("ProductsPage", () => {
         type: "image/png",
       }),
     );
+    await user.type(screen.getByLabelText(/^Harga dasar/), "24000");
     await user.click(screen.getByRole("button", { name: "Simpan" }));
 
     await waitFor(() => {

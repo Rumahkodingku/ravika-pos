@@ -44,7 +44,7 @@ export const products = sqliteTable(
     name: text("name").notNull(),
     description: text("description").notNull().default(""),
     imagePath: text("image_path"),
-    basePrice: integer("base_price").notNull(),
+    basePrice: integer("base_price"),
     isAvailable: integer("is_available", { mode: "boolean" })
       .notNull()
       .default(true),
@@ -90,7 +90,7 @@ export const productVariants = sqliteTable(
       .notNull()
       .references(() => products.id, { onDelete: "cascade" }),
     name: text("name").notNull(),
-    priceAdjustment: integer("price_adjustment").notNull().default(0),
+    price: integer("price").notNull(),
     isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
   },
   (table) => [
@@ -99,6 +99,7 @@ export const productVariants = sqliteTable(
       table.name,
     ),
     index("product_variants_product_id_idx").on(table.productId),
+    check("product_variants_price_check", sql`${table.price} >= 0`),
   ],
 );
 

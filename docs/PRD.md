@@ -1344,8 +1344,7 @@ is_active - created_at - updated_at
 
 ### ProductVariant
 
-Atribut konseptual: - id - product_id - name - price_adjustment -
-is_active
+Atribut konseptual: - id - product_id - name - price - is_active
 
 ### AddOn
 

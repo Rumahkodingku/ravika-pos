@@ -8,7 +8,7 @@ import type {
 } from "@tanstack/react-table";
 import { Eye, Package, Pencil, Plus, Power, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useFieldArray, useForm } from "react-hook-form";
+import { useFieldArray, useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 import { DataTable } from "@/components/data-table/data-table";
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
@@ -48,14 +48,17 @@ import {
   PermissionGate,
   RequirePermission,
 } from "@/features/management/permission-gate";
+import { productPriceDisplay } from "@/lib/catalog-pricing";
 import { formatCurrency, parseCurrencyInput } from "@/lib/format";
 import { compressProductImage, PRODUCT_IMAGE_ACCEPT } from "@/lib/image";
 import type { Product } from "@/types/domain";
 
+const hasPriceDigits = (value: string) => /\d/.test(value);
+
 const variantSchema = z.object({
   id: z.string().optional(),
   name: z.string().min(1, "Nama varian wajib diisi."),
-  priceAdjustment: z.number().int().min(0, "Penyesuaian harga minimal 0."),
+  price: z.string().refine(hasPriceDigits, "Masukkan harga untuk varian ini."),
   isActive: z.boolean(),
 });
 
@@ -66,16 +69,26 @@ const productAddOnSchema = z.object({
   maxSelection: z.number().int().min(1, "Maksimal pilihan minimal 1."),
 });
 
-const productSchema = z.object({
-  name: z.string().min(1, "Nama produk wajib diisi."),
-  description: z.string(),
-  categoryId: z.string().min(1, "Kategori wajib dipilih."),
-  basePrice: z.number().int().min(0, "Harga dasar minimal 0."),
-  isAvailable: z.boolean(),
-  isActive: z.boolean(),
-  variants: z.array(variantSchema),
-  addOns: z.array(productAddOnSchema),
-});
+const productSchema = z
+  .object({
+    name: z.string().min(1, "Nama produk wajib diisi."),
+    description: z.string(),
+    categoryId: z.string().min(1, "Kategori wajib dipilih."),
+    basePrice: z.string(),
+    isAvailable: z.boolean(),
+    isActive: z.boolean(),
+    variants: z.array(variantSchema),
+    addOns: z.array(productAddOnSchema),
+  })
+  .superRefine((value, context) => {
+    if (value.variants.length === 0 && !hasPriceDigits(value.basePrice)) {
+      context.addIssue({
+        code: "custom",
+        message: "Harga dasar wajib diisi.",
+        path: ["basePrice"],
+      });
+    }
+  });
 
 type ProductValues = z.infer<typeof productSchema>;
 
@@ -83,7 +96,7 @@ const emptyProduct: ProductValues = {
   name: "",
   description: "",
   categoryId: "",
-  basePrice: 0,
+  basePrice: "",
   isAvailable: true,
   isActive: true,
   variants: [],
@@ -95,10 +108,15 @@ function toValues(product: Product): ProductValues {
     name: product.name,
     description: product.description,
     categoryId: product.categoryId,
-    basePrice: product.basePrice,
+    basePrice: product.basePrice === null ? "" : String(product.basePrice),
     isAvailable: product.isAvailable,
     isActive: product.isActive,
-    variants: product.variants,
+    variants: product.variants.map((variant) => ({
+      id: variant.id,
+      name: variant.name,
+      price: String(variant.price),
+      isActive: variant.isActive,
+    })),
     addOns: product.addOns,
   };
 }
@@ -156,6 +174,8 @@ export default function ProductsPage() {
   });
   const variantFields = useFieldArray({ control, name: "variants" });
   const addOnFields = useFieldArray({ control, name: "addOns" });
+  const watchedVariants = useWatch({ control, name: "variants" });
+  const hasVariants = (watchedVariants ?? []).length > 0;
 
   useEffect(() => {
     return () => {
@@ -209,10 +229,14 @@ export default function ProductsPage() {
   const onSubmit = handleSubmit(async (values) => {
     const input: ProductInput = {
       ...values,
+      basePrice:
+        values.variants.length > 0
+          ? null
+          : parseCurrencyInput(values.basePrice),
       variants: values.variants.map((variant) => ({
         ...(variant.id ? { id: variant.id } : {}),
         name: variant.name,
-        priceAdjustment: variant.priceAdjustment,
+        price: parseCurrencyInput(variant.price),
         isActive: variant.isActive,
       })),
     };
@@ -282,6 +306,18 @@ export default function ProductsPage() {
   const categoryName = (id: string) =>
     categories.find((category) => category.id === id)?.name ?? "Tanpa kategori";
 
+  const priceLabel = (product: Product) => {
+    const display = productPriceDisplay(product);
+
+    if (display.kind === "unavailable") {
+      return "Tidak tersedia";
+    }
+
+    return display.kind === "from"
+      ? `Mulai dari ${formatCurrency(display.amount)}`
+      : formatCurrency(display.amount);
+  };
+
   const sorting: SortingState = [{ desc: sortDir === "desc", id: sortBy }];
   const onSortingChange: OnChangeFn<SortingState> = (updater) => {
     const next = typeof updater === "function" ? updater(sorting) : updater;
@@ -336,12 +372,24 @@ export default function ProductsPage() {
       id: "category",
     },
     {
-      accessorFn: (row) => row.basePrice,
-      cell: ({ row }) => (
-        <span className="tabular-nums">
-          {formatCurrency(row.original.basePrice)}
-        </span>
-      ),
+      accessorFn: (row) => {
+        const display = productPriceDisplay(row);
+
+        return display.kind === "unavailable" ? null : display.amount;
+      },
+      cell: ({ row }) => {
+        const display = productPriceDisplay(row.original);
+
+        return (
+          <span className="tabular-nums">
+            {display.kind === "unavailable"
+              ? "Tidak tersedia"
+              : display.kind === "from"
+                ? `Mulai dari ${formatCurrency(display.amount)}`
+                : formatCurrency(display.amount)}
+          </span>
+        );
+      },
       enableSorting: true,
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Harga" />
@@ -537,7 +585,7 @@ export default function ProductsPage() {
                     </span>
                     <span className="flex items-center justify-between gap-2">
                       <span className="text-body font-medium tabular-nums text-foreground">
-                        {formatCurrency(product.basePrice)}
+                        {priceLabel(product)}
                       </span>
                       <Badge tone={product.isAvailable ? "info" : "warning"}>
                         {product.isAvailable ? "Tersedia" : "Habis"}
@@ -681,21 +729,27 @@ export default function ProductsPage() {
                   ))}
                 </Select>
               </Field>
-              <Field
-                error={errors.basePrice?.message}
-                htmlFor="product-price"
-                label="Harga dasar"
-                required
-              >
-                <Input
-                  id="product-price"
-                  inputMode="numeric"
-                  type="text"
-                  {...register("basePrice", {
-                    setValueAs: parseCurrencyInput,
-                  })}
-                />
-              </Field>
+              {hasVariants ? (
+                <div className="flex items-end">
+                  <p className="pb-3 text-caption text-muted-foreground">
+                    Harga ditentukan oleh varian.
+                  </p>
+                </div>
+              ) : (
+                <Field
+                  error={errors.basePrice?.message}
+                  htmlFor="product-price"
+                  label="Harga dasar"
+                  required
+                >
+                  <Input
+                    id="product-price"
+                    inputMode="numeric"
+                    type="text"
+                    {...register("basePrice")}
+                  />
+                </Field>
+              )}
             </div>
             <div className="flex flex-col gap-2">
               <label
@@ -727,7 +781,7 @@ export default function ProductsPage() {
                 onClick={() =>
                   variantFields.append({
                     name: "",
-                    priceAdjustment: 0,
+                    price: "",
                     isActive: true,
                   })
                 }
@@ -754,17 +808,16 @@ export default function ProductsPage() {
                   />
                 </Field>
                 <Field
-                  error={errors.variants?.[index]?.priceAdjustment?.message}
+                  error={errors.variants?.[index]?.price?.message}
                   htmlFor={`variant-price-${field.id}`}
-                  label="Tambahan harga"
+                  label="Harga"
+                  required
                 >
                   <Input
                     id={`variant-price-${field.id}`}
                     inputMode="numeric"
                     type="text"
-                    {...register(`variants.${index}.priceAdjustment`, {
-                      setValueAs: parseCurrencyInput,
-                    })}
+                    {...register(`variants.${index}.price`)}
                   />
                 </Field>
                 <div className="flex items-end gap-2">
@@ -936,12 +989,16 @@ export default function ProductsPage() {
                 </div>
               </div>
               <dl className="grid gap-2 text-body">
-                <div className="flex justify-between gap-3">
-                  <dt className="text-muted-foreground">Harga dasar</dt>
-                  <dd className="font-medium tabular-nums">
-                    {formatCurrency(detail.basePrice)}
-                  </dd>
-                </div>
+                {detail.variants.length === 0 ? (
+                  <div className="flex justify-between gap-3">
+                    <dt className="text-muted-foreground">Harga dasar</dt>
+                    <dd className="font-medium tabular-nums">
+                      {detail.basePrice === null
+                        ? "Harga produk belum dikonfigurasi"
+                        : formatCurrency(detail.basePrice)}
+                    </dd>
+                  </div>
+                ) : null}
                 <div className="flex justify-between gap-3">
                   <dt className="text-muted-foreground">Ketersediaan</dt>
                   <dd>
@@ -974,9 +1031,16 @@ export default function ProductsPage() {
                       className="flex items-center justify-between gap-2 text-body"
                       key={variant.id}
                     >
-                      <span>{variant.name}</span>
+                      <span>
+                        {variant.name}
+                        {variant.isActive ? null : (
+                          <span className="ml-2 text-caption text-muted-foreground">
+                            Nonaktif
+                          </span>
+                        )}
+                      </span>
                       <span className="tabular-nums text-muted-foreground">
-                        +{formatCurrency(variant.priceAdjustment)}
+                        {formatCurrency(variant.price)}
                       </span>
                     </div>
                   ))

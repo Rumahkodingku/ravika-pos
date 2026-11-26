@@ -16,7 +16,7 @@ const variantSchema = z
   .object({
     id: z.string().optional(),
     name: z.string().trim().min(1, "Nama varian wajib diisi.").max(80),
-    priceAdjustment: z.number().int().min(0),
+    price: z.number().int().min(0, "Harga minimal 0."),
     isActive: z.boolean().default(true),
   })
   .strict();
@@ -39,13 +39,39 @@ export const productSchema = z
     name: z.string().trim().min(1, "Nama produk wajib diisi.").max(120),
     description: z.string().trim().max(500).default(""),
     categoryId: z.string().min(1, "Kategori wajib dipilih."),
-    basePrice: z.number().int().min(0, "Harga minimal 0."),
+    basePrice: z
+      .number()
+      .int()
+      .min(0, "Harga minimal 0.")
+      .nullable()
+      .optional(),
     isAvailable: z.boolean().default(true),
     isActive: z.boolean().default(true),
     variants: z.array(variantSchema).default([]),
     addOns: z.array(addOnRelationSchema).default([]),
   })
-  .strict();
+  .strict()
+  .superRefine((value, context) => {
+    if (value.variants.length === 0 && value.basePrice == null) {
+      context.addIssue({
+        code: "custom",
+        message: "Harga dasar wajib diisi.",
+        path: ["basePrice"],
+      });
+    }
+
+    if (value.variants.length > 0 && typeof value.basePrice === "number") {
+      context.addIssue({
+        code: "custom",
+        message: "Produk dengan varian tidak menggunakan harga dasar.",
+        path: ["basePrice"],
+      });
+    }
+  })
+  .transform((value) => ({
+    ...value,
+    basePrice: value.variants.length > 0 ? null : (value.basePrice ?? null),
+  }));
 
 export const addOnSchema = z
   .object({

@@ -5,6 +5,12 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ProductImage } from "@/components/ui/product-image";
+import {
+  hasActiveVariants,
+  hasVariants,
+  isProductSellable,
+  productPriceDisplay,
+} from "@/lib/catalog-pricing";
 import { formatCurrency } from "@/lib/format";
 import type { Product } from "@/types/domain";
 
@@ -17,8 +23,16 @@ export function ProductCard({
   onAdd?: (product: Product) => void;
   product: Product;
 }) {
-  const available = product.isActive && product.isAvailable;
-  const hasVariants = product.variants.some((variant) => variant.isActive);
+  const available = isProductSellable(product);
+  const display = productPriceDisplay(product);
+  const missingVariants = hasVariants(product) && !hasActiveVariants(product);
+  const unavailableLabel = missingVariants ? "Tidak tersedia" : "Habis";
+  const priceLabel =
+    display.kind === "unavailable"
+      ? "Tidak tersedia"
+      : display.kind === "from"
+        ? `Mulai dari ${formatCurrency(display.amount)}`
+        : formatCurrency(display.amount);
 
   return (
     <Card className="flex flex-col" variant="product">
@@ -28,7 +42,7 @@ export function ProductCard({
           className="absolute left-2.5 top-2.5"
           tone={available ? "success" : "neutral"}
         >
-          {available ? "Tersedia" : "Habis"}
+          {available ? "Tersedia" : unavailableLabel}
         </Badge>
       </div>
       <CardContent className="flex flex-1 flex-col gap-2 p-3">
@@ -42,13 +56,14 @@ export function ProductCard({
             </p>
           ) : null}
           <p className="text-card-title tabular-nums text-foreground">
-            {hasVariants ? "Mulai " : ""}
-            {formatCurrency(product.basePrice)}
+            {priceLabel}
           </p>
         </div>
         <Button
           aria-label={
-            available ? `Tambah ${product.name}` : `${product.name} habis`
+            available
+              ? `Tambah ${product.name}`
+              : `${product.name} ${unavailableLabel.toLowerCase()}`
           }
           className="mt-auto w-full"
           disabled={!available || !onAdd}
@@ -57,7 +72,7 @@ export function ProductCard({
           variant="outline"
         >
           <Plus aria-hidden="true" className="h-4 w-4" />
-          {available ? "Tambah" : "Habis"}
+          {available ? "Tambah" : unavailableLabel}
         </Button>
       </CardContent>
     </Card>

@@ -25,6 +25,7 @@ import {
   type ProductConfiguratorResult,
 } from "@/features/operational/product-configurator";
 import { ApiError } from "@/lib/api/errors";
+import { productPriceDisplay } from "@/lib/catalog-pricing";
 import { formatCurrency, parseCurrencyInput } from "@/lib/format";
 import type { AddOn, Product } from "@/types/domain";
 
@@ -111,18 +112,33 @@ export default function MenuPage() {
         }
 
         const variant = item.variantId
-          ? product.variants.find(
-              (candidate) => candidate.id === item.variantId,
-            )
+          ? (product.variants.find(
+              (candidate) =>
+                candidate.id === item.variantId && candidate.isActive,
+            ) ?? null)
           : null;
+
+        if (product.variants.length > 0 && !variant) {
+          return [];
+        }
+
+        if (product.variants.length === 0 && item.variantId) {
+          return [];
+        }
+
         const selectedAddOns = item.addOnIds
           .map((addOnId) =>
             addOns.find((candidate) => candidate.id === addOnId),
           )
           .filter((addOn): addOn is AddOn => Boolean(addOn));
+        const baseUnitPrice = variant?.price ?? product.basePrice;
+
+        if (baseUnitPrice === null) {
+          return [];
+        }
+
         const unitPrice =
-          product.basePrice +
-          (variant?.priceAdjustment ?? 0) +
+          baseUnitPrice +
           selectedAddOns.reduce((total, addOn) => total + addOn.price, 0);
 
         return [
@@ -168,14 +184,22 @@ export default function MenuPage() {
   };
 
   const addProduct = (product: Product) => {
+    if (
+      product.variants.length > 0 &&
+      !product.variants.some((variant) => variant.isActive)
+    ) {
+      return;
+    }
+
     const needsConfigurator =
-      product.variants.some((variant) => variant.isActive) ||
-      product.addOns.length > 0;
+      product.variants.length > 0 || product.addOns.length > 0;
 
     if (needsConfigurator) {
       setConfigProduct(product);
       return;
     }
+
+    const display = productPriceDisplay(product);
 
     addLine({
       productId: product.id,
@@ -186,7 +210,10 @@ export default function MenuPage() {
     });
     toast({
       title: "Ditambahkan ke keranjang",
-      description: `${product.name}, ${formatCurrency(product.basePrice)}`,
+      description:
+        display.kind === "unavailable"
+          ? product.name
+          : `${product.name}, ${formatCurrency(display.amount)}`,
       tone: "success",
     });
   };

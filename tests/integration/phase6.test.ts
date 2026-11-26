@@ -202,10 +202,10 @@ describe("phase 6 catalog", () => {
       name: "Latte Baru",
       description: "",
       categoryId: "category-kopi",
-      basePrice: 30000,
+      basePrice: null,
       isAvailable: true,
       isActive: true,
-      variants: [{ name: "Large", priceAdjustment: 4000, isActive: true }],
+      variants: [{ name: "Large", price: 34000, isActive: true }],
       addOns: [
         {
           addOnId: "addon-extra-shot",
@@ -280,6 +280,107 @@ describe("phase 6 orders", () => {
     ).toMatchObject({
       status: "OCCUPIED",
     });
+  });
+
+  it("rejects invalid variant selections", async () => {
+    const variantProduct = await createProduct(bundle.db, businessId, {
+      addOns: [],
+      basePrice: null,
+      categoryId: "category-kopi",
+      description: "",
+      isActive: true,
+      isAvailable: true,
+      name: "Produk Varian",
+      variants: [
+        { isActive: true, name: "Regular", price: 15000 },
+        { isActive: true, name: "Jumbo", price: 20000 },
+      ],
+    });
+    const inactiveProduct = await createProduct(bundle.db, businessId, {
+      addOns: [],
+      basePrice: null,
+      categoryId: "category-kopi",
+      description: "",
+      isActive: true,
+      isAvailable: true,
+      name: "Produk Varian Nonaktif",
+      variants: [{ isActive: false, name: "Besar", price: 18000 }],
+    });
+    const simpleProduct = await createProduct(bundle.db, businessId, {
+      addOns: [],
+      basePrice: 10000,
+      categoryId: "category-kopi",
+      description: "",
+      isActive: true,
+      isAvailable: true,
+      name: "Produk Tanpa Varian",
+      variants: [],
+    });
+    const item = (productId: string, variantId: string | null) => ({
+      addOnIds: [],
+      notes: "",
+      productId,
+      quantity: 1,
+      variantId,
+    });
+
+    await expect(
+      createOrder(
+        bundle.db,
+        businessId,
+        {
+          items: [item(variantProduct.id, null)],
+          notes: "",
+          orderType: "TAKEAWAY",
+          tableId: null,
+        },
+        "user-cashier",
+      ),
+    ).rejects.toMatchObject({ code: "VALIDATION_FAILED" });
+
+    await expect(
+      createOrder(
+        bundle.db,
+        businessId,
+        {
+          items: [item(simpleProduct.id, "variant-other")],
+          notes: "",
+          orderType: "TAKEAWAY",
+          tableId: null,
+        },
+        "user-cashier",
+      ),
+    ).rejects.toMatchObject({ code: "VALIDATION_FAILED" });
+
+    await expect(
+      createOrder(
+        bundle.db,
+        businessId,
+        {
+          items: [item(variantProduct.id, "variant-lain")],
+          notes: "",
+          orderType: "TAKEAWAY",
+          tableId: null,
+        },
+        "user-cashier",
+      ),
+    ).rejects.toMatchObject({ code: "VALIDATION_FAILED" });
+
+    await expect(
+      createOrder(
+        bundle.db,
+        businessId,
+        {
+          items: [
+            item(inactiveProduct.id, inactiveProduct.variants[0]?.id ?? ""),
+          ],
+          notes: "",
+          orderType: "TAKEAWAY",
+          tableId: null,
+        },
+        "user-cashier",
+      ),
+    ).rejects.toMatchObject({ code: "PRODUCT_UNAVAILABLE" });
   });
 
   it("stores declared cash and rejects cash below the total", async () => {

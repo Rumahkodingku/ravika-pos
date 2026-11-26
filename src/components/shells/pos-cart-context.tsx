@@ -88,7 +88,11 @@ function resolveLine(
       ) ?? null)
     : null;
 
-  if (draft.variantId && !variant) {
+  if (product.variants.length > 0 && !variant) {
+    return null;
+  }
+
+  if (product.variants.length === 0 && draft.variantId) {
     return null;
   }
 
@@ -100,11 +104,15 @@ function resolveLine(
     return null;
   }
 
+  const baseUnitPrice = variant?.price ?? product.basePrice;
+
+  if (baseUnitPrice === null) {
+    return null;
+  }
+
   const addOnList = selectedAddOns as AddOn[];
   const unitPrice =
-    product.basePrice +
-    (variant?.priceAdjustment ?? 0) +
-    addOnList.reduce((total, addOn) => total + addOn.price, 0);
+    baseUnitPrice + addOnList.reduce((total, addOn) => total + addOn.price, 0);
 
   return {
     ...draft,

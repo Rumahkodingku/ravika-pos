@@ -1,6 +1,7 @@
 import "server-only";
 
 import type { AppDatabase } from "@/infrastructure/database/types";
+import { productPriceDisplay } from "@/lib/catalog-pricing";
 import { AppError } from "@/shared/errors/app-error";
 import { newId } from "@/shared/ids";
 import { pageOf, textMatch } from "@/shared/pagination";
@@ -103,7 +104,7 @@ async function toProducts(
           (variant): ProductVariant => ({
             id: variant.id,
             name: variant.name,
-            priceAdjustment: variant.priceAdjustment,
+            price: variant.price,
             isActive: variant.isActive,
           }),
         ),
@@ -262,11 +263,24 @@ export async function listProducts(
   );
 
   if (params.sortBy === "price") {
-    filtered.sort((left, right) =>
-      params.sortDir === "desc"
-        ? right.basePrice - left.basePrice
-        : left.basePrice - right.basePrice,
-    );
+    const priceOf = (product: Product) => {
+      const display = productPriceDisplay(product);
+
+      return display.kind === "unavailable" ? null : display.amount;
+    };
+
+    filtered.sort((left, right) => {
+      const leftPrice = priceOf(left);
+      const rightPrice = priceOf(right);
+
+      if (leftPrice === null || rightPrice === null) {
+        return leftPrice === rightPrice ? 0 : leftPrice === null ? 1 : -1;
+      }
+
+      return params.sortDir === "desc"
+        ? rightPrice - leftPrice
+        : leftPrice - rightPrice;
+    });
   } else {
     filtered.sort((left, right) => left.name.localeCompare(right.name));
   }
@@ -303,6 +317,21 @@ async function validateRelations(
   businessId: string,
   input: ProductInput,
 ) {
+  if (input.variants.length === 0 && input.basePrice === null) {
+    throw AppError.validation([
+      { path: "basePrice", message: "Harga dasar wajib diisi." },
+    ]);
+  }
+
+  if (input.variants.length > 0 && input.basePrice !== null) {
+    throw AppError.validation([
+      {
+        path: "basePrice",
+        message: "Produk dengan varian tidak menggunakan harga dasar.",
+      },
+    ]);
+  }
+
   const category = await findCategory(db, businessId, input.categoryId);
 
   if (!category) {
@@ -361,7 +390,7 @@ export async function createProduct(
         id: variant.id ?? newId(),
         productId: id,
         name: variant.name,
-        priceAdjustment: variant.priceAdjustment,
+        price: variant.price,
         isActive: variant.isActive,
       })),
     );
@@ -402,7 +431,7 @@ export async function updateProduct(
         id: variant.id ?? newId(),
         productId: id,
         name: variant.name,
-        priceAdjustment: variant.priceAdjustment,
+        price: variant.price,
         isActive: variant.isActive,
       })),
     );

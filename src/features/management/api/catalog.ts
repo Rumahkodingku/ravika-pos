@@ -34,7 +34,7 @@ export type CategoryInput = {
 export type ProductVariantInput = {
   id?: string;
   name: string;
-  priceAdjustment: number;
+  price: number;
   isActive: boolean;
 };
 
@@ -42,7 +42,7 @@ export type ProductInput = {
   name: string;
   description: string;
   categoryId: string;
-  basePrice: number;
+  basePrice: number | null;
   isAvailable: boolean;
   isActive: boolean;
   variants: ProductVariantInput[];
@@ -60,7 +60,7 @@ function toProductInput(product: Product): ProductInput {
     variants: product.variants.map((variant) => ({
       ...(variant.id ? { id: variant.id } : {}),
       name: variant.name,
-      priceAdjustment: variant.priceAdjustment,
+      price: variant.price,
       isActive: variant.isActive,
     })),
     addOns: product.addOns.map((relation) => ({ ...relation })),

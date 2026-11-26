@@ -86,7 +86,7 @@ export type PublicMenuResponse = {
     name: string;
     description: string;
     imageUrl: string | null;
-    basePrice: number;
+    basePrice: number | null;
     variants: ProductVariant[];
     addOns: ProductAddOn[];
   }>;
