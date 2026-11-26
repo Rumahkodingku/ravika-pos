@@ -19,6 +19,7 @@ import {
   createProduct,
   listCategories,
   moveCategory,
+  updateProduct,
 } from "@/modules/catalog/catalog.service";
 import { publishRealtime, subscribeRealtime } from "@/modules/events/event-bus";
 import { findIdempotentResponse } from "@/modules/idempotency/idempotency.service";
@@ -236,6 +237,72 @@ describe("phase 6 catalog", () => {
             maxSelection: 1,
           },
         ],
+      }),
+    ).rejects.toMatchObject({ code: "VALIDATION_FAILED" });
+  });
+  it("switches a product between base price and variant pricing", async () => {
+    const single = await createProduct(bundle.db, businessId, {
+      addOns: [],
+      basePrice: 10000,
+      categoryId: "category-kopi",
+      description: "",
+      isActive: true,
+      isAvailable: true,
+      name: "Produk Transisi",
+      variants: [],
+    });
+
+    const withVariants = await updateProduct(bundle.db, businessId, single.id, {
+      addOns: [],
+      basePrice: null,
+      categoryId: "category-kopi",
+      description: "",
+      isActive: true,
+      isAvailable: true,
+      name: "Produk Transisi",
+      variants: [{ isActive: true, name: "Regular", price: 15000 }],
+    });
+
+    expect(withVariants.basePrice).toBeNull();
+    expect(withVariants.variants[0]?.price).toBe(15000);
+
+    const backToBase = await updateProduct(bundle.db, businessId, single.id, {
+      addOns: [],
+      basePrice: 12000,
+      categoryId: "category-kopi",
+      description: "",
+      isActive: true,
+      isAvailable: true,
+      name: "Produk Transisi",
+      variants: [],
+    });
+
+    expect(backToBase.basePrice).toBe(12000);
+    expect(backToBase.variants).toEqual([]);
+
+    await expect(
+      updateProduct(bundle.db, businessId, single.id, {
+        addOns: [],
+        basePrice: 12000,
+        categoryId: "category-kopi",
+        description: "",
+        isActive: true,
+        isAvailable: true,
+        name: "Produk Transisi",
+        variants: [{ isActive: true, name: "Large", price: 18000 }],
+      }),
+    ).rejects.toMatchObject({ code: "VALIDATION_FAILED" });
+
+    await expect(
+      updateProduct(bundle.db, businessId, single.id, {
+        addOns: [],
+        basePrice: null,
+        categoryId: "category-kopi",
+        description: "",
+        isActive: true,
+        isAvailable: true,
+        name: "Produk Transisi",
+        variants: [],
       }),
     ).rejects.toMatchObject({ code: "VALIDATION_FAILED" });
   });
