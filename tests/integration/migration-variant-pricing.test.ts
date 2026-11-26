@@ -138,6 +138,9 @@ describe("variant pricing migration", () => {
       const images = migrated.sqlite
         .prepare("SELECT COUNT(*) AS count FROM product_images")
         .get() as { count: number };
+      const foreignKeys = migrated.sqlite
+        .prepare("PRAGMA foreign_keys")
+        .get() as { foreign_keys: number };
       const violations = migrated.sqlite
         .prepare("PRAGMA foreign_key_check")
         .all();
@@ -169,6 +172,24 @@ describe("variant pricing migration", () => {
       expect(relations.count).toBe(1);
       expect(images.count).toBe(1);
       expect(violations).toEqual([]);
+      expect(foreignKeys.foreign_keys).toBe(1);
+
+      migrated.sqlite.exec(
+        "DELETE FROM products WHERE id = 'product-inactive'",
+      );
+      expect(
+        migrated.sqlite
+          .prepare(
+            "SELECT COUNT(*) AS count FROM product_variants WHERE id = 'variant-inactive'",
+          )
+          .get(),
+      ).toEqual({ count: 0 });
+
+      expect(() =>
+        migrated.sqlite.exec(
+          "DELETE FROM products WHERE id = 'product-variant'",
+        ),
+      ).toThrow(/FOREIGN KEY constraint failed/);
     } finally {
       migrated.close();
     }

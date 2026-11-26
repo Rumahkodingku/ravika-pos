@@ -37,6 +37,21 @@ const croissant: Product = {
   updatedAt: "2026-11-15T08:00:00.000Z",
 };
 
+const variantProduct: Product = {
+  ...croissant,
+  basePrice: null,
+  id: "product-nasi-goreng",
+  name: "Nasi Goreng",
+  variants: [
+    {
+      id: "variant-jumbo",
+      isActive: true,
+      name: "Jumbo",
+      price: 20000,
+    },
+  ],
+};
+
 const order: Order = {
   id: "order-1",
   businessId: "business-ravika",
@@ -194,6 +209,48 @@ describe("POS checkout", () => {
     expect(idempotencyKey(second)).toBe(idempotencyKey(first));
     expect(onCreated).toHaveBeenCalledWith(order);
     expect(await screen.findByText("Pesanan dibuat")).toBeDefined();
+  });
+
+  it("uses the selected variant price in the cart total", async () => {
+    fetchMock.mockImplementation(
+      async (input: RequestInfo | URL, init?: RequestInit) => {
+        const url = String(input);
+
+        if (url.startsWith("/api/products?")) {
+          return jsonResponse(pageOf([variantProduct]));
+        }
+
+        return mockCatalogResponse(url, init);
+      },
+    );
+    window.sessionStorage.setItem(
+      cartKey,
+      JSON.stringify({
+        items: [
+          {
+            addOnIds: [],
+            key: "line-variant",
+            notes: "",
+            productId: "product-nasi-goreng",
+            quantity: 2,
+            variantId: "variant-jumbo",
+          },
+        ],
+        orderNotes: "",
+        orderType: "TAKEAWAY",
+        tableId: null,
+      }),
+    );
+
+    renderWithProviders(
+      <PosCartProvider>
+        <PosCheckoutDrawer onCreated={vi.fn()} onOpenChange={vi.fn()} open />
+      </PosCartProvider>,
+    );
+
+    await screen.findByText("2 x Nasi Goreng");
+
+    expect(screen.getAllByText(/Rp\s?40\.000/).length).toBeGreaterThan(0);
   });
 
   it("does not report success when the request is unauthorized", async () => {

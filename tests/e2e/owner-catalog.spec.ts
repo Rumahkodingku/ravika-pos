@@ -39,11 +39,11 @@ test("owner manages catalog, add-on, product image, and table QR", async ({
   await page.getByLabel(/^Kategori/).selectOption({ label: categoryName });
   await page.getByLabel(/^Harga dasar/).fill("20000");
 
-  await page.getByRole("button", { name: "Varian" }).click();
+  await page.getByRole("button", { exact: true, name: "Varian" }).click();
   await page.getByLabel(/^Nama varian/).fill("Large");
   await page.getByLabel(/^Harga/).fill("25000");
 
-  await page.getByRole("button", { name: "Add-on" }).click();
+  await page.getByRole("button", { exact: true, name: "Add-on" }).click();
   const addOnValue = await page
     .getByLabel("Add-on")
     .locator("option", { hasText: addOnName })
@@ -65,6 +65,9 @@ test("owner manages catalog, add-on, product image, and table QR", async ({
   await page.getByRole("button", { name: productName }).first().click();
   await expect(
     page.getByRole("dialog", { name: productName }).getByRole("img"),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("dialog", { name: productName }).getByText(/Rp\s?25\.000/),
   ).toBeVisible();
   await expect(
     page.getByRole("dialog", { name: productName }).getByText("E2E Topping"),

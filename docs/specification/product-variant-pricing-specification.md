@@ -1153,49 +1153,49 @@ Deliverable: audit singkat yang menyatakan seluruh consumer dan migration plan.
 
 ### Product management
 
-- [ ] Produk tanpa varian memiliki `basePrice` wajib.
-- [ ] Produk dengan varian menyimpan `basePrice = null`.
-- [ ] Setiap varian memiliki `price` sebagai harga jual penuh.
-- [ ] Label UI berubah dari `Tambahan harga` menjadi `Harga`.
-- [ ] Field `Harga dasar` tidak tampil pada produk ber-varian.
-- [ ] Field `Harga dasar` tampil pada produk tanpa varian.
-- [ ] Transisi mode produk tervalidasi.
-- [ ] Product list tidak menampilkan `basePrice` untuk produk ber-varian.
-- [ ] Harga minimum hanya dihitung dari varian aktif.
+- [x] Produk tanpa varian memiliki `basePrice` wajib.
+- [x] Produk dengan varian menyimpan `basePrice = null`.
+- [x] Setiap varian memiliki `price` sebagai harga jual penuh.
+- [x] Label UI berubah dari `Tambahan harga` menjadi `Harga`.
+- [x] Field `Harga dasar` tidak tampil pada produk ber-varian.
+- [x] Field `Harga dasar` tampil pada produk tanpa varian.
+- [x] Transisi mode produk tervalidasi.
+- [x] Product list tidak menampilkan `basePrice` untuk produk ber-varian.
+- [x] Harga minimum hanya dihitung dari varian aktif.
 
 ### POS dan public menu
 
-- [ ] Produk tanpa varian menggunakan `basePrice`.
-- [ ] Produk ber-varian menggunakan `variant.price`.
-- [ ] Harga varian tidak ditambahkan ke `basePrice`.
-- [ ] Produk ber-varian tidak dapat ditambahkan tanpa memilih varian.
-- [ ] Varian nonaktif tidak dapat dipilih.
-- [ ] Add-on tetap ditambahkan ke harga dasar/varian.
-- [ ] POS dan public menu menunjukkan nominal yang konsisten.
+- [x] Produk tanpa varian menggunakan `basePrice`.
+- [x] Produk ber-varian menggunakan `variant.price`.
+- [x] Harga varian tidak ditambahkan ke `basePrice`.
+- [x] Produk ber-varian tidak dapat ditambahkan tanpa memilih varian.
+- [x] Varian nonaktif tidak dapat dipilih.
+- [x] Add-on tetap ditambahkan ke harga dasar/varian.
+- [x] POS dan public menu menunjukkan nominal yang konsisten.
 
 ### Backend dan data
 
-- [ ] Server menghitung ulang harga dari database.
-- [ ] Harga dari client tidak dipercaya.
-- [ ] Semua order source memakai aturan yang sama.
-- [ ] Snapshot order baru menyimpan harga yang benar.
-- [ ] Order historis tidak berubah.
-- [ ] Payment, refund, dan laporan tidak berubah.
-- [ ] Migration mempertahankan harga efektif seluruh varian lama.
-- [ ] Tidak ada data harga null yang tidak valid.
-- [ ] Tidak ada penggunaan aktif `priceAdjustment` setelah migrasi.
+- [x] Server menghitung ulang harga dari database.
+- [x] Harga dari client tidak dipercaya.
+- [x] Semua order source memakai aturan yang sama.
+- [x] Snapshot order baru menyimpan harga yang benar.
+- [x] Order historis tidak berubah.
+- [x] Payment, refund, dan laporan tidak berubah.
+- [x] Migration mempertahankan harga efektif seluruh varian lama.
+- [x] Tidak ada data harga null yang tidak valid.
+- [x] Tidak ada penggunaan aktif `priceAdjustment` setelah migrasi.
 
 ### Quality
 
-- [ ] Unit test pricing lulus.
-- [ ] Validation test lulus.
-- [ ] Migration test lulus.
-- [ ] Backend integration test lulus.
-- [ ] Frontend test lulus.
-- [ ] E2E smoke lulus jika tersedia.
-- [ ] `pnpm check` lulus.
-- [ ] `pnpm test` lulus.
-- [ ] `pnpm build` lulus.
+- [x] Unit test pricing lulus.
+- [x] Validation test lulus.
+- [x] Migration test lulus.
+- [x] Backend integration test lulus.
+- [x] Frontend test lulus.
+- [x] E2E smoke lulus jika tersedia.
+- [x] `pnpm check` lulus.
+- [x] `pnpm test` lulus.
+- [x] `pnpm build` lulus.
 
 ## 16. Risiko dan mitigasi
 
@@ -1232,7 +1232,7 @@ Pekerjaan dinyatakan selesai hanya jika:
 ## 18. Hasil verifikasi implementasi
 
 - `pnpm check` lulus.
-- `pnpm test` lulus dengan 50 file dan 186 test.
+- `pnpm test` lulus dengan 51 file dan 191 test.
 - `pnpm build` lulus.
 - `pnpm test:e2e` lulus dengan 11 test.
 - Migration test lama ke baru lulus dan mempertahankan harga efektif, data add-on, gambar, serta snapshot order historis.
@@ -1303,37 +1303,37 @@ Base price baru          null
 
 ### Audit
 
-- [ ] Baca PRD dan spesifikasi terkait.
-- [ ] Cari seluruh penggunaan `priceAdjustment`.
-- [ ] Cari seluruh penggunaan `basePrice`.
-- [ ] Petakan seluruh order creation flow.
-- [ ] Petakan snapshot order dan cart persistence.
-- [ ] Identifikasi migration SQLite yang dibutuhkan.
+- [x] Baca PRD dan spesifikasi terkait.
+- [x] Cari seluruh penggunaan `priceAdjustment`.
+- [x] Cari seluruh penggunaan `basePrice`.
+- [x] Petakan seluruh order creation flow.
+- [x] Petakan snapshot order dan cart persistence.
+- [x] Identifikasi migration SQLite yang dibutuhkan.
 
 ### Implementasi
 
-- [ ] Domain types.
-- [ ] Zod schemas.
-- [ ] Database schema dan migration.
-- [ ] Catalog repository/service/mapper.
-- [ ] Order pricing service.
-- [ ] POS dan public order flow.
-- [ ] Management product form dan list.
-- [ ] POS configurator dan cart.
-- [ ] Public menu dan cart.
-- [ ] Test dan dokumentasi.
+- [x] Domain types.
+- [x] Zod schemas.
+- [x] Database schema dan migration.
+- [x] Catalog repository/service/mapper.
+- [x] Order pricing service.
+- [x] POS dan public order flow.
+- [x] Management product form dan list.
+- [x] POS configurator dan cart.
+- [x] Public menu dan cart.
+- [x] Test dan dokumentasi.
 
 ### Verifikasi
 
-- [ ] Migration database lama.
-- [ ] Harga produk tanpa varian.
-- [ ] Harga varian penuh.
-- [ ] Add-on calculation.
-- [ ] POS order.
-- [ ] Public QR order.
-- [ ] Snapshot order historis.
-- [ ] Cart compatibility.
-- [ ] `pnpm check`.
-- [ ] `pnpm test`.
-- [ ] `pnpm build`.
-- [ ] E2E smoke.
+- [x] Migration database lama.
+- [x] Harga produk tanpa varian.
+- [x] Harga varian penuh.
+- [x] Add-on calculation.
+- [x] POS order.
+- [x] Public QR order.
+- [x] Snapshot order historis.
+- [x] Cart compatibility.
+- [x] `pnpm check`.
+- [x] `pnpm test`.
+- [x] `pnpm build`.
+- [x] E2E smoke.

@@ -3,6 +3,7 @@ import { loginAs } from "./helpers/auth";
 
 test("cashier creates an order and records split payment", async ({ page }) => {
   await loginAs(page, "owner");
+  const productName = `Kopi Varian ${String(Date.now()).slice(-5)}`;
 
   const categoryResponse = await page.request.post("/api/categories", {
     data: {
@@ -20,7 +21,7 @@ test("cashier creates an order and records split payment", async ({ page }) => {
       description: "",
       isActive: true,
       isAvailable: true,
-      name: "Kopi Susu",
+      name: productName,
       variants: [{ isActive: true, name: "Large", price: 23000 }],
     },
   });
@@ -37,7 +38,10 @@ test("cashier creates an order and records split payment", async ({ page }) => {
 
   await page.goto("/app/pos");
 
-  await page.getByRole("button", { name: "Tambah Kopi Susu" }).first().click();
+  await page
+    .getByRole("button", { name: `Tambah ${productName}` })
+    .first()
+    .click();
   await page.getByRole("button", { name: "Tambahkan" }).click();
 
   await page.getByRole("button", { name: /Pilih meja/ }).click();
@@ -56,7 +60,7 @@ test("cashier creates an order and records split payment", async ({ page }) => {
   await page.getByRole("button", { name: "Catat pembayaran" }).click();
 
   const amount = Number(await page.getByLabel("Uang diterima").inputValue());
-  expect(amount).toBeGreaterThan(0);
+  expect(amount).toBe(23000);
   await page.getByLabel("Uang diterima").fill(String(Math.floor(amount / 2)));
   await page.getByRole("button", { name: "Catat pembayaran" }).click();
   await expect(page.getByText(/Pembayaran tercatat/)).toBeVisible();

@@ -164,6 +164,79 @@ describe("customer menu", () => {
     expect(await screen.findByText("RVK-900")).toBeDefined();
   });
 
+  it("uses the selected variant price in the public cart and payload", async () => {
+    const user = userEvent.setup();
+    const original = fetchMock.getMockImplementation();
+
+    if (!original) {
+      throw new Error("missing fetch mock");
+    }
+
+    fetchMock.mockImplementation(async (input, init) => {
+      const url = String(input);
+
+      if (url === "/api/public/menu/token-meja" && !init?.method) {
+        return jsonResponse({
+          ...menu,
+          addOns: [],
+          products: [
+            {
+              ...menu.products[0],
+              addOns: [],
+              basePrice: null,
+              id: "product-nasi-goreng",
+              name: "Nasi Goreng",
+              variants: [
+                {
+                  id: "variant-regular",
+                  isActive: true,
+                  name: "Regular",
+                  price: 15000,
+                },
+                {
+                  id: "variant-jumbo",
+                  isActive: true,
+                  name: "Jumbo",
+                  price: 20000,
+                },
+              ],
+            },
+          ],
+        });
+      }
+
+      return original(input, init);
+    });
+
+    renderWithProviders(<MenuPage />);
+
+    await user.click(
+      await screen.findByRole("button", { name: "Tambah Nasi Goreng" }),
+    );
+    await user.selectOptions(screen.getByLabelText(/^Varian/), "variant-jumbo");
+    await user.click(
+      screen.getByRole("button", { name: "Tambah ke keranjang" }),
+    );
+    await user.click(screen.getByRole("button", { name: "Lihat keranjang" }));
+
+    expect(screen.getAllByText(/Rp\s?20\.000/).length).toBeGreaterThan(0);
+
+    await user.click(screen.getByRole("radio", { name: "Bayar di kasir" }));
+    await user.click(screen.getByRole("button", { name: "Kirim pesanan" }));
+
+    await waitFor(() => expect(orderPosts()).toHaveLength(1));
+
+    const [call] = orderPosts();
+    const body = JSON.parse((call[1] as RequestInit).body as string);
+
+    expect(body.items[0]).toMatchObject({
+      addOnIds: [],
+      productId: "product-nasi-goreng",
+      quantity: 1,
+      variantId: "variant-jumbo",
+    });
+  });
+
   it("shows change and submits declared cash", async () => {
     const user = userEvent.setup();
     renderWithProviders(<MenuPage />);

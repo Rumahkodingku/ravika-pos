@@ -9,6 +9,7 @@ import { Field } from "@/components/ui/field";
 import { QuantityControl } from "@/components/ui/quantity-control";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { resolveProductUnitPrice } from "@/lib/catalog-pricing";
 import { formatCurrency } from "@/lib/format";
 import type { AddOn, Product } from "@/types/domain";
 
@@ -70,19 +71,23 @@ export function ProductConfigurator({
     (total, addOn) => total + addOn.price,
     0,
   );
-  const baseUnitPrice = product.variants.length
-    ? (selectedVariant?.price ?? null)
-    : product.basePrice;
+  const baseUnitPrice = resolveProductUnitPrice(product, selectedVariant);
   const unitPrice = baseUnitPrice === null ? null : baseUnitPrice + addOnTotal;
   const total = unitPrice === null ? null : unitPrice * quantity;
 
   const validate = () => {
-    if (product.variants.length > 0 && activeVariants.length === 0) {
-      return "Tidak ada varian yang tersedia.";
-    }
+    if (product.variants.length > 0) {
+      if (activeVariants.length === 0) {
+        return "Tidak ada varian yang tersedia.";
+      }
 
-    if (activeVariants.length > 0 && !variantId) {
-      return "Pilih varian terlebih dahulu.";
+      if (!variantId) {
+        return "Pilih varian terlebih dahulu.";
+      }
+
+      if (!selectedVariant) {
+        return "Varian tidak tersedia.";
+      }
     }
 
     if (baseUnitPrice === null) {

@@ -9,6 +9,7 @@ import {
   useState,
 } from "react";
 import { usePosCatalogQuery } from "@/features/operational/api";
+import { resolveProductUnitPrice } from "@/lib/catalog-pricing";
 import type { AddOn, Product, ProductVariant } from "@/types/domain";
 
 const STORAGE_KEY = "ravika-pos-cart";
@@ -104,7 +105,7 @@ function resolveLine(
     return null;
   }
 
-  const baseUnitPrice = variant?.price ?? product.basePrice;
+  const baseUnitPrice = resolveProductUnitPrice(product, variant);
 
   if (baseUnitPrice === null) {
     return null;

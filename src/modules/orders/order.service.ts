@@ -1,6 +1,7 @@
 import "server-only";
 
 import type { AppDatabase, DbExecutor } from "@/infrastructure/database/types";
+import { resolveProductUnitPrice } from "@/lib/catalog-pricing";
 import { formatDateKey } from "@/lib/format";
 import { writeAudit } from "@/modules/audit/audit.service";
 import { getProduct, listAddOns } from "@/modules/catalog/catalog.service";
@@ -325,7 +326,7 @@ async function buildItems(
         (total, item) => total + item.addOn.price,
         0,
       );
-      const baseUnitPrice = variant?.price ?? product.basePrice;
+      const baseUnitPrice = resolveProductUnitPrice(product, variant);
 
       if (baseUnitPrice === null) {
         throw AppError.conflict(

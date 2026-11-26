@@ -25,7 +25,10 @@ import {
   type ProductConfiguratorResult,
 } from "@/features/operational/product-configurator";
 import { ApiError } from "@/lib/api/errors";
-import { productPriceDisplay } from "@/lib/catalog-pricing";
+import {
+  productPriceDisplay,
+  resolveProductUnitPrice,
+} from "@/lib/catalog-pricing";
 import { formatCurrency, parseCurrencyInput } from "@/lib/format";
 import type { AddOn, Product } from "@/types/domain";
 
@@ -131,7 +134,7 @@ export default function MenuPage() {
             addOns.find((candidate) => candidate.id === addOnId),
           )
           .filter((addOn): addOn is AddOn => Boolean(addOn));
-        const baseUnitPrice = variant?.price ?? product.basePrice;
+        const baseUnitPrice = resolveProductUnitPrice(product, variant);
 
         if (baseUnitPrice === null) {
           return [];

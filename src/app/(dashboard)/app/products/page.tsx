@@ -306,6 +306,19 @@ export default function ProductsPage() {
   const categoryName = (id: string) =>
     categories.find((category) => category.id === id)?.name ?? "Tanpa kategori";
 
+  const availabilityState = (product: Product) => {
+    if (
+      product.variants.length > 0 &&
+      !product.variants.some((variant) => variant.isActive)
+    ) {
+      return { label: "Tidak tersedia", tone: "warning" as const };
+    }
+
+    return product.isAvailable
+      ? { label: "Tersedia", tone: "info" as const }
+      : { label: "Habis", tone: "warning" as const };
+  };
+
   const priceLabel = (product: Product) => {
     const display = productPriceDisplay(product);
 
@@ -398,11 +411,11 @@ export default function ProductsPage() {
     },
     {
       accessorKey: "isAvailable",
-      cell: ({ row }) => (
-        <Badge tone={row.original.isAvailable ? "info" : "warning"}>
-          {row.original.isAvailable ? "Tersedia" : "Habis"}
-        </Badge>
-      ),
+      cell: ({ row }) => {
+        const state = availabilityState(row.original);
+
+        return <Badge tone={state.tone}>{state.label}</Badge>;
+      },
       header: "Ketersediaan",
     },
     {
@@ -587,8 +600,8 @@ export default function ProductsPage() {
                       <span className="text-body font-medium tabular-nums text-foreground">
                         {priceLabel(product)}
                       </span>
-                      <Badge tone={product.isAvailable ? "info" : "warning"}>
-                        {product.isAvailable ? "Tersedia" : "Habis"}
+                      <Badge tone={availabilityState(product).tone}>
+                        {availabilityState(product).label}
                       </Badge>
                     </span>
                   </button>
@@ -1002,8 +1015,8 @@ export default function ProductsPage() {
                 <div className="flex justify-between gap-3">
                   <dt className="text-muted-foreground">Ketersediaan</dt>
                   <dd>
-                    <Badge tone={detail.isAvailable ? "info" : "warning"}>
-                      {detail.isAvailable ? "Tersedia" : "Habis"}
+                    <Badge tone={availabilityState(detail).tone}>
+                      {availabilityState(detail).label}
                     </Badge>
                   </dd>
                 </div>

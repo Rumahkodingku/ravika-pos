@@ -726,8 +726,9 @@ dan atribut Secure dikontrol environment.
 - **FR-ADDON-002** --- Pemilik dapat memperbarui nama, harga, dan status add-on.
 - **FR-ADDON-003** --- Add-on dapat dinonaktifkan. Add-on yang tidak aktif tidak dapat dipilih pada produk.
 - **FR-ADDON-004** --- Nama add-on unik per bisnis.
-- **FR-PROD-007** --- Varian dan add-on dapat memiliki penyesuaian
-    harga.
+- **FR-PROD-007** --- Varian memiliki harga jual penuh. Add-on
+    menambah harga produk atau varian terpilih. Produk dengan varian
+    tidak menggunakan harga dasar.
 - **FR-PROD-008** --- Sistem hanya menampilkan produk yang tersedia
     pada menu pelanggan.
 - **FR-PROD-009** --- Sistem memvalidasi ulang produk dan harga ketika
